@@ -1,2 +1,2 @@
 # RascaroBingo
- Trading application
+Bingo style, help trading application
