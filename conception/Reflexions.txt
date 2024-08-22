@@ -1,0 +1,2 @@
+Tried to launch the project in React, but it is a little bit too heavy for quick launch of projects.
+After some research, Vue.js seems way more adapted for quick launch of projects, so even if I don't know the tech, I'll try to do the project in Vue.
