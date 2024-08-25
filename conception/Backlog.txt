@@ -1,2 +1,9 @@
-Navbar with logins.
+In the navbar :
+RascaroBingo = Homepage
+Bingo = LoadBingoPage
+Contact = Open a Form
+Login = Open a Login/Signin Form
 Save the users in a json file before doing the backend.
+Do the backend with MongoDB
+Test with REST API
+Make a session for users.
