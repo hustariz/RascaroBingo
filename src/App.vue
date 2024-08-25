@@ -2,7 +2,7 @@
   <div id="app">
     <Navbar />
     <HelloWorld msg="Welcome to RascaroBingo"/>
-    <img alt="Vue logo" src="./assets/Mini-Kakul.jpg">
+    <img alt="Kakul logo" src="./assets/Mini_Kakul_Transp.png">
   </div>
 </template>
 
@@ -37,4 +37,5 @@ body {
   text-align: center;
   color: #ffffff;
 }
+
 </style>
