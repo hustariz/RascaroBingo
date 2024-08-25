@@ -2,7 +2,7 @@
   <div class="hello">
     <h1>{{ msg }}</h1>
     <p>
-      Rascarobingo is a web application designed to help you manage your emotion and risk management during your trading session, <br> by providing a playful & stimulant frame!
+      Rascarobingo is a web application designed to help you manage your emotion and risk management during your trading session, <br> by providing a playful & stimulant frame !
     </p>
   </div>
 </template>
@@ -31,5 +31,8 @@ li {
 }
 a {
   color: #ff0000;
+}
+.hello {
+  margin-top: 60px; /* This matches the navbar height */
 }
 </style>
