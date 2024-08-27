@@ -1,0 +1,66 @@
+.home-page {
+    margin-top: 60px; /* This matches the navbar height */
+}
+
+.home-page h3 {
+    margin: 40px 0 0;
+}
+
+.home-page ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.home-page li {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.home-page a {
+    color: #ff0000;
+}
+
+.logo-container {
+    position: relative;
+    display: inline-block;
+}
+
+.logo-container .tooltip {
+    visibility: hidden;
+    width: 120px; /* Increased width to accommodate larger text */
+    background-color: #555 transparent transparent transparent;
+    color: red;
+    text-align: center;
+    border-radius: 6px;
+    padding: 14px 8px; /* Increased padding */
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 24px; /* Increased font size */
+    font-weight: bold; /* Optional: makes the text bolder */
+}
+
+.logo-container:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.logo-container .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.kakul-img {
+    cursor: pointer;
+}
