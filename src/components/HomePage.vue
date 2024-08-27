@@ -1,19 +1,23 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
+    <h1>{{ welcomeMessage }}</h1>
     <p>
       Rascarobingo is a web application designed to help you manage your emotion and risk management during your trading session, <br> by providing a playful & stimulant frame !
     </p>
+    <img alt="Kakul logo" src="../assets/Mini_Kakul_Transp.png">
   </div>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
+  name: 'HomePage',
+  data() {
+    return {
+      welcomeMessage: 'Welcome to RascaroBingo'
+    }
   }
 }
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

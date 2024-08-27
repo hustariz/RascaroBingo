@@ -1,9 +1,9 @@
 <!-- src/components/AppNavbar.vue -->
 <template>
   <nav class="navbar">
-    <div class="navbar-brand">RascaroBingo</div>
+    <router-link to="/" class="navbar-brand">RascaroBingo</router-link>
     <div class="navbar-menu">
-      <a href="#" class="navbar-item">Bingo</a>
+      <router-link to="/bingo" class="navbar-item">Bingo</router-link>
       <a href="#" class="navbar-item">Contact</a>
       <a href="#" class="navbar-item">Login</a>
     </div>
@@ -34,9 +34,11 @@ export default {
   font-size: 1.5rem;
   font-weight: bold;
   color: red;
+  text-decoration: none; /* Remove underline from link */
+  cursor: pointer; /* Change cursor to pointer on hover */
 }
 
-.navbar-menu {
+.navbar-menu { 
   display: flex;
 }
 
