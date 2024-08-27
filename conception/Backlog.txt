@@ -1,5 +1,6 @@
 In the navbar :
 RascaroBingo = Homepage
+Add Start Here -> Click on miniKakul, open Bingo
 Bingo = LoadBingoPage
 Contact = Open a Form
 Login = Open a Login/Signin Form

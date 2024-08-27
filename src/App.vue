@@ -1,19 +1,16 @@
 <template>
   <div id="app">
     <Navbar />
-    <HelloWorld msg="Welcome to RascaroBingo"/>
-    <img alt="Kakul logo" src="./assets/Mini_Kakul_Transp.png">
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 import Navbar from './components/AppNavbar.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
     Navbar
   }
 }
@@ -23,7 +20,7 @@ export default {
 body {
   margin: 0;
   padding: 0;
-  background-image: url('./assets/Temporary_background.jpg');
+  background-image: url('./assets/RascaroBingo_Background.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
