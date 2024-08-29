@@ -2,7 +2,9 @@
   <div class="home-page">
     <h1>{{ welcomeMessage }}</h1>
     <p>
-      Rascarobingo is a web application designed to help you manage your emotion and risk management during your trading session, <br> by providing a playful & stimulant frame !
+      Rascarobingo is a web application designed to help you manage your <strong>emotions and risk management</strong>,
+       <br> while also providing <strong>stats</strong> of your trading sessions,
+        <br> by providing a <strong>playful & stimulant frame</strong>! !
     </p>
     <div class="logo-container">
       <router-link to="/bingo"> 
