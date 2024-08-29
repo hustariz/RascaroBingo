@@ -20,7 +20,7 @@ export default {
 body {
   margin: 0;
   padding: 0;
-  background-image: url('./assets/RascaroBingo_Background.png');
+  background-image: url('./assets/images/RascaroBingo_Background.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

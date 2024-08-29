@@ -8,7 +8,7 @@
     </p>
     <div class="logo-container">
       <router-link to="/bingo"> 
-        <img alt="Kakul logo" class="kakul-img" src="../assets/Mini_Kakul_Transp.png">
+        <img alt="Kakul logo" class="kakul-img" src="../assets/images/Mini_Kakul_Transp.png">
         <span class="tooltip">Start Here</span>
       </router-link>
     </div>
