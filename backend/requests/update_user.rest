@@ -1,0 +1,8 @@
+PUT http://localhost:3004/api/users/66d5d122fef676a06763ba36
+Content-Type: application/json
+
+{
+    "username": "Hastarus_update",
+    "password": "azerty69"
+
+}

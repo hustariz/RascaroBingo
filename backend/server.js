@@ -9,6 +9,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    console.log('Body:', req.body);
+    next();
+    });
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -18,7 +24,18 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.log(err));
 
 // Routes
-app.use('/api/users', require('./routes/users'));
+app.use('/api/users', (req, res, next) => {
+    console.log('Request received on /api/users');
+    console.log(`Unmatched route: ${req.method} ${req.url}`);
+    next();
+  }, require('./routes/users'));
 
-const PORT = process.env.PORT || 5000;
+app.use('/users', require('./routes/users'));
+
+
+app.get('/', (req, res) => {
+    res.send('Server is running');
+  });
+
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
