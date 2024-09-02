@@ -4,8 +4,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
+
+// Get all users
+router.get('/', async (req, res) => {
+    try {
+      const users = await User.find().select('-password'); // Exclude password field
+      res.json(users);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+    }
+  });
+
 // Register
 router.post('/register', async (req, res) => {
+  console.log('Register route hit');
+  console.log('Request body:', req.body);
   const { username, password } = req.body;
 
   try {
@@ -44,6 +58,7 @@ router.post('/register', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
 
 // Login
 router.post('/login', async (req, res) => {
