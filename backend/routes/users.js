@@ -67,16 +67,17 @@ router.put('/:id', async (req, res) => {
 router.post('/register', async (req, res) => {
   console.log('Register route hit');
   console.log('Request body:', req.body);
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
-    let user = await User.findOne({ username });
+    let user = await User.findOne({ $or: [{ username }, { email }] });
     if (user) {
       return res.status(400).json({ msg: 'User already exists' });
     }
 
     user = new User({
       username,
+      email,
       password
     });
 
