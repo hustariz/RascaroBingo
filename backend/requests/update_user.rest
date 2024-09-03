@@ -2,7 +2,7 @@ PUT http://localhost:3004/api/users/66d5d644ccc97c86cb5f8a4b
 Content-Type: application/json
 
 {
-    "username": "Hastarus_update",
+    "username": "Hastarus",
     "password": "azerty69"
 
 }
