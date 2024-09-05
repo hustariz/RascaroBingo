@@ -1,94 +1,118 @@
 .form-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1001;
-    }
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
 
-    .form {
-    background-color: rgba(0, 0, 0, 0.7); /* semi-transparent black background */
-    background-image: url('@/assets/images/RascaroBingo_Login.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;    
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    width: 300px;
-    }
+.form {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  width: 300px;
+  position: relative;
+  overflow: hidden;
+}
 
-    h2 {
-    font-family: 'Legendarie', sans-serif;
-    font-size: 2rem;
-    margin-top: 0;
-    color: rgb(238, 175, 17);
-    }
+.form::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(45deg, 
+      #8B0000, #FFD700, #450000, #8B0000, 
+      #FFD700, #450000, #8B0000, #FFD700
+  );
+  background-size: 400% 400%;
+  border-radius: 17px;
+  filter: blur(10px);
+  opacity: 1;
+  z-index: -1;
+  animation: animateBorder 10s ease infinite;
+}
 
-    .form-group {
-    margin-bottom: 15px;
-    }
+@keyframes animateBorder {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-    label {
-    font-family: 'Legendarie', sans-serif;
-    font-size: 1.5rem;
-    display: block;
-    margin-bottom: 5px;
-    color: rgb(238, 175, 17);
-    font-weight: bold;
-    }
+h2 {
+  font-family: 'Legendarie', sans-serif;
+  font-size: 2rem;
+  margin-top: 0;
+  color: rgb(238, 175, 17);
+}
 
-    input {
-    width: 100%;
-    padding: 5px;
-    border: 2px solid #000000;
-    border-radius: 3px;
-    background-color: whitesmoke;
-    }
+.form-group {
+  margin-bottom: 15px;
+}
 
-    .form-actions {
-    display: flex;
-    justify-content: space-between;
-    }
+label {
+  font-family: 'Legendarie', sans-serif;
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 5px;
+  color: rgb(238, 175, 17);
+  font-weight: bold;
+}
 
-    button {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: 'Legendarie', sans-serif;
-    font-size: 1.5rem;
-    }
+input {
+  width: 100%;
+  padding: 5px;
+  border: 2px solid #000000;
+  border-radius: 3px;
+  background-color: rgba(245, 245, 245, 0.1);
+  color: rgb(238, 175, 17);
+}
 
-    button[type="submit"] {
-    background-color: rgb(238, 175, 17);
-    color: white;
-    }
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+}
 
-    button[type="button"] {
-    background-color: #f44336;
-    color: white;
-    }
-  
-  .sign-in-link {
-    margin-top: 15px;
-    text-align: center;
-    color: #ffffff;
-    font-family: 'Legendarie', sans-serif;
-    font-size: 1rem;
-  }
-  
-  .sign-in-link a {
-    color: rgb(238, 175, 17);
-    font-size: 1.5rem;
-    text-decoration: none;
-  }
-  
-  .sign-in-link a:hover {
-    text-decoration: underline;
-  }
+button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Legendarie', sans-serif;
+  font-size: 1.5rem;
+}
+
+button[type="submit"] {
+  background-color: rgb(238, 175, 17);
+  color: #000000;
+}
+
+button[type="button"] {
+  background-color: #8B0000;
+  color: rgb(238, 175, 17);
+}
+
+.sign-in-link {
+  margin-top: 15px;
+  text-align: center;
+  color: #ffffff;
+  font-family: 'Legendarie', sans-serif;
+  font-size: 1rem;
+}
+
+.sign-in-link a {
+  color: rgb(238, 175, 17);
+  font-size: 1.5rem;
+  text-decoration: none;
+}
+
+.sign-in-link a:hover {
+  text-decoration: underline;
+}
