@@ -13,7 +13,6 @@
     "vue": "^3.2.13",
     "vue-router": "^4.4.3",
     "vuex": "^4.1.0"
-
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
