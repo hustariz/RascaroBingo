@@ -51,20 +51,6 @@ export default {
       isLoading.value = true;
       errorMessage.value = '';
 
-  try {
-    await store.dispatch('login', {
-      username: username.value,
-      password: password.value
-    });
-      closeForm();
-      router.push('/'); // Redirect to home page or dashboard
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.msg) {
-        errorMessage.value = error.response.data.msg;
-    } else {
-        errorMessage.value = 'Login failed. Please try again.';
-    }
-    console.error('Login error:', error);
       try {
         await store.dispatch('login', {
           username: username.value,
@@ -104,3 +90,9 @@ export default {
 };
 </script>
 
+<style scoped>
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+</style>
