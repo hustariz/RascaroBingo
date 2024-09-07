@@ -120,3 +120,6 @@ button[type="button"] {
   color: red;
   margin-top: 10px;
 }
+.success-message {
+  color: rgb(238, 175, 17);
+}
