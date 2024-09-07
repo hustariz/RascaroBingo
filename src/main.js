@@ -6,6 +6,4 @@ import store from './store'
 const app = createApp(App)
 app.use(router)
 app.use(store)
-store.dispatch('checkAuth')
 app.mount('#app')
-
