@@ -20,7 +20,7 @@
         </div>
       </form>
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-      <p class="sign-in-link">Don't have an account yet? <a href="#" @click.prevent="openRegisterForm">Sign in now!</a></p>
+      <p class="sign-in-link">Don't have an account yet? <a href="#" @click.prevent="openRegisterForm">Sign up now!</a></p>
     </div>
   </div>
 </template>
@@ -29,7 +29,6 @@
 import { ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import '../assets/styles/LoginForm.css';
 
 export default {
   name: 'LoginForm',
@@ -51,15 +50,20 @@ export default {
       isLoading.value = true;
       errorMessage.value = '';
 
-      try {
-        await store.dispatch('login', {
-          username: username.value,
-          password: password.value
-        });
-        closeForm();
-        router.push('/'); // Redirect to home page or dashboard
-      } catch (error) {
-        errorMessage.value = error.response?.data?.msg || 'Login failed. Please try again.';
+  try {
+    await store.dispatch('login', {
+      username: username.value,
+      password: password.value
+    });
+      closeForm();
+      router.push('/'); // Redirect to home page or dashboard
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.msg) {
+        errorMessage.value = error.response.data.msg;
+    } else {
+        errorMessage.value = 'Login failed. Please try again.';
+    }
+    console.error('Login error:', error);
       } finally {
         isLoading.value = false;
       }
@@ -89,10 +93,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.error-message {
-  color: red;
-  margin-top: 10px;
-}
-</style>
