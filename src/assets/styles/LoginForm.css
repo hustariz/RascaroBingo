@@ -116,3 +116,10 @@ button[type="button"] {
 .sign-in-link a:hover {
   text-decoration: underline;
 }
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+.success-message {
+  color: rgb(238, 175, 17);
+}
