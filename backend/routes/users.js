@@ -62,6 +62,7 @@ router.put('/:id', async (req, res) => {
       res.status(500).send('Server error');
     }
   });  
+ 
 
 // Register
 router.post('/register', async (req, res) => {
@@ -135,13 +136,16 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1h' },
       (err, token) => {
-        if (err) throw err;
+        if (err) {
+          console.error('JWT Sign Error:', err);
+          return res.status(500).json({ msg: 'Error generating token' });
+        }
         res.json({ token, username: user.username });
       }
     );
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Login Error:', err);
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 });
 
