@@ -51,10 +51,12 @@ export default {
       errorMessage.value = '';
 
   try {
-    await store.dispatch('login', {
+    console.log('Attempting login...');
+    const response = await store.dispatch('login', {
       username: username.value,
       password: password.value
     });
+      console.log('Login response:', response);
       closeForm();
       router.push('/'); // Redirect to home page or dashboard
     } catch (error) {

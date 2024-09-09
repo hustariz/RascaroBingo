@@ -1,6 +1,22 @@
 import { createStore } from 'vuex'
 import axios from 'axios'
 
+// Create an axios instance
+const api = axios.create({
+  baseURL: 'http://localhost:3004/api'
+});
+
+// Add a request interceptor
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, error => {
+  return Promise.reject(error);
+});
+
 export default createStore({
   state: {
     auth: {
@@ -23,15 +39,13 @@ export default createStore({
   actions: {
     async login({ commit }, { username, password }) {
       try {
-        // Replace with your actual API endpoint
-        const response = await axios.post('http://localhost:3004/api/users/login', { username, password });
-        const { user, token } = response.data;
+        const response = await api.post('/users/login', { username, password });
+        const { token, username: responseUsername } = response.data;
         
         commit('SET_LOGGED_IN', true);
-        commit('SET_USER', user);
+        commit('SET_USER', { username: responseUsername });
         commit('SET_TOKEN', token);
         
-        // Store token in localStorage for persistence
         localStorage.setItem('token', token);
         
         return response;
@@ -46,13 +60,19 @@ export default createStore({
       commit('SET_TOKEN', null);
       localStorage.removeItem('token');
     },
-    checkAuth({ commit }) {
+    async checkAuth({ commit, dispatch }) {
       const token = localStorage.getItem('token');
       if (token) {
-        // You might want to validate the token with your backend here
-        commit('SET_LOGGED_IN', true);
-        commit('SET_TOKEN', token);
-        // Optionally fetch user data here
+        try {
+          // Validate token with backend
+          const response = await api.get('/users/me');
+          commit('SET_LOGGED_IN', true);
+          commit('SET_TOKEN', token);
+          commit('SET_USER', response.data);
+        } catch (error) {
+          console.error('Token validation failed:', error);
+          dispatch('logout');
+        }
       }
     }
   },
