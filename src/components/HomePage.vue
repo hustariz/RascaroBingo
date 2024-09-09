@@ -6,12 +6,12 @@
        <br> while also providing <strong>stats</strong> of your trading sessions,
         <br> by providing a <strong>playful & stimulant frame</strong>! !
     </p>
-    <div class="logo-container">
+    <!--<div class="logo-container">
       <router-link to="/bingo"> 
         <img alt="Kakul logo" class="kakul-img" src="../assets/images/Mini_Kakul_Transp.png">
         <span class="tooltip">Start Here</span>
       </router-link>
-    </div>
+    </div> -->
   </div>
 </template>
 
