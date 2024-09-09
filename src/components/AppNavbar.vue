@@ -5,10 +5,14 @@
     <div class="navbar-menu">
       <router-link to="/bingo" class="navbar-item">Bingo</router-link>
       <a href="#" class="navbar-item" @click.prevent="showContactForm">Contact</a>
-      <template v-if="isLoggedIn">
-        <span class="navbar-item">Welcome, {{ username }}</span>
-        <a href="#" class="navbar-item" @click.prevent="logout">Logout</a>
-      </template>
+      <div v-if="isLoggedIn" class="dropdown">
+        <a href="#" class="navbar-item" @click.prevent="toggleDropdown">{{ username }}</a>
+          <div v-if="isDropdownOpen" class="dropdown-menu">
+            <router-link to="/profile" class="dropdown-item">Profile</router-link>
+            <router-link to="/statistics" class="dropdown-item">Statistics</router-link>
+            <a href="#" class="dropdown-item" @click.prevent="logout">Logout</a>
+          </div>
+      </div>
       <a v-else href="#" class="navbar-item" @click.prevent="showLoginForm">Login</a>
     </div>
     <ContactForm :isOpen="isContactFormOpen" @close="closeContactForm" />
@@ -41,7 +45,8 @@ export default {
     return {
       isContactFormOpen: false,
       isLoginFormOpen: false,
-      isRegisterFormOpen: false
+      isRegisterFormOpen: false,
+      isDropdownOpen: false
     }
   },
   methods: {
@@ -63,7 +68,10 @@ export default {
     },
     closeRegisterForm() {
       this.isRegisterFormOpen = false;
-    }
+    },
+    toggleDropdown() {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
   }
 }
 </script>

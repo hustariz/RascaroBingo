@@ -30,8 +30,6 @@ app.use('/api/users', (req, res, next) => {
     next();
   }, require('./routes/users'));
 
-app.use('/users', require('./routes/users'));
-
 
 app.get('/', (req, res) => {
     res.send('Server is running');
