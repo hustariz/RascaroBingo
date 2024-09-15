@@ -3,17 +3,31 @@
   <nav class="navbar">
     <router-link to="/" class="navbar-brand">RascaroBingo</router-link>
     <div class="navbar-menu">
-      <router-link to="/bingo" class="navbar-item">Bingo</router-link>
-      <a href="#" class="navbar-item" @click.prevent="showContactForm">Contact</a>
+      <router-link to="/bingo" class="navbar-item">
+        <font-awesome-icon icon="dice" class="icon" /> Bingo
+      </router-link>
+      <a href="#" class="navbar-item" @click.prevent="showContactForm">
+        <font-awesome-icon icon="envelope" class="icon" /> Contact
+      </a>
       <div v-if="isLoggedIn" class="dropdown">
-        <a href="#" class="navbar-item" @click.prevent="toggleDropdown">{{ username }}</a>
-          <div v-if="isDropdownOpen" class="dropdown-menu">
-            <router-link to="/profile" class="dropdown-item">Profile</router-link>
-            <router-link to="/statistics" class="dropdown-item">Statistics</router-link>
-            <a href="#" class="dropdown-item" @click.prevent="logout">Logout</a>
-          </div>
+        <a href="#" class="navbar-item" @click.prevent="toggleDropdown">
+          <font-awesome-icon icon="user" class="icon" /> {{ username }}
+        </a>
+        <div v-if="isDropdownOpen" class="dropdown-menu">
+          <router-link to="/profile" class="dropdown-item">
+            <font-awesome-icon icon="user" class="icon" /> Profile
+          </router-link>
+          <router-link to="/statistics" class="dropdown-item">
+            <font-awesome-icon icon="chart-bar" class="icon" /> Statistics
+          </router-link>
+          <a href="#" class="dropdown-item" @click.prevent="logout">
+            <font-awesome-icon icon="sign-out-alt" class="icon" /> Logout
+          </a>
+        </div>
       </div>
-      <a v-else href="#" class="navbar-item" @click.prevent="showLoginForm">Login</a>
+      <a v-else href="#" class="navbar-item" @click.prevent="showLoginForm">
+        <font-awesome-icon icon="user" class="icon" /> Login
+      </a>
     </div>
     <ContactForm :isOpen="isContactFormOpen" @close="closeContactForm" />
     <LoginForm :isOpen="isLoginFormOpen" @close="closeLoginForm" @openRegister="showRegisterForm" />
