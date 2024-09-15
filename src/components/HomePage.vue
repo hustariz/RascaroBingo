@@ -1,10 +1,11 @@
 <template>
   <div class="home-page">
-    <h1>{{ welcomeMessage }}</h1>
+    <h1>{{ welcomeMessage }}</h1><br>
     <p>
-      Rascarobingo is a web application designed to help you manage your <strong>emotions and risk management</strong>,
-       <br> while also providing <strong>stats</strong> of your trading sessions,
-        <br> by providing a <strong>playful & stimulant frame</strong>! !
+      Rascarobingo is a <strong>trading application</strong> with a bingo-style scoring system and <strong>risk management</strong> features.<br>
+       It is designed to help you manage your <strong>emotions</strong>  by providing a <strong>playful & stimulant frame</strong>,<br>
+        while also providing <strong>stats</strong> of your trading sessions.
+         
     </p>
     <!--
       <div class="bg-blue-500 text-white p-4">
