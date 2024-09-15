@@ -40,8 +40,8 @@
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: #fff;
-    border: 1px solid #ddd;
+    background-color: black;
+    border: 1px solid rgb(238, 175, 17);
     border-radius: 4px;
     padding: 0.5rem 0;
     z-index: 1000;
@@ -50,10 +50,20 @@
   .dropdown-item {
     display: block;
     padding: 0.5rem 1rem;
-    color: #333;
+    color: white;
     text-decoration: none;
+    display: flex;
+    align-items: center;
   }
   
   .dropdown-item:hover {
-    background-color: #f8f9fa;
+    background-color: rgb(238, 175, 17);
+  }
+
+  .dropdown-item svg {
+    margin-right: 8px;
+  }
+
+  .icon {
+    margin-right: 0.5rem;
   }
