@@ -1,8 +1,8 @@
 <template>
-    <div class="stats-page">
-      <h1>Statistics Page</h1>
+    <div class="analytics-page">
+      <h1>Analytics Page</h1>
       <p>
-            Check your trading statistics here!
+            Check your trading analytics here!
       </p>
     </div>
   </template>
@@ -14,14 +14,14 @@
     name: 'ProfilePage',
     data() {
       return {
-        welcomeMessage: 'Welcome to your stats summary'
+        welcomeMessage: 'Welcome to your analytics summary'
       }
     }
   }
   </script>
 
 <style scoped>
-.stats-page {
+.analytics-page {
     margin-top: 60px; /* This matches the navbar height */
 }
 </style>

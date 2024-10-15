@@ -3,8 +3,8 @@
     <h1>{{ welcomeMessage }}</h1><br>
     <p>
       Rascarobingo is a <strong>trading application</strong> with a bingo-style scoring system and <strong>risk management</strong> features.<br>
-       It is designed to help you manage your <strong>emotions</strong>  by providing a <strong>playful & stimulant frame</strong>,<br>
-        while also providing <strong>stats</strong> of your trading sessions.
+       It is designed to help you managing your <strong>emotions</strong>  by providing a <strong>playful & stimulant frame</strong>,<br>
+        while also providing <strong>analytics</strong> of your trading sessions.
          
     </p>
     <!--
