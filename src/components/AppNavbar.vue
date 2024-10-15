@@ -17,8 +17,8 @@
           <router-link to="/profile" class="dropdown-item">
             <font-awesome-icon icon="user" class="icon" /> Profile
           </router-link>
-          <router-link to="/statistics" class="dropdown-item">
-            <font-awesome-icon icon="chart-bar" class="icon" /> Statistics
+          <router-link to="/analytics" class="dropdown-item">
+            <font-awesome-icon icon="chart-bar" class="icon" /> Analytics
           </router-link>
           <a href="#" class="dropdown-item" @click.prevent="logout">
             <font-awesome-icon icon="sign-out-alt" class="icon" /> Logout
