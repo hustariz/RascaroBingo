@@ -64,89 +64,106 @@ router.put('/:id', async (req, res) => {
   });  
  
 
-// Register
-router.post('/register', async (req, res) => {
-  console.log('Register route hit');
-  console.log('Request body:', req.body);
-  const { username, email, password } = req.body;
-
-  try {
-    let user = await User.findOne({ $or: [{ username }, { email }] });
-    if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
-    }
-
-    user = new User({
-      username,
-      email,
-      password
-    });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    await user.save();
-
-    const payload = {
-      user: {
-        id: user.id
+  router.post('/register', async (req, res) => {
+    console.log('Register route hit');
+    console.log('Request body:', req.body);
+    const { username, email, password } = req.body;
+  
+    try {
+      // Check username and email separately to give better error messages
+      const existingUsername = await User.findOne({ username });
+      if (existingUsername) {
+        console.log('Username already exists');
+        return res.status(400).json({ msg: 'Username already taken' });
       }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: 3600 },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
+  
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        console.log('Email already exists');
+        return res.status(400).json({ msg: 'Email already registered' });
       }
-    );
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-
-// Login
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
-    }
-
-    const payload = {
-      user: {
-        id: user.id,
-        username: user.username
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) {
-          console.error('JWT Sign Error:', err);
-          return res.status(500).json({ msg: 'Error generating token' });
+  
+      // If we get here, neither username nor email exists
+      const user = new User({
+        username,
+        email,
+        password
+      });
+  
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+  
+      await user.save();
+      console.log('User saved successfully');
+  
+      const payload = {
+        user: {
+          id: user.id
         }
-        res.json({ token, username: user.username });
+      };
+  
+      jwt.sign(
+        payload,
+        process.env.JWT_SECRET,
+        { expiresIn: 3600 },
+        (err, token) => {
+          if (err) throw err;
+          res.json({ token });
+        }
+      );
+    } catch (err) {
+      console.error('Registration error:', err);
+      res.status(500).send('Server error');
+    }
+  });
+  
+
+
+  router.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    console.log('Login attempt for username:', username);
+  
+    try {
+      const user = await User.findOne({ username });
+      if (!user) {
+        console.log('User not found');
+        return res.status(400).json({ msg: 'Invalid credentials' });
       }
-    );
-  } catch (err) {
-    console.error('Login Error:', err);
-    res.status(500).json({ msg: 'Server error', error: err.message });
-  }
-});
+  
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        console.log('Password does not match');
+        return res.status(400).json({ msg: 'Invalid credentials' });
+      }
+  
+      const payload = {
+        user: {
+          id: user.id,
+          username: user.username
+        }
+      };
+  
+      // Add debug logging
+      console.log('JWT_SECRET:', process.env.JWT_SECRET);
+  
+      jwt.sign(
+        payload,
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' },
+        (err, token) => {
+          if (err) {
+            console.error('JWT Sign Error:', err);
+            return res.status(500).json({ msg: 'Error generating token' });
+          }
+          console.log('Token generated successfully');
+          res.json({ token, username: user.username });
+        }
+      );
+    } catch (err) {
+      console.error('Login Error:', err);
+      res.status(500).json({ msg: 'Server error', error: err.message });
+    }
+  });
+  
 
 module.exports = router;
