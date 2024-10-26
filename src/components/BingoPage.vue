@@ -7,21 +7,18 @@
     <!-- Main Content -->
     <div class="main-content">
       <div class="rascaro-bingo">
-        <h1>RascaroBingo V1.0</h1>
+        <h2>RascaroBingo V1.0</h2>
 
-        <!-- Risk Management Section -->
-        <div class="risk-management">
-          <h2>Risk Management</h2>
-        <div>
-          <span>Trade's streak: </span>
-        </div>
-        <div>
-          <span>Number of SL taken: </span>
-        </div>
-        <div>
-          <h2>Trade's idea:</h2>
-        </div>
-      </div>
+
+          <div class="trade-idea">
+            <h2>Trade's idea:</h2>
+            <textarea 
+              v-model="tradeIdea" 
+              placeholder="Enter your trade ideas here..." 
+              rows="4"
+              class="trade-idea-input"
+            ></textarea>
+          </div>
 
       <!-- Bingo Section -->
       <div class="bingo-section">
