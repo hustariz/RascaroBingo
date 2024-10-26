@@ -64,11 +64,11 @@ export default {
     },
     streakColor() {
       const colors = {
-        '-2': '#ff4444',
-        '-1': '#ff8844',
-        '0': 'rgb(238, 175, 17)',
-        '1': '#44ff44',
-        '2': '#00ff00'
+        '-2': '#0066cc', // Dark blue
+      '-1': '#66b3ff', // Light blue
+      '0': '#FFFFFF', // wh
+      '1': '#ffb366', // Light orange
+      '2': '#f57c00' // Red
       };
       return colors[this.tradeStreak];
     }
