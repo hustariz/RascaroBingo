@@ -4,36 +4,101 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const PORT = process.env.PORT || 3004;
 
-// Middleware
-app.use(cors());
+// Import middleware
+const auth = require('./middleware/auth');
+
+// CORS Configuration
+const corsOptions = {
+  origin: ['http://localhost:8080', 'http://localhost:3004', 'https://rascarobingo.onrender.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  exposedHeaders: ['Authorization']
+};
+
+// Global Middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 
+// Logging middleware
 app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    console.log('Body:', req.body);
-    next();
-    });
+  console.log(`${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
+  next();
+});
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log('MongoDB connection error:', err));
 
-// Routes
-app.use('/api/users', (req, res, next) => {
-    console.log('Request received on /api/users');
-    console.log(`Unmatched route: ${req.method} ${req.url}`);
-    next();
-  }, require('./routes/users'));
+// Import routes
+const userRoutes = require('./routes/users');
 
+// Create router for user routes
+const router = express.Router();
 
+// Define routes on the router
+router.post('/login', userRoutes);
+router.post('/register', userRoutes);
+
+// Protected routes
+router.get('/me', auth, userRoutes);
+router.get('/', auth, userRoutes);
+router.put('/:id', auth, userRoutes);
+router.delete('/:id', auth, userRoutes);
+
+// Mount all routes under /api/users
+app.use('/api/users', router);
+
+// Base route
 app.get('/', (req, res) => {
-    res.send('Server is running');
-  });
+  res.send('Server is running');
+});
 
-const PORT = process.env.PORT;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ 
+    msg: 'Server error', 
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+  });
+});
+
+// Start server with error handling
+const startServer = () => {
+  try {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log('Environment:', process.env.NODE_ENV);
+      console.log('CORS enabled for:', corsOptions.origin);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Global error handlers
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Promise Rejection:', err);
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+});
+
+// Start the server
+startServer();
+
+module.exports = app;
