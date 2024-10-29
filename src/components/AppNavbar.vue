@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import '../assets/styles/AppNavbar.css';
 import ContactForm from './ContactForm.vue';
@@ -69,31 +69,11 @@ export default {
     const username = ref('');
     const isAuthenticated = ref(false);
 
-    // Form control functions
-    const showContactForm = () => isContactFormOpen.value = true;
-    const closeContactForm = () => isContactFormOpen.value = false;
-    const showLoginForm = () => isLoginFormOpen.value = true;
-    const closeLoginForm = () => isLoginFormOpen.value = false;
-    const showRegisterForm = () => isRegisterFormOpen.value = true;
-    const closeRegisterForm = () => isRegisterFormOpen.value = false;
-    const toggleDropdown = () => isDropdownOpen.value = !isDropdownOpen.value;
-
-    // Check authentication status and get user data
     const checkAuth = async () => {
       try {
         if (api.isAuthenticated()) {
           isAuthenticated.value = true;
           username.value = localStorage.getItem('username') || '';
-          
-          // Verify token and get updated user data
-          const userData = await api.checkAuth();
-          if (userData?.username) {
-            username.value = userData.username;
-            localStorage.setItem('username', userData.username);
-          }
-        } else {
-          isAuthenticated.value = false;
-          username.value = '';
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -101,12 +81,12 @@ export default {
       }
     };
 
-    // Handle successful login/register
     const handleLoginSuccess = (userData) => {
+      console.log('Login success:', userData);
       username.value = userData.username;
       isAuthenticated.value = true;
-      isLoginFormOpen.value = false; 
-      isRegisterFormOpen.value = false; 
+      isLoginFormOpen.value = false;
+      isRegisterFormOpen.value = false;
     };
 
     const handleLogout = () => {
@@ -117,17 +97,16 @@ export default {
       router.push('/');
     };
 
-    // Check auth on component mount
+    const showContactForm = () => isContactFormOpen.value = true;
+    const closeContactForm = () => isContactFormOpen.value = false;
+    const showLoginForm = () => isLoginFormOpen.value = true;
+    const closeLoginForm = () => isLoginFormOpen.value = false;
+    const showRegisterForm = () => isRegisterFormOpen.value = true;
+    const closeRegisterForm = () => isRegisterFormOpen.value = false;
+    const toggleDropdown = () => isDropdownOpen.value = !isDropdownOpen.value;
+
     onMounted(() => {
       checkAuth();
-    });
-
-    // Watch for authentication changes
-    watch(isAuthenticated, (newValue) => {
-      if (!newValue) {
-        username.value = '';
-        localStorage.removeItem('username');
-      }
     });
 
     return {
