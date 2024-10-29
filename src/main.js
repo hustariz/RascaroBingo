@@ -5,13 +5,19 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faUser, faSignOutAlt, faCog, faDice, faEnvelope, faChartBar } from '@fortawesome/free-solid-svg-icons'
 import router from './router'
-import store from './store'
+import api from '@/services/api'
 
 library.add(faUser, faSignOutAlt, faCog, faDice, faEnvelope, faChartBar)
 
 const app = createApp(App)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.use(router)
-app.use(store)
-store.dispatch('checkAuth')
+
+if (api.isAuthenticated()) {
+    api.checkAuth().catch(error => {
+        console.error('Auth check failed:', error);
+        api.logout();
+    });
+}
+
 app.mount('#app')

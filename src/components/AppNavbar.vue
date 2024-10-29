@@ -9,7 +9,7 @@
       <a href="#" class="navbar-item" @click.prevent="showContactForm">
         <font-awesome-icon icon="envelope" class="icon" /> Contact
       </a>
-      <div v-if="isLoggedIn" class="dropdown">
+      <div v-if="isAuthenticated" class="dropdown">
         <a href="#" class="navbar-item" @click.prevent="toggleDropdown">
           <font-awesome-icon icon="user" class="icon" /> {{ username }}
         </a>
@@ -20,7 +20,7 @@
           <router-link to="/analytics" class="dropdown-item">
             <font-awesome-icon icon="chart-bar" class="icon" /> Analytics
           </router-link>
-          <a href="#" class="dropdown-item" @click.prevent="logout">
+          <a href="#" class="dropdown-item" @click.prevent="handleLogout">
             <font-awesome-icon icon="sign-out-alt" class="icon" /> Logout
           </a>
         </div>
@@ -30,17 +30,28 @@
       </a>
     </div>
     <ContactForm :isOpen="isContactFormOpen" @close="closeContactForm" />
-    <LoginForm :isOpen="isLoginFormOpen" @close="closeLoginForm" @openRegister="showRegisterForm" />
-    <RegisterForm :isOpen="isRegisterFormOpen" @close="closeRegisterForm" />
+    <LoginForm 
+      :isOpen="isLoginFormOpen" 
+      @close="closeLoginForm" 
+      @openRegister="showRegisterForm"
+      @login-success="handleLoginSuccess"
+    />
+    <RegisterForm 
+      :isOpen="isRegisterFormOpen" 
+      @close="closeRegisterForm"
+      @register-success="handleLoginSuccess"
+    />
   </nav>
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import '../assets/styles/AppNavbar.css';
 import ContactForm from './ContactForm.vue';
 import LoginForm from './LoginForm.vue';
 import RegisterForm from './RegisterForm.vue';
+import api from '@/services/api';
 
 export default {
   name: 'AppNavbar',
@@ -49,43 +60,93 @@ export default {
     LoginForm,
     RegisterForm
   },
-  computed: {
-    ...mapState({
-      isLoggedIn: state => state.auth.isLoggedIn,
-      username: state => state.auth.user?.username
-    })
-  },
-  data() {
+  setup() {
+    const router = useRouter();
+    const isContactFormOpen = ref(false);
+    const isLoginFormOpen = ref(false);
+    const isRegisterFormOpen = ref(false);
+    const isDropdownOpen = ref(false);
+    const username = ref('');
+    const isAuthenticated = ref(false);
+
+    // Form control functions
+    const showContactForm = () => isContactFormOpen.value = true;
+    const closeContactForm = () => isContactFormOpen.value = false;
+    const showLoginForm = () => isLoginFormOpen.value = true;
+    const closeLoginForm = () => isLoginFormOpen.value = false;
+    const showRegisterForm = () => isRegisterFormOpen.value = true;
+    const closeRegisterForm = () => isRegisterFormOpen.value = false;
+    const toggleDropdown = () => isDropdownOpen.value = !isDropdownOpen.value;
+
+    // Check authentication status and get user data
+    const checkAuth = async () => {
+      try {
+        if (api.isAuthenticated()) {
+          isAuthenticated.value = true;
+          username.value = localStorage.getItem('username') || '';
+          
+          // Verify token and get updated user data
+          const userData = await api.checkAuth();
+          if (userData?.username) {
+            username.value = userData.username;
+            localStorage.setItem('username', userData.username);
+          }
+        } else {
+          isAuthenticated.value = false;
+          username.value = '';
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        handleLogout();
+      }
+    };
+
+    // Handle successful login/register
+    const handleLoginSuccess = (userData) => {
+      username.value = userData.username;
+      isAuthenticated.value = true;
+      isLoginFormOpen.value = false; 
+      isRegisterFormOpen.value = false; 
+    };
+
+    const handleLogout = () => {
+      api.logout();
+      username.value = '';
+      isAuthenticated.value = false;
+      isDropdownOpen.value = false;
+      router.push('/');
+    };
+
+    // Check auth on component mount
+    onMounted(() => {
+      checkAuth();
+    });
+
+    // Watch for authentication changes
+    watch(isAuthenticated, (newValue) => {
+      if (!newValue) {
+        username.value = '';
+        localStorage.removeItem('username');
+      }
+    });
+
     return {
-      isContactFormOpen: false,
-      isLoginFormOpen: false,
-      isRegisterFormOpen: false,
-      isDropdownOpen: false
-    }
-  },
-  methods: {
-    ...mapActions(['logout']),
-    showContactForm() {
-      this.isContactFormOpen = true;
-    },
-    closeContactForm() {
-      this.isContactFormOpen = false;
-    },
-    showLoginForm() {
-      this.isLoginFormOpen = true;
-    },
-    closeLoginForm() {
-      this.isLoginFormOpen = false;
-    },
-    showRegisterForm() {
-      this.isRegisterFormOpen = true;
-    },
-    closeRegisterForm() {
-      this.isRegisterFormOpen = false;
-    },
-    toggleDropdown() {
-    this.isDropdownOpen = !this.isDropdownOpen;
+      isContactFormOpen,
+      isLoginFormOpen,
+      isRegisterFormOpen,
+      isDropdownOpen,
+      isAuthenticated,
+      username,
+      showContactForm,
+      closeContactForm,
+      showLoginForm,
+      closeLoginForm,
+      showRegisterForm,
+      closeRegisterForm,
+      toggleDropdown,
+      handleLogout,
+      handleLoginSuccess
+    };
   }
-  }
-}
+};
 </script>
