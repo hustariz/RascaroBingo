@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: rascarobingo
+    buildCommand: npm run build
+    publishDir: dist
+    staticPublishing: true
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
