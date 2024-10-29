@@ -56,11 +56,13 @@ export default {
         });
         
         console.log('Login successful:', response);
+        // Emit login-success event with user data
+        emit('login-success', response);
         closeForm();
         router.push('/');
       } catch (error) {
         console.error('Login error:', error);
-        errorMessage.value = error.response?.data?.msg || 'Login failed';
+        errorMessage.value = error.msg || 'Login failed';
       } finally {
         isLoading.value = false;
       }
