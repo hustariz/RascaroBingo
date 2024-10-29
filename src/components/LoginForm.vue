@@ -1,9 +1,8 @@
-<!-- src/components/LoginForm.vue -->
 <template>
   <div class="form-overlay" v-if="isOpen" @click.self="closeForm">
     <div class="form">
       <h2>Login</h2>
-      <form @submit.prevent="submitForm">
+      <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="username">Username:</label>
           <input type="text" id="username" v-model="username" required>
@@ -26,9 +25,10 @@
 </template>
 
 <script>
+import '../assets/styles/LoginForm.css';
 import { ref } from 'vue';
-import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import api from '@/services/api';
 
 export default {
   name: 'LoginForm',
@@ -39,33 +39,28 @@ export default {
     }
   },
   setup(props, { emit }) {
-    const store = useStore();
     const router = useRouter();
     const username = ref('');
     const password = ref('');
     const isLoading = ref(false);
     const errorMessage = ref('');
 
-    const submitForm = async () => {
+    const handleLogin = async () => {
       isLoading.value = true;
       errorMessage.value = '';
 
-  try {
-    console.log('Attempting login...');
-    const response = await store.dispatch('login', {
-      username: username.value,
-      password: password.value
-    });
-      console.log('Login response:', response);
-      closeForm();
-      router.push('/'); // Redirect to home page or dashboard
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.msg) {
-        errorMessage.value = error.response.data.msg;
-    } else {
-        errorMessage.value = 'Login failed. Please try again.';
-    }
-    console.error('Login error:', error);
+      try {
+        const response = await api.login({
+          username: username.value,
+          password: password.value
+        });
+        
+        console.log('Login successful:', response);
+        closeForm();
+        router.push('/');
+      } catch (error) {
+        console.error('Login error:', error);
+        errorMessage.value = error.response?.data?.msg || 'Login failed';
       } finally {
         isLoading.value = false;
       }
@@ -88,7 +83,7 @@ export default {
       password,
       isLoading,
       errorMessage,
-      submitForm,
+      handleLogin,
       closeForm,
       openRegisterForm
     };
