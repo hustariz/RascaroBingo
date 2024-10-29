@@ -1,6 +1,6 @@
 <template>
   <div class="home-page">
-    <h1>{{ welcomeMessage }}</h1><br>
+    <h2>{{ welcomeMessage }}</h2><br>
     <p>
       Rascarobingo is a <strong>trading application</strong> with a bingo-style scoring system and <strong>risk management</strong> features.<br>
        It is designed to help you managing your <strong>emotions</strong>  by providing a <strong>playful & stimulant frame</strong>,<br>
@@ -24,6 +24,11 @@
         </router-link>
     </div>
     -->
+    <div class="logo-container">
+        <router-link to="/bingo"> 
+          <span class="brand">Start Here</span>
+        </router-link>
+    </div>
   </div>
 </template>
 

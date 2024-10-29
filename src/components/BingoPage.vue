@@ -8,8 +8,6 @@
     <div class="main-content">
       <div class="rascaro-bingo">
         <h2>RascaroBingo V1.0</h2>
-
-
           <div class="trade-idea">
             <h2>Trade's idea:</h2>
             <textarea 
@@ -49,13 +47,14 @@ import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue'
   }
   </script>
 
+
 <style scoped>
 .page-container {
   display: flex;
   min-height: 100vh;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 60px 20px 20px 20px; /* Top Right Bottom Left */
+  padding: 60px 20px 20px 20px;
 }
 
 .main-content {
@@ -74,5 +73,36 @@ import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue'
 
 .bingo-case {
   margin-bottom: 10px;
+}
+
+/* Add these new styles for the trade idea section */
+.trade-idea {
+  width: 80%;
+  margin: 0 auto;
+  margin-bottom: 20px;
+}
+
+.trade-idea-input {
+  width: 100%;
+  min-width: 300px;
+  max-width: 600px;
+  padding: 12px;
+  border: 1px solid rgb(238, 175, 17);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 4px;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 10px;
+}
+
+.trade-idea-input:focus {
+  outline: none;
+  border-color: rgb(238, 175, 17);
+  box-shadow: 0 0 5px rgba(238, 175, 17, 0.3);
+}
+
+.trade-idea-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
 }
 </style>
