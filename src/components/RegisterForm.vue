@@ -3,7 +3,7 @@
   <div class="form-overlay" v-if="isOpen" @click.self="closeForm">
     <div class="form">
       <h2>Register</h2>
-      <form @submit.prevent="submitForm">
+      <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label for="username">Username:</label>
           <input type="text" id="username" v-model="username" required>
@@ -31,8 +31,9 @@
 </template>
 
 <script>
-import '../assets/styles/LoginForm.css'
-import api from '@/api'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import api from '@/services/api'; 
 
 export default {
   name: 'RegisterForm',
@@ -42,65 +43,63 @@ export default {
       required: true
     }
   },
-  data() {
-    return {
-      username: '',
-      email: '',
-      password: '',
-      isLoading: false,
-      message: '',
-      isError: false
-    }
-  },
-  methods: {
-    async submitForm() {
-      this.isLoading = true;
-      this.message = '';
-      this.isError = false;
+  setup(props, { emit }) {
+    const router = useRouter();
+    const username = ref('');
+    const email = ref('');
+    const password = ref('');
+    const isLoading = ref(false);
+    const message = ref('');
+    const isError = ref(false);
+
+    const handleRegister = async () => {
+      isLoading.value = true;
+      message.value = '';
+      isError.value = false;
 
       try {
         const response = await api.register({
-          username: this.username,
-          email: this.email,
-          password: this.password
+          username: username.value,
+          email: email.value,
+          password: password.value
         });
         
-        this.message = 'Registration successful!';
-        console.log('Registration response:', response.data);
-        
-        // You might want to store the token or user data in your app's state management
-        // For example, if using Vuex:
-        // this.$store.commit('setToken', response.data.token);
+        console.log('Registration successful:', response);
+        message.value = 'Registration successful!';
         
         setTimeout(() => {
-          this.closeForm();
+          closeForm();
+          router.push('/');
         }, 2000);
       } catch (error) {
-        this.isError = true;
-        this.message = error.response?.data?.msg || 'Registration failed. Please try again.';
         console.error('Registration error:', error);
+        isError.value = true;
+        message.value = error.response?.data?.msg || 'Registration failed';
       } finally {
-        this.isLoading = false;
+        isLoading.value = false;
       }
-    },
-    closeForm() {
-      this.$emit('close');
-      // Reset form data
-      this.username = '';
-      this.email = '';
-      this.password = '';
-      this.message = '';
-      this.isError = false;
-    }
-  }
-}
-</script>
+    };
 
-<style scoped>
-.error-message {
-  color: red;
-}
-.success-message {
-  color: rgb(238, 175, 17);
-}
-</style>
+
+    const closeForm = () => {
+      emit('close');
+      username.value = '';
+      email.value = '';
+      password.value = '';
+      message.value = '';
+      isError.value = false;
+    };
+
+    return {
+      username,
+      email,
+      password,
+      isLoading,
+      message,
+      isError,
+      handleRegister,
+      closeForm
+    };
+  }
+};
+</script>
