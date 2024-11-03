@@ -28,12 +28,26 @@
     <div class="settings-group">
       <h2>Risk Limits</h2>
       <div class="setting-item">
-        <label>Max Daily Loss:</label>
-        <input type="number" v-model="maxDailyLoss" />
-      </div>
-      <div class="setting-item">
-        <label>Max Trades/Day:</label>
-        <input type="number" v-model="maxTradesPerDay" />
+        <label>Number of Stoploss Taken:</label>
+        <div class="streak-slider-container">
+          <div class="streak-info">
+            <span class="streak-value" :style="{ color: slColor }" v-html="slLabel"></span>
+          </div>
+          <input 
+            type="range" 
+            v-model="slTaken" 
+            min="0" 
+            max="3" 
+            step="1"
+            class="streak-slider"
+          />
+          <div class="streak-labels">
+            <span>0</span>
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+          </div>
+        </div>
       </div>
     </div>
     <button class="save-settings" @click="saveSettings">Save Settings</button>
@@ -47,6 +61,7 @@ export default {
     return {
       accountSize: 10000,
       tradeStreak: 0,
+      slTaken: 0,
       maxDailyLoss: 500,
       maxTradesPerDay: 3
     }
@@ -71,13 +86,33 @@ export default {
       '2': '#f57c00' // Red
       };
       return colors[this.tradeStreak];
+    },
+    slLabel() {
+      const labels = {
+        '0': 'No SL taken',
+        '1': '1 SL taken',
+        '2': '2 SL taken',
+        '3': '3 SL taken <br> Session ended'
+      };
+      return labels[this.slTaken];
+    },
+    slColor() {
+      const colors = {
+        '0': '#4CAF50', // Green
+        '1': '#FFC107', // Yellow
+        '2': '#FF9800', // Orange
+        '3': '#f44336'  // Red
+      };
+      return colors[this.slTaken];
     }
-  },
+  }
+  ,
   methods: {
     saveSettings() {
       this.$emit('save-settings', {
         accountSize: this.accountSize,
         tradeStreak: this.tradeStreak,
+        slTaken: this.slTaken,
         maxDailyLoss: this.maxDailyLoss,
         maxTradesPerDay: this.maxTradesPerDay
       });
@@ -88,7 +123,7 @@ export default {
 
 <style scoped>
 .sidebar {
-  width: 250px;
+  width: 270px;
   background-color: rgba(0, 0, 0, 0.8);
   padding: 80px 20px 20px 20px; /* Top Right Bottom Left */
   color: white;
@@ -215,5 +250,23 @@ h2 {
   font-family: 'Legendarie', sans-serif;
   color: rgb(238, 175, 17);
   margin-bottom: 20px;
+}
+.streak-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 0 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.streak-labels span {
+  position: relative;
+  text-align: center;
+}
+
+
+.streak-value {
+  transition: color 0.3s ease;
 }
 </style>
