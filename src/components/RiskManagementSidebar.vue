@@ -4,8 +4,11 @@
     <h2>Risk Settings</h2>
     <div class="settings-group">
       <div class="setting-item">
-        <label>Account Size:</label>
-        <input type="number" v-model="accountSize"/>
+        <div class="setting-item">
+          <label>Account Size:</label>
+          <span class="account-size-value">{{ formatAccountSize }}</span>
+          <label>Trade Size:</label>
+          <span class="trade-size-value">{{ formatTradeSize }}</span>
       </div>
       <div class="setting-item">
         <label>Trade's Streak:</label>
@@ -24,7 +27,7 @@
         </div>
       </div>
     </div>
-    
+   </div> 
     <div class="settings-group">
       <h2>Risk Limits</h2>
       <div class="setting-item">
@@ -42,15 +45,10 @@
             class="streak-slider"
           />
           <div class="streak-labels">
-            <span>0</span>
-            <span>1</span>
-            <span>2</span>
-            <span>3</span>
           </div>
         </div>
       </div>
     </div>
-    <button class="save-settings" @click="saveSettings">Save Settings</button>
   </div>
 </template>
 
@@ -67,13 +65,30 @@ export default {
     }
   },
   computed: {
+    tradeSize() {
+      const percentages = {
+        '-2': 3.3,  // Cold streak
+        '-1': 5,    // Malus streak
+        '0': 10,    // Normal trade
+        '1': 15,    // Bonus streak
+        '2': 20     // HOT streak
+      };
+      const percentage = percentages[this.tradeStreak] || 10;
+      return Math.round((this.accountSize * percentage) / 100);
+    },
+    formatTradeSize() {
+      return `$${this.tradeSize.toLocaleString()}`;
+    },
+    formatAccountSize() {
+      return `$${this.accountSize.toLocaleString()}`;
+    },
     streakLabel() {
       const labels = {
-        '-2': 'Cold streak (3.3%)',
-        '-1': 'Malus streak (5%)',
-        '0': 'Normal trade (10%)',
-        '1': 'Bonus streak (15%)',
-        '2': 'HOT streak (20%)'
+        '-2': `Cold streak (3.3%)`,
+        '-1': `Malus streak (5%)`,
+        '0': `Normal trade (10%)`,
+        '1': `Bonus streak (15%)`,
+        '2': `HOT streak (20%)`
       };
       return labels[this.tradeStreak];
     },
@@ -112,10 +127,17 @@ export default {
       this.$emit('save-settings', {
         accountSize: this.accountSize,
         tradeStreak: this.tradeStreak,
+        tradeSize: this.tradeSize,
         slTaken: this.slTaken,
         maxDailyLoss: this.maxDailyLoss,
         maxTradesPerDay: this.maxTradesPerDay
       });
+    }
+  },
+  watch: {
+    // Optional: Add this if you want to log changes
+    tradeSize(newValue) {
+      console.log('Trade size updated:', newValue);
     }
   }
 }
@@ -268,5 +290,36 @@ h2 {
 
 .streak-value {
   transition: color 0.3s ease;
+}
+input[type="number"]:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.trade-size-display {
+  margin-top: 10px;
+}
+
+.trade-size-value {
+  color: rgb(238, 175, 17);
+  font-weight: bold;
+  margin-left: 8px;
+  font-size: 1.1rem;
+}
+.account-size-display {
+  margin-top: 10px;
+}
+
+.account-size-value {
+  color: rgb(238, 175, 17);
+  font-weight: bold;
+  margin-left: 8px;
+  font-size: 1.1rem;
+}
+
+
+
+.trade-size-display label {
+  color: #ffffff;
 }
 </style>
