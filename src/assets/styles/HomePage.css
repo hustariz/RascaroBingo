@@ -77,3 +77,138 @@
     font-family: 'Legendarie', sans-serif;
     font-size: 2rem;
 }
+
+.home-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    min-height: 100vh;
+  }
+  
+  .welcome-title {
+    font-family: 'Legendarie', sans-serif;
+    color: rgb(238, 175, 17);
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .presentation-box {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgb(238, 175, 17);
+    border-radius: 10px;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 2rem auto;
+    box-shadow: 0 0 20px rgba(238, 175, 17, 0.2);
+    backdrop-filter: blur(5px);
+  }
+  
+  .presentation-box p {
+    color: white;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .presentation-box p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .presentation-box strong {
+    color: rgb(238, 175, 17);
+    font-weight: bold;
+  }
+  
+  .logo-container {
+    margin-top: 3rem;
+    text-align: center;
+  }
+  
+  .start-button {
+    display: inline-block;
+    position: relative;
+    padding: 1.2rem 2.4rem;
+    text-decoration: none;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .button-content {
+    position: relative;
+    display: inline-block;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 15px 30px;
+    border: 2px solid rgb(238, 175, 17);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .button-text {
+    position: relative;
+    color: rgb(238, 175, 17);
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    z-index: 1;
+    transition: all 0.3s ease;
+  }
+  
+  .button-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgb(238, 175, 17);
+    transition: all 0.4s ease;
+    z-index: 0;
+  }
+  
+  .start-button:hover .button-content::before {
+    left: 0;
+  }
+  
+  .start-button:hover .button-text {
+    color: black;
+  }
+  
+  .start-button:hover .button-content {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(238, 175, 17, 0.3);
+  }
+  
+  
+  .start-button::after {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(
+      circle,
+      rgba(238, 175, 17, 0.2) 0%,
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .start-button:hover::after {
+    opacity: 1;
+  }
+  
+  .brand {
+    font-family: 'Legendarie', sans-serif;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: red;
+      text-decoration: none;
+      cursor: pointer; 
+  }
