@@ -1,50 +1,53 @@
-<!-- src/components/RiskManagementSidebar.vue -->
 <template>
-  <div class="sidebar">
-    <h2>Risk Settings</h2>
-    <div class="settings-group">
-      <div class="setting-item">
+  <div class="sidebar" :class="{ 'collapsed': isCollapsed }">
+    <button class="toggle-button" @click="toggleSidebar">
+      {{ isCollapsed ? '>' : '<' }}
+    </button>
+    <div class="sidebar-content" v-show="!isCollapsed">
+      <h2>Risk Settings</h2>
+      <div class="settings-group">
         <div class="setting-item">
           <label>Account Size:</label>
           <span class="account-size-value">{{ formatAccountSize }}</span>
+        </div>
+        <div class="setting-item">
           <label>Trade Size:</label>
           <span class="trade-size-value">{{ formatTradeSize }}</span>
-      </div>
-      <div class="setting-item">
-        <label>Trade's Streak:</label>
-        <div class="streak-slider-container">
-          <div class="streak-info">
-            <span class="streak-value" :style="{ color: streakColor }">{{ streakLabel }}</span>
+        </div>
+        <div class="setting-item">
+          <label>Trade's Streak:</label>
+          <div class="streak-slider-container">
+            <div class="streak-info">
+              <span class="streak-value" :style="{ color: streakColor }">{{ streakLabel }}</span>
+            </div>
+            <input 
+              type="range" 
+              v-model="tradeStreak" 
+              min="-2" 
+              max="2" 
+              step="1"
+              class="streak-slider"
+            />
           </div>
-          <input 
-            type="range" 
-            v-model="tradeStreak" 
-            min="-2" 
-            max="2" 
-            step="1"
-            class="streak-slider"
-          />
         </div>
       </div>
-    </div>
-   </div> 
-    <div class="settings-group">
-      <h2>Risk Limits</h2>
-      <div class="setting-item">
-        <label>Number of Stoploss Taken:</label>
-        <div class="streak-slider-container">
-          <div class="streak-info">
-            <span class="streak-value" :style="{ color: slColor }" v-html="slLabel"></span>
-          </div>
-          <input 
-            type="range" 
-            v-model="slTaken" 
-            min="0" 
-            max="3" 
-            step="1"
-            class="streak-slider"
-          />
-          <div class="streak-labels">
+      
+      <div class="settings-group">
+        <h2>Risk Limits</h2>
+        <div class="setting-item">
+          <label>Number of Stoploss Taken:</label>
+          <div class="streak-slider-container">
+            <div class="streak-info">
+              <span class="streak-value" :style="{ color: slColor }" v-html="slLabel"></span>
+            </div>
+            <input 
+              type="range" 
+              v-model="slTaken" 
+              min="0" 
+              max="3" 
+              step="1"
+              class="streak-slider"
+            />
           </div>
         </div>
       </div>
@@ -61,17 +64,18 @@ export default {
       tradeStreak: 0,
       slTaken: 0,
       maxDailyLoss: 500,
-      maxTradesPerDay: 3
+      maxTradesPerDay: 3,
+      isCollapsed: false
     }
   },
   computed: {
     tradeSize() {
       const percentages = {
-        '-2': 3.3,  // Cold streak
-        '-1': 5,    // Malus streak
-        '0': 10,    // Normal trade
-        '1': 15,    // Bonus streak
-        '2': 20     // HOT streak
+        '-2': 3.3, // Cold streak
+        '-1': 5,   // Malus streak
+        '0': 10,   // Normal trade
+        '1': 15,   // Bonus streak
+        '2': 20    // HOT streak
       };
       const percentage = percentages[this.tradeStreak] || 10;
       return Math.round((this.accountSize * percentage) / 100);
@@ -95,10 +99,10 @@ export default {
     streakColor() {
       const colors = {
         '-2': '#0066cc', // Dark blue
-      '-1': '#66b3ff', // Light blue
-      '0': '#FFFFFF', // wh
-      '1': '#ffb366', // Light orange
-      '2': '#f57c00' // Red
+        '-1': '#66b3ff', // Light blue
+        '0': '#FFFFFF',  // White
+        '1': '#ffb366',  // Light orange
+        '2': '#f57c00'   // Orange
       };
       return colors[this.tradeStreak];
     },
@@ -120,9 +124,12 @@ export default {
       };
       return colors[this.slTaken];
     }
-  }
-  ,
+  },
   methods: {
+    toggleSidebar() {
+      this.isCollapsed = !this.isCollapsed;
+      this.$emit('sidebar-toggle', this.isCollapsed);
+    },
     saveSettings() {
       this.$emit('save-settings', {
         accountSize: this.accountSize,
@@ -133,12 +140,6 @@ export default {
         maxTradesPerDay: this.maxTradesPerDay
       });
     }
-  },
-  watch: {
-    // Optional: Add this if you want to log changes
-    tradeSize(newValue) {
-      console.log('Trade size updated:', newValue);
-    }
   }
 }
 </script>
@@ -147,24 +148,74 @@ export default {
 .sidebar {
   width: 270px;
   background-color: rgba(0, 0, 0, 0.8);
-  padding: 80px 20px 20px 20px; /* Top Right Bottom Left */
+  padding: 80px 20px 20px 20px;
   color: white;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  height: 100vh; /* Full viewport height */
-  position: fixed; /* Keep sidebar fixed while scrolling */
+  height: 100vh;
+  position: fixed;
   left: 0;
   top: 0;
-  overflow-y: auto; /* Add scrollbar if content is too long */
+  overflow: visible;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.sidebar.collapsed {
+  width: 40px;
+  padding: 80px 0 20px 0;
+}
+
+.toggle-button {
+  position: absolute;
+  right: -30px; /* Increased to make room for larger button */
+  top: 90px;
+  width: 30px; /* Increased width */
+  height: 50px; /* Increased height */
+  background-color: rgba(0, 0, 0, 0.9); /* Darker background */
+  border: 2px solid rgb(238, 175, 17); /* Golden border */
+  border-left: none; /* Remove left border to blend with sidebar */
+  border-radius: 0 8px 8px 0; /* Smoother corners */
+  color: rgb(238, 175, 17); /* Golden text color */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px; /* Larger font */
+  z-index: 1000;
+  transition: all 0.3s ease;
+  box-shadow: 2px 2px 5px rgb(238, 175, 17); /* Subtle shadow */
+}
+
+.toggle-button:hover {
+  background-color: rgba(238, 175, 17, 0.1); /* Subtle golden highlight */
+  width: 35px; /* Slightly wider on hover */
+  right: -35px; /* Adjust position for wider width */
+  box-shadow: 3px 3px 8px rgb(238, 175, 17); /* Enhanced shadow on hover */
+}
+
+/* Optional: Add a subtle glow effect on hover */
+.toggle-button:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 0 15px rgb(238, 175, 17);
+  pointer-events: none;
+}
+
+.sidebar-content {
+  height: calc(100vh - 100px);
+  overflow-y: auto;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .settings-group {
   margin-bottom: 20px;
-}
-
-.settings-group h3 {
-  font-family: 'Legendarie', sans-serif;
-  color: rgb(238, 175, 17);
-  margin-bottom: 10px;
 }
 
 .setting-item {
@@ -175,15 +226,6 @@ export default {
   display: block;
   margin-bottom: 5px;
   color: #ffffff;
-}
-
-.setting-item input[type="number"] {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 4px;
 }
 
 .streak-info {
@@ -243,83 +285,17 @@ export default {
   background: rgb(255, 190, 25);
 }
 
-.streak-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  padding: 0 8px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-}
-
-.save-settings {
-  width: 100%;
-  padding: 10px;
-  background-color: rgb(238, 175, 17);
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-  font-family: 'Legendarie', sans-serif;
-  font-size: 1.1rem;
-}
-
-.save-settings:hover {
-  background-color: rgb(255, 190, 25);
-}
-
-h2 {
-  font-family: 'Legendarie', sans-serif;
-  color: rgb(238, 175, 17);
-  margin-bottom: 20px;
-}
-.streak-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  padding: 0 8px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-}
-
-.streak-labels span {
-  position: relative;
-  text-align: center;
-}
-
-
-.streak-value {
-  transition: color 0.3s ease;
-}
-input[type="number"]:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  background-color: rgba(255, 255, 255, 0.05);
-}
-.trade-size-display {
-  margin-top: 10px;
-}
-
+.account-size-value,
 .trade-size-value {
   color: rgb(238, 175, 17);
   font-weight: bold;
   margin-left: 8px;
   font-size: 1.1rem;
 }
-.account-size-display {
-  margin-top: 10px;
-}
 
-.account-size-value {
+h2 {
+  font-family: 'Legendarie', sans-serif;
   color: rgb(238, 175, 17);
-  font-weight: bold;
-  margin-left: 8px;
-  font-size: 1.1rem;
-}
-
-
-
-.trade-size-display label {
-  color: #ffffff;
+  margin-bottom: 20px;
 }
 </style>
