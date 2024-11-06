@@ -57,7 +57,6 @@
 
 <script>
 import '../assets/styles/RiskManagementSidebar.css';
-
 export default {
   name: 'RiskManagementSidebar',
   data() {
@@ -73,11 +72,11 @@ export default {
   computed: {
     tradeSize() {
       const percentages = {
-        '-2': 3.3, // Cold streak
-        '-1': 5,   // Malus streak
-        '0': 10,   // Normal trade
-        '1': 15,   // Bonus streak
-        '2': 20    // HOT streak
+        '-2': 3.3,
+        '-1': 5,
+        '0': 10,
+        '1': 15,
+        '2': 20
       };
       const percentage = percentages[this.tradeStreak] || 10;
       return Math.round((this.accountSize * percentage) / 100);
@@ -100,11 +99,11 @@ export default {
     },
     streakColor() {
       const colors = {
-        '-2': '#0066cc', // Dark blue
-        '-1': '#66b3ff', // Light blue
-        '0': '#FFFFFF',  // White
-        '1': '#ffb366',  // Light orange
-        '2': '#f57c00'   // Orange
+        '-2': '#0066cc',
+        '-1': '#66b3ff',
+        '0': '#FFFFFF',
+        '1': '#ffb366',
+        '2': '#f57c00'
       };
       return colors[this.tradeStreak];
     },
@@ -119,10 +118,10 @@ export default {
     },
     slColor() {
       const colors = {
-        '0': '#4CAF50', // Green
-        '1': '#FFC107', // Yellow
-        '2': '#FF9800', // Orange
-        '3': '#f44336'  // Red
+        '0': '#4CAF50',
+        '1': '#FFC107',
+        '2': '#FF9800',
+        '3': '#f44336'
       };
       return colors[this.slTaken];
     }

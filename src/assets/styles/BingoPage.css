@@ -1,0 +1,204 @@
+/* Layout */
+.page-container {
+    display: flex;
+    min-height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px 20px 20px;
+  }
+  
+  .main-content {
+    flex-grow: 1;
+    padding: 20px;
+    margin-left: 270px;
+    transition: margin-left 0.3s ease;
+  }
+  
+  .main-content.expanded {
+    margin-left: 40px;
+  }
+  
+  .rascaro-bingo {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* Section Spacing */
+  .risk-management, 
+  .risk-reward, 
+  .bingo-section {
+    margin-bottom: 20px;
+  }
+  
+  .bingo-case {
+    margin-bottom: 10px;
+  }
+  
+  /* Trade Idea Section */
+  .trade-idea {
+    width: 80%;
+    margin: 0 auto;
+    margin-bottom: 20px;
+  }
+  
+  .trade-idea-input {
+    width: 100%;
+    min-width: 300px;
+    max-width: 600px;
+    padding: 12px;
+    border: 1px solid rgb(238, 175, 17);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-family: inherit;
+    resize: vertical;
+    margin-top: 10px;
+  }
+  
+  .trade-idea-input:focus {
+    outline: none;
+    border-color: rgb(238, 175, 17);
+    box-shadow: 0 0 5px rgba(238, 175, 17, 0.3);
+  }
+  
+  .trade-idea-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Trade Details Section */
+  .trade-details {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgb(238, 175, 17);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+  }
+  
+  .price-inputs {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  
+  .price-input-group {
+    flex: 1;
+    min-width: 150px;
+  }
+  
+  .price-label {
+    display: block;
+    color: rgb(238, 175, 17);
+    margin-bottom: 5px;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .input-with-prefix {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .prefix {
+    position: absolute;
+    left: 8px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  /* Input Styles */
+  .price-input-group input {
+    width: 100%;
+    padding: 8px 8px 8px 22px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(238, 175, 17, 0.3);
+    border-radius: 4px;
+    color: white;
+    font-size: 1rem;
+  }
+  
+  .price-input-group input:focus {
+    outline: none;
+    border-color: rgb(238, 175, 17);
+    box-shadow: 0 0 5px rgba(238, 175, 17, 0.3);
+  }
+  
+  /* Risk/Reward Checkboxes */
+  .rr-checkboxes {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgb(238, 175, 17);
+    border-radius: 8px;
+    padding: 15px;
+  }
+  
+  .rr-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    color: white;
+  }
+  
+  .rr-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgb(238, 175, 17);
+    border-radius: 4px;
+    margin-right: 10px;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .rr-checkbox input[type="checkbox"]:checked {
+    background-color: rgb(238, 175, 17);
+  }
+  
+  .rr-checkbox input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    color: black;
+    font-size: 14px;
+    font-weight: bold;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .checkbox-text {
+    font-size: 1.1rem;
+    color: rgb(238, 175, 17);
+    font-weight: bold;
+  }
+  
+  /* Button Styles */
+  .save-button {
+    padding: 8px 20px;
+    height: 35px;
+    background-color: rgb(238, 175, 17);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .save-button:hover {
+    background-color: rgb(255, 190, 25);
+  }
+  
+  /* Typography */
+  h2 {
+    font-family: 'Legendarie', sans-serif;
+    color: rgb(238, 175, 17);
+    margin-bottom: 15px;
+  }
