@@ -2,32 +2,36 @@
 
   <div class="page-container">
     <!-- Import the sidebar component -->
-    <RiskManagementSidebar @save-settings="handleSaveSettings" />
+    <RiskManagementSidebar 
+      @save-settings="handleSaveSettings"
+      @sidebar-toggle="handleSidebarToggle"
+    />
+    <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
+      <!-- Main Content -->
+      <div class="main-content">
+        <div class="rascaro-bingo">
+          <h2>RascaroBingo V1.0</h2>
+           <div class="trade-idea">
+              <h2>Trade's idea:</h2>
+             <textarea 
+               v-model="tradeIdea" 
+               placeholder="Enter your trade ideas here..." 
+               rows="4"
+               class="trade-idea-input"
+             ></textarea>
+           </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <div class="rascaro-bingo">
-        <h2>RascaroBingo V1.0</h2>
-          <div class="trade-idea">
-            <h2>Trade's idea:</h2>
-            <textarea 
-              v-model="tradeIdea" 
-              placeholder="Enter your trade ideas here..." 
-              rows="4"
-              class="trade-idea-input"
-            ></textarea>
-          </div>
-
-      <!-- Bingo Section -->
-      <div class="bingo-section">
-        <h2>Here we cooking da Bingo</h2>
-      </div>
-          <!-- Risk/Reward Section -->
-        <div class="risk-reward">
-          <h2>Points Bingo: Risk/Reward</h2>
+       <!-- Bingo Section -->
+       <div class="bingo-section">
+         <h2>Here we cooking da Bingo</h2>
         </div>
+           <!-- Risk/Reward Section -->
+         <div class="risk-reward">
+           <h2>Points Bingo: Risk/Reward</h2>
+          </div>
+       </div>
       </div>
-    </div>
+   </div>
   </div>
 </template>
 
@@ -38,10 +42,18 @@ import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue'
     components: {
       RiskManagementSidebar
     },
+    data() {
+      return {
+        isSidebarCollapsed: false
+      }
+    },
     methods: {
       handleSaveSettings(settings) {
         console.log('Settings saved:', settings);
         // Handle the saved settings here
+      },
+      handleSidebarToggle(isCollapsed) {
+      this.isSidebarCollapsed = isCollapsed;
       }
     }
   }
@@ -60,6 +72,11 @@ import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue'
 .main-content {
   flex-grow: 1;
   padding: 20px;
+  transition: margin-left 0.3s ease; 
+}
+
+.main-content.expanded {
+  margin-left: 40px; 
 }
 
 .rascaro-bingo {
