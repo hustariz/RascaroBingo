@@ -19,32 +19,28 @@
   }
   
   .toggle-button {
-    position: absolute;
-    right: -30px; /* Increased to make room for larger button */
+    position: absolute; /* Changed from fixed to absolute */
+    right: -5px; /* Reduced to show less of the button */
     top: 90px;
-    width: 30px; /* Increased width */
-    height: 50px; /* Increased height */
-    background-color: rgba(0, 0, 0, 0.9); /* Darker background */
-    border: 2px solid rgb(238, 175, 17); /* Golden border */
-    border-left: none; /* Remove left border to blend with sidebar */
-    border-radius: 0 8px 8px 0; /* Smoother corners */
-    color: rgb(238, 175, 17); /* Golden text color */
+    width: 24px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgb(238, 175, 17);
+    border-radius: 0 4px 4px 0;
+    color: rgb(238, 175, 17);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-size: 16px; /* Larger font */
-    z-index: 1000;
-    transition: all 0.3s ease;
-    box-shadow: 2px 2px 5px rgb(238, 175, 17); /* Subtle shadow */
+    font-size: 14px;
+    z-index: 99; /* Lower than sidebar to ensure proper layering */
+    transition: all 0.2s ease;
   }
   
   .toggle-button:hover {
-    background-color: rgba(238, 175, 17, 0.1); /* Subtle golden highlight */
-    width: 35px; /* Slightly wider on hover */
-    right: -35px; /* Adjust position for wider width */
-    box-shadow: 3px 3px 8px rgb(238, 175, 17); /* Enhanced shadow on hover */
+    background-color: rgba(238, 175, 17, 0.15);
+    right: -14px; /* Slight reveal on hover */
   }
   
   /* Optional: Add a subtle glow effect on hover */
@@ -55,8 +51,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    border-radius: 0 8px 8px 0;
-    box-shadow: 0 0 15px rgb(238, 175, 17);
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 8px rgba(238, 175, 17, 0.2);
     pointer-events: none;
   }
   
