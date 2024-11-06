@@ -1,0 +1,153 @@
+.sidebar {
+    width: 270px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 80px 20px 20px 20px;
+    color: white;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow: visible;
+    transition: all 0.3s ease;
+    z-index: 100;
+  }
+  
+  .sidebar.collapsed {
+    width: 40px;
+    padding: 80px 0 20px 0;
+  }
+  
+  .toggle-button {
+    position: absolute;
+    right: -30px; /* Increased to make room for larger button */
+    top: 90px;
+    width: 30px; /* Increased width */
+    height: 50px; /* Increased height */
+    background-color: rgba(0, 0, 0, 0.9); /* Darker background */
+    border: 2px solid rgb(238, 175, 17); /* Golden border */
+    border-left: none; /* Remove left border to blend with sidebar */
+    border-radius: 0 8px 8px 0; /* Smoother corners */
+    color: rgb(238, 175, 17); /* Golden text color */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px; /* Larger font */
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 2px 2px 5px rgb(238, 175, 17); /* Subtle shadow */
+  }
+  
+  .toggle-button:hover {
+    background-color: rgba(238, 175, 17, 0.1); /* Subtle golden highlight */
+    width: 35px; /* Slightly wider on hover */
+    right: -35px; /* Adjust position for wider width */
+    box-shadow: 3px 3px 8px rgb(238, 175, 17); /* Enhanced shadow on hover */
+  }
+  
+  /* Optional: Add a subtle glow effect on hover */
+  .toggle-button:hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 0 15px rgb(238, 175, 17);
+    pointer-events: none;
+  }
+  
+  .sidebar-content {
+    height: calc(100vh - 100px);
+    overflow-y: auto;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  
+  .settings-group {
+    margin-bottom: 20px;
+  }
+  
+  .setting-item {
+    margin-bottom: 15px;
+  }
+  
+  .setting-item label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ffffff;
+  }
+  
+  .streak-info {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .streak-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: color 0.3s ease;
+  }
+  
+  .streak-slider-container {
+    position: relative;
+    padding: 10px 0;
+    margin: 10px 0;
+  }
+  
+  .streak-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    border-radius: 2px;
+  }
+  
+  .streak-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: rgb(238, 175, 17);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .streak-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: rgb(238, 175, 17);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+  }
+  
+  .streak-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: rgb(255, 190, 25);
+  }
+  
+  .streak-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    background: rgb(255, 190, 25);
+  }
+  
+  .account-size-value,
+  .trade-size-value {
+    color: rgb(238, 175, 17);
+    font-weight: bold;
+    margin-left: 8px;
+    font-size: 1.1rem;
+  }
+  
+  h2 {
+    font-family: 'Legendarie', sans-serif;
+    color: rgb(238, 175, 17);
+    margin-bottom: 20px;
+  }
