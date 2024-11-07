@@ -81,11 +81,17 @@
               <h2>Bingo Section</h2>
             </div>
             <div class="section-content">
-              <div class="bingo-area">
-                <h3>Here we cooking da Bingo</h3>
-                <!-- Bingo content will go here -->
+              <!-- Bingo Grid -->
+              <div class="bingo-grid">
+                <div v-for="(number, index) in bingoNumbers" 
+                     :key="index" 
+                     :class="['bingo-cell', { 'selected': selectedNumbers.includes(number) }]"
+                     @click="toggleNumber(number)">
+                  {{ number }}
+                </div>
               </div>
 
+              <!-- Risk/Reward Section -->
               <div class="risk-reward-area">
                 <h3>Points Bingo: Risk/Reward</h3>
                 <div class="rr-checkboxes">
@@ -110,6 +116,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import '../assets/styles/BingoPage.css';
 import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue'
@@ -130,7 +137,9 @@ export default {
         threeToTen: false,
         fiveToTen: false,
         sevenToTen: false
-      }
+      },
+      bingoNumbers: Array.from({ length: 25 }, (_, i) => i + 1),
+      selectedNumbers: []
     }
   },
   methods: {
@@ -148,6 +157,13 @@ export default {
         idea: this.tradeIdea,
         riskRewardChecks: this.rrChecks
       });
+    },
+    toggleNumber(number) {
+      if (this.selectedNumbers.includes(number)) {
+        this.selectedNumbers = this.selectedNumbers.filter(n => n !== number);
+      } else {
+        this.selectedNumbers.push(number);
+      }
     }
   }
 }
