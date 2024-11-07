@@ -181,7 +181,27 @@
   .bingo-cell.selected .icon-button {
     color: black;
   }
+
+
+    .bingo-cell.selected .icon-button {
+        color: black; /* Keep the original color instead of turning black */
+    }
   
+    .bingo-cell.selected .icon-button:hover {
+        color: black; /* Keep the hover effect */
+    }
+  /* Keep tooltip styling consistent when cell is selected */
+    .bingo-cell.selected .tooltip {
+        background-color: rgba(0, 0, 0, 0.9);
+        border: 1px solid rgb(238, 175, 17);
+        color: rgb(238, 175, 17);
+    }
+  
+  /* Make sure the tooltip text stays visible */
+    .bingo-cell.selected .icon-button.info:hover .tooltip {
+        display: block;
+        color: rgb(238, 175, 17);
+    }
   /* Cell Icons and Tooltips */
   .icon-button {
     position: absolute;
@@ -213,23 +233,48 @@
     color: rgb(255, 190, 25);
   }
   
-  .tooltip {
-    position: absolute;
-    top: -35px;   /* Adjusted to prevent overlap */
-    right: -2px;  /* Aligned with the icon */
-    background-color: rgba(0, 0, 0, 0.9);
-    border: 1px solid rgb(238, 175, 17);
-    border-radius: 4px;
-    padding: 8px;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    display: none;
-    z-index: 1000;
-  }
+/* Tooltip */
+    .tooltip {
+        position: absolute;
+        top: -50px; /* Moved up slightly to accommodate larger size */
+        right: -10px;
+        background-color: rgba(0, 0, 0, 0.9);
+        border: 2px solid rgb(238, 175, 17); /* Made border thicker */
+        border-radius: 8px;
+        padding: 15px 20px; /* Increased padding */
+        font-size: 1.1rem; /* Increased font size */
+        font-family: Arial, sans-serif;
+        white-space: nowrap;
+        display: none;
+        z-index: 1000;
+        min-width: 200px; /* Added minimum width */
+        box-shadow: 0 0 10px rgba(238, 175, 17, 0.3); /* Added subtle glow */
+    }
+    /* Style the tooltip content */
+    .tooltip strong {
+        display: block;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        color: rgb(238, 175, 17);
+        font-family: Arial, sans-serif;
+        font-weight: bold;
+    }
+    .tooltip br {
+        margin: 8px 0;
+      }
+      
+      /* Keep tooltip visible on hover */
+      .icon-button.info:hover .tooltip {
+        display: block;
+      }
+      
+      /* Ensure tooltip stays visible in selected state */
+      .bingo-cell.selected .tooltip {
+        background-color: rgba(0, 0, 0, 0.9);
+        border-color: rgb(238, 175, 17);
+        color: rgb(238, 175, 17);
+      }
   
-  .icon-button.info:hover .tooltip {
-    display: block;
-  }
   
   /* Risk/Reward Checkboxes */
   .rr-checkboxes {
@@ -376,4 +421,25 @@
     .right-column {
       width: 100%;
     }
+  }
+
+  /* Score Display */
+.score-display {
+    margin-top: 20px;
+    text-align: center;
+    padding: 15px;
+    border-top: 1px solid rgba(238, 175, 17, 0.3);
+  }
+  
+  .score-display h3 {
+    color: rgb(238, 175, 17);
+    font-size: 1.3rem;
+    margin: 0;
+  }
+  
+  .score-value {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: white;
+    margin-left: 10px;
   }

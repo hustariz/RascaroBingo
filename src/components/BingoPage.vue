@@ -122,6 +122,9 @@
                     <span class="checkbox-text">18/20 : 4R/R</span>
                   </label>
                 </div>
+                <div class="score-display">
+                  <h3>Total Score: <span class="score-value">{{ totalScore }}</span></h3>
+                </div>
               </div>
             </div>
           </div>
@@ -167,6 +170,7 @@ export default {
       stoploss: null,
       entry: null,
       target: null,
+      totalScore: 0,
       rrChecks: {
         threeToTen: false,
         fiveToTen: false,
@@ -201,6 +205,11 @@ export default {
     },
     toggleCell(index) {
       this.bingoCells[index].selected = !this.bingoCells[index].selected;
+      if (this.bingoCells[index].selected) {
+        this.totalScore += this.bingoCells[index].points || 0;
+      } else {
+        this.totalScore -= this.bingoCells[index].points || 0;
+      }
     },
     editCell(index) {
       this.editingIndex = index;
@@ -208,7 +217,18 @@ export default {
       this.showEditModal = true;
     },
     saveCell() {
+      // If the cell was previously selected, subtract its old points
+      if (this.bingoCells[this.editingIndex].selected) {
+        this.totalScore -= this.bingoCells[this.editingIndex].points || 0;
+      }
+      
       this.bingoCells[this.editingIndex] = { ...this.editingCell };
+      
+      // If the cell is selected, add the new points
+      if (this.bingoCells[this.editingIndex].selected) {
+        this.totalScore += this.bingoCells[this.editingIndex].points || 0;
+      }
+      
       this.showEditModal = false;
       this.editingCell = null;
       this.editingIndex = null;
