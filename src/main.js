@@ -6,6 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faUser, faSignOutAlt, faCog, faDice, faEnvelope, faChartBar } from '@fortawesome/free-solid-svg-icons'
 import router from './router'
 import api from '@/services/api'
+import '@fortawesome/fontawesome-free/css/all.css'
+
 
 library.add(faUser, faSignOutAlt, faCog, faDice, faEnvelope, faChartBar)
 
