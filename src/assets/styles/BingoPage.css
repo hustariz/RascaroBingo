@@ -273,3 +273,49 @@
       width: 100%;
     }
   }
+  /* Bingo Grid */
+.bingo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Creates 5 equal columns */
+    gap: 10px;
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .bingo-cell {
+    aspect-ratio: 1; /* Makes cells square */
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgb(238, 175, 17);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: rgb(238, 175, 17);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px;
+  }
+  
+  .bingo-cell:hover {
+    background-color: rgba(238, 175, 17, 0.1);
+    transform: scale(1.05);
+  }
+  
+  .bingo-cell.selected {
+    background-color: rgb(238, 175, 17);
+    color: black;
+  }
+  
+  /* Adjust bingo section container */
+  .bingo-section {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .bingo-section h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
