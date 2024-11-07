@@ -107,19 +107,19 @@
 
               <!-- Risk/Reward Section -->
               <div class="risk-reward-area">
-                <h3>Points Bingo: Risk/Reward</h3>
+                <h2>Points Bingo: Risk/Reward</h2>
                 <div class="rr-checkboxes">
                   <label class="rr-checkbox">
                     <input type="checkbox" v-model="rrChecks.threeToTen">
-                    <span class="checkbox-text">3/10 : 2R/R</span>
+                    <span class="checkbox-text">6/20 : 2R/R</span>
                   </label>
                   <label class="rr-checkbox">
                     <input type="checkbox" v-model="rrChecks.fiveToTen">
-                    <span class="checkbox-text">5/10 : 3R/R</span>
+                    <span class="checkbox-text">12/20 : 3R/R</span>
                   </label>
                   <label class="rr-checkbox">
                     <input type="checkbox" v-model="rrChecks.sevenToTen">
-                    <span class="checkbox-text">7/10 : 4R/R</span>
+                    <span class="checkbox-text">18/20 : 4R/R</span>
                   </label>
                 </div>
               </div>
