@@ -39,8 +39,8 @@
                     <input 
                       type="number" 
                       v-model="stoploss" 
-                      step="0.01" 
-                      placeholder="0.00"
+                      step="1" 
+                      placeholder="0"
                     >
                   </div>
                 </div>
@@ -51,8 +51,8 @@
                     <input 
                       type="number" 
                       v-model="entry" 
-                      step="0.01" 
-                      placeholder="0.00"
+                      step="1" 
+                      placeholder="0"
                     >
                   </div>
                 </div>
@@ -63,8 +63,8 @@
                     <input 
                       type="number" 
                       v-model="target" 
-                      step="0.01" 
-                      placeholder="0.00"
+                      step="1" 
+                      placeholder="0"
                     >
                   </div>
                 </div>
@@ -81,15 +81,29 @@
               <h2>Bingo Section</h2>
             </div>
             <div class="section-content">
-              <!-- Bingo Grid -->
-              <div class="bingo-grid">
-                <div v-for="(number, index) in bingoNumbers" 
-                     :key="index" 
-                     :class="['bingo-cell', { 'selected': selectedNumbers.includes(number) }]"
-                     @click="toggleNumber(number)">
-                  {{ number }}
-                </div>
+            <!-- Bingo Grid -->
+            <div class="bingo-grid">
+              <div v-for="(cell, index) in bingoCells" 
+                  :key="index" 
+                  class="bingo-cell"
+                  :class="{ 'selected': cell.selected }"
+                  @click="toggleCell(index)">
+                  <div class="cell-content">
+                    {{  index + 1 }}
+                  </div>
+                <button class="icon-button edit" @click.stop="editCell(index)">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="icon-button info">
+                  <i class="fas fa-question-circle"></i>
+                  <div class="tooltip">
+                    <strong>{{ cell.title || 'Not set' }}</strong>
+                    <br>
+                    Points: {{ cell.points || '0' }}
+                  </div>
+                </button>
               </div>
+            </div>
 
               <!-- Risk/Reward Section -->
               <div class="risk-reward-area">
@@ -110,6 +124,26 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+        <!-- Edit Modal -->
+    <div v-if="showEditModal" class="modal">
+      <div class="modal-content">
+        <h3>Edit Bingo Cell</h3>
+        <div class="modal-form">
+          <div class="form-group">
+            <label>Title:</label>
+            <input v-model="editingCell.title" type="text" placeholder="Enter title">
+          </div>
+          <div class="form-group">
+            <label>Points:</label>
+            <input v-model="editingCell.points" type="number" min="0">
+          </div>
+          <div class="modal-buttons">
+            <button @click="saveCell" class="save-button">Save</button>
+            <button @click="showEditModal = false" class="cancel-button">Cancel</button>
           </div>
         </div>
       </div>
@@ -138,8 +172,15 @@ export default {
         fiveToTen: false,
         sevenToTen: false
       },
-      bingoNumbers: Array.from({ length: 25 }, (_, i) => i + 1),
-      selectedNumbers: []
+      bingoCells: Array.from({ length: 25 }, (_, i) => ({
+        id: i + 1,
+        title: '',
+        points: 0,
+        selected: false
+      })),
+      showEditModal: false,
+      editingCell: null,
+      editingIndex: null
     }
   },
   methods: {
@@ -158,12 +199,19 @@ export default {
         riskRewardChecks: this.rrChecks
       });
     },
-    toggleNumber(number) {
-      if (this.selectedNumbers.includes(number)) {
-        this.selectedNumbers = this.selectedNumbers.filter(n => n !== number);
-      } else {
-        this.selectedNumbers.push(number);
-      }
+    toggleCell(index) {
+      this.bingoCells[index].selected = !this.bingoCells[index].selected;
+    },
+    editCell(index) {
+      this.editingIndex = index;
+      this.editingCell = { ...this.bingoCells[index] };
+      this.showEditModal = true;
+    },
+    saveCell() {
+      this.bingoCells[this.editingIndex] = { ...this.editingCell };
+      this.showEditModal = false;
+      this.editingCell = null;
+      this.editingIndex = null;
     }
   }
 }
