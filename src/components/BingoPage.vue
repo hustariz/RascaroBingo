@@ -86,22 +86,26 @@
               <div v-for="(cell, index) in bingoCells" 
                   :key="index" 
                   class="bingo-cell"
-                  :class="{ 'selected': cell.selected }"
-                  @click="toggleCell(index)">
-                  <div class="cell-content">
-                    {{  index + 1 }}
-                  </div>
-                <button class="icon-button edit" @click.stop="editCell(index)">
-                  <i class="fas fa-pen"></i>
-                </button>
-                <button class="icon-button info">
-                  <i class="fas fa-question-circle"></i>
-                  <div class="tooltip">
+                  :class="{ 'selected': cell.selected }">
+                <!-- Info zone (top) -->
+                <div class="cell-info-zone" 
+                    @mouseenter="tooltipVisible = true"
+                    @mouseleave="tooltipVisible = false"
+                    @click="tooltipVisible = false">
+                  <div class="tooltip" v-show="tooltipVisible">
                     <strong>{{ cell.title || 'Not set' }}</strong>
                     <br>
                     Points: {{ cell.points || '0' }}
                   </div>
-                </button>
+                </div>
+                
+                <!-- Content zone (middle) -->
+                <div class="cell-content" @click="toggleCell(index)">
+                  {{ index + 1 }}
+                </div>
+                
+                <!-- Edit zone (bottom) -->
+                <div class="cell-edit-zone" @click.stop="editCell(index)"></div>
               </div>
             </div>
 
@@ -110,15 +114,15 @@
                 <h2>Points Bingo: Risk/Reward</h2>
                 <div class="rr-checkboxes">
                   <label class="rr-checkbox">
-                    <input type="checkbox" v-model="rrChecks.threeToTen">
+                    <input type="checkbox" v-model="rrChecks.sixPoints" disabled>
                     <span class="checkbox-text">6/20 : 2R/R</span>
                   </label>
                   <label class="rr-checkbox">
-                    <input type="checkbox" v-model="rrChecks.fiveToTen">
+                    <input type="checkbox" v-model="rrChecks.twelvePoints" disabled>
                     <span class="checkbox-text">12/20 : 3R/R</span>
                   </label>
                   <label class="rr-checkbox">
-                    <input type="checkbox" v-model="rrChecks.sevenToTen">
+                    <input type="checkbox" v-model="rrChecks.eighteenPoints" disabled>
                     <span class="checkbox-text">18/20 : 4R/R</span>
                   </label>
                 </div>
@@ -171,10 +175,11 @@ export default {
       entry: null,
       target: null,
       totalScore: 0,
+      tooltipVisible: false,
       rrChecks: {
-        threeToTen: false,
-        fiveToTen: false,
-        sevenToTen: false
+        sixPoints: false,    // renamed from threeToTen
+        twelvePoints: false, // renamed from fiveToTen
+        eighteenPoints: false // renamed from sevenToTen
       },
       bingoCells: Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
@@ -185,6 +190,33 @@ export default {
       showEditModal: false,
       editingCell: null,
       editingIndex: null
+    }
+  },
+  // Watch property should be at the same level as data and methods
+  watch: {
+    totalScore: {
+      handler(newScore) {
+        // Reset all checkboxes first
+        this.rrChecks.sixPoints = false;
+        this.rrChecks.twelvePoints = false;
+        this.rrChecks.eighteenPoints = false;
+
+        // Check boxes based on score thresholds
+        if (newScore >= 6) {
+          this.rrChecks.sixPoints = true;
+        }
+        if (newScore >= 12) {
+          this.rrChecks.sixPoints = false;
+          this.rrChecks.twelvePoints = true;
+          this.rrChecks.eighteenPoints = false;
+        }
+        if (newScore >= 18) {
+          this.rrChecks.sixPoints = false;
+          this.rrChecks.twelvePoints = false;
+          this.rrChecks.eighteenPoints = true;
+        }
+      },
+      immediate: true
     }
   },
   methods: {
@@ -232,7 +264,7 @@ export default {
       this.showEditModal = false;
       this.editingCell = null;
       this.editingIndex = null;
-    }
+    },
   }
 }
 </script>
