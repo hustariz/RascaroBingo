@@ -6,6 +6,8 @@
     />
     <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
       <h2 class="page-title">RascaroBingo V1.0</h2>
+
+      
       
       <div class="two-column-layout">
         <!-- Left Column: Trade Sections -->
@@ -81,9 +83,10 @@
               <h2>Bingo Section</h2>
             </div>
             <div class="section-content">
+
             <!-- Bingo Grid -->
             <div class="bingo-grid">
-              <div v-for="(cell, index) in bingoCells" 
+              <div v-for="(cell, index) in activeCells" 
                   :key="index" 
                   class="bingo-cell"
                   :class="{ 'selected': cell.selected }">
@@ -127,7 +130,7 @@
                   </label>
                 </div>
                 <div class="score-display">
-                  <h3>Total Score: <span class="score-value">{{ totalScore }}</span></h3>
+                  <h3>Total Score: <span class="score-value">{{ activeScore }}</span></h3>
                 </div>
               </div>
             </div>
@@ -159,14 +162,35 @@
 </template>
 
 <script>
+import { mapState, mapActions } from 'vuex';
+import { useAuth } from '@/composables/useAuth';
 import '../assets/styles/BingoPage.css';
 import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue'
 
 export default {
   name: 'BingoPage',
-  components: {
-    RiskManagementSidebar
+  components: { RiskManagementSidebar },
+  
+  setup() {
+    console.log('🔧 BingoPage setup initialized');
+    const auth = useAuth();
+    return { auth };
   },
+
+  computed: {
+    ...mapState('bingo', ['bingoCells', 'totalScore']),
+    
+    activeCells() {
+      console.log('📊 Computing active cells, auth state:', this.auth.isAuthenticated.value);
+      return this.auth.isAuthenticated.value ? this.bingoCells : this.localBingoCells;
+    },
+    
+    activeScore() {
+      console.log('🎯 Computing active score, auth state:', this.auth.isAuthenticated.value);
+      return this.auth.isAuthenticated.value ? this.totalScore : this.localTotalScore;
+    }
+  },
+
   data() {
     return {
       isSidebarCollapsed: false,
@@ -174,60 +198,49 @@ export default {
       stoploss: null,
       entry: null,
       target: null,
-      totalScore: 0,
       tooltipVisible: false,
       rrChecks: {
-        sixPoints: false,    // renamed from threeToTen
-        twelvePoints: false, // renamed from fiveToTen
-        eighteenPoints: false // renamed from sevenToTen
+        sixPoints: false,
+        twelvePoints: false,
+        eighteenPoints: false
       },
-      bingoCells: Array.from({ length: 25 }, (_, i) => ({
+      showEditModal: false,
+      editingCell: null,
+      editingIndex: null,
+      localBingoCells: Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
         title: '',
         points: 0,
         selected: false
       })),
-      showEditModal: false,
-      editingCell: null,
-      editingIndex: null
+      localTotalScore: 0
     }
   },
-  // Watch property should be at the same level as data and methods
-  watch: {
-    totalScore: {
-      handler(newScore) {
-        // Reset all checkboxes first
-        this.rrChecks.sixPoints = false;
-        this.rrChecks.twelvePoints = false;
-        this.rrChecks.eighteenPoints = false;
 
-        // Check boxes based on score thresholds
-        if (newScore >= 6) {
-          this.rrChecks.sixPoints = true;
-        }
-        if (newScore >= 12) {
-          this.rrChecks.sixPoints = false;
-          this.rrChecks.twelvePoints = true;
-          this.rrChecks.eighteenPoints = false;
-        }
-        if (newScore >= 18) {
-          this.rrChecks.sixPoints = false;
-          this.rrChecks.twelvePoints = false;
-          this.rrChecks.eighteenPoints = true;
-        }
+  watch: {
+    activeScore: {
+      handler(newScore) {
+        console.log('📈 Score changed:', newScore);
+        this.updateRRChecks(newScore);
       },
       immediate: true
     }
   },
+
   methods: {
+    ...mapActions('bingo', ['loadUserCard', 'saveCardState']),
+
     handleSaveSettings(settings) {
-      console.log('Settings saved:', settings);
+      console.log('⚙️ Settings saved:', settings);
     },
+
     handleSidebarToggle(isCollapsed) {
+      console.log('📑 Sidebar toggled:', isCollapsed);
       this.isSidebarCollapsed = isCollapsed;
     },
+
     saveTrade() {
-      console.log('Trade details:', {
+      console.log('💾 Saving trade:', {
         stoploss: this.stoploss,
         entry: this.entry,
         target: this.target,
@@ -235,36 +248,106 @@ export default {
         riskRewardChecks: this.rrChecks
       });
     },
-    toggleCell(index) {
-      this.bingoCells[index].selected = !this.bingoCells[index].selected;
-      if (this.bingoCells[index].selected) {
-        this.totalScore += this.bingoCells[index].points || 0;
-      } else {
-        this.totalScore -= this.bingoCells[index].points || 0;
+
+    updateRRChecks(newScore) {
+      console.log('🎲 Updating RR checks for score:', newScore);
+      this.rrChecks.sixPoints = false;
+      this.rrChecks.twelvePoints = false;
+      this.rrChecks.eighteenPoints = false;
+
+      if (newScore >= 18) {
+        this.rrChecks.eighteenPoints = true;
+      } else if (newScore >= 12) {
+        this.rrChecks.twelvePoints = true;
+      } else if (newScore >= 6) {
+        this.rrChecks.sixPoints = true;
+      }
+      
+      console.log('✅ New RR state:', this.rrChecks);
+    },
+
+    async toggleCell(index) {
+      console.log('🎯 Toggling cell:', index);
+      try {
+        if (this.auth.isAuthenticated.value) {
+          console.log('👤 User is authenticated, updating store');
+          const cell = { ...this.bingoCells[index] };
+          cell.selected = !cell.selected;
+          this.$store.commit('bingo/UPDATE_CELL', { index, cell });
+          await this.saveCardState();
+          console.log('✅ Cell toggled and saved');
+        } else {
+          console.log('👥 User is not authenticated, updating local state');
+          const cell = this.localBingoCells[index];
+          cell.selected = !cell.selected;
+          this.localTotalScore += cell.selected ? (cell.points || 0) : -(cell.points || 0);
+          this.updateRRChecks(this.localTotalScore);
+          console.log('✅ Local cell toggled');
+        }
+      } catch (error) {
+        console.error('❌ Error toggling cell:', error);
       }
     },
+
     editCell(index) {
+      console.log('📝 Editing cell:', index);
       this.editingIndex = index;
-      this.editingCell = { ...this.bingoCells[index] };
+      this.editingCell = { ...this.activeCells[index] };
       this.showEditModal = true;
     },
-    saveCell() {
-      // If the cell was previously selected, subtract its old points
-      if (this.bingoCells[this.editingIndex].selected) {
-        this.totalScore -= this.bingoCells[this.editingIndex].points || 0;
+
+    async saveCell() {
+      console.log('💾 Saving cell changes');
+      try {
+        if (this.editingIndex !== null) {
+          if (this.auth.isAuthenticated.value) {
+            console.log('👤 Saving to store');
+            this.$store.commit('bingo/UPDATE_CELL', {
+              index: this.editingIndex,
+              cell: { ...this.editingCell }
+            });
+            await this.saveCardState();
+          } else {
+            console.log('👥 Saving to local state');
+            const oldCell = this.localBingoCells[this.editingIndex];
+            if (oldCell.selected) {
+              this.localTotalScore -= oldCell.points || 0;
+            }
+            this.localBingoCells[this.editingIndex] = { ...this.editingCell };
+            if (this.editingCell.selected) {
+              this.localTotalScore += this.editingCell.points || 0;
+            }
+            this.updateRRChecks(this.localTotalScore);
+          }
+        }
+        this.showEditModal = false;
+        this.editingCell = null;
+        this.editingIndex = null;
+        console.log('✅ Cell saved successfully');
+      } catch (error) {
+        console.error('❌ Error saving cell:', error);
       }
-      
-      this.bingoCells[this.editingIndex] = { ...this.editingCell };
-      
-      // If the cell is selected, add the new points
-      if (this.bingoCells[this.editingIndex].selected) {
-        this.totalScore += this.bingoCells[this.editingIndex].points || 0;
+    }
+  },
+
+  async created() {
+    console.log('🎮 BingoPage created');
+    console.log('🔑 Auth state:', {
+      isAuthenticated: this.auth.isAuthenticated.value,
+      hasUser: !!this.auth.user.value
+    });
+    
+    try {
+      if (this.auth.isAuthenticated.value) {
+        console.log('👤 Loading authenticated user card');
+        await this.loadUserCard();
+        console.log('✅ Card loaded successfully');
+      } else {
+        console.log('👥 Using default state for non-authenticated user');
       }
-      
-      this.showEditModal = false;
-      this.editingCell = null;
-      this.editingIndex = null;
-    },
+    } catch (error) {
+      console.error('❌ Error loading bingo card:', error);
+    }
   }
 }
 </script>

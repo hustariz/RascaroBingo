@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+const User = require('../models/User');
 
 // Public Routes (No auth required)
 
@@ -113,8 +113,14 @@ router.post('/register', async (req, res) => {
 // Protected Routes (Auth required)
 
 // Get current user
+// routes/user.js
 router.get('/me', async (req, res) => {
   try {
+    // Add check for req.user
+    if (!req.user) {
+      return res.status(401).json({ msg: 'User not authenticated' });
+    }
+
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });

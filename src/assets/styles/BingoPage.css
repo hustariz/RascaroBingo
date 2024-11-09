@@ -155,7 +155,7 @@ h2 {
 
 /* Info Zone (top) */
 .cell-info-zone {
-  height: 25%;
+  height: 20%; /* Reduced from 25% */
   width: 100%;
   position: relative;
   cursor: help;
@@ -184,7 +184,7 @@ h2 {
 
 /* Content Zone (middle) */
 .cell-content {
-  height: 50%;
+  height: 60%; /* Increased from 50% */
   width: 100%;
   display: flex;
   align-items: center;
@@ -198,7 +198,7 @@ h2 {
 
 /* Edit Zone (bottom) */
 .cell-edit-zone {
-  height: 25%;
+  height: 20%; /* Reduced from 25% */
   width: 100%;
   cursor: pointer;
   border-top: 1px solid rgb(238, 175, 17);

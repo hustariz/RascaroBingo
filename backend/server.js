@@ -9,12 +9,18 @@ const PORT = process.env.PORT || 3004;
 // Import middleware
 const auth = require('./middleware/auth');
 
+// Import routes
+const userRoutes = require('./routes/user');
+const bingoCardRoutes = require('./routes/bingoCardRoutes');
+
 // CORS Configuration
 const corsOptions = {
-  origin: ['http://localhost:8080',
-            'http://localhost:3004',
-            'https://rascarobingo.onrender.com',
-            'https://rascarobingo-wley.onrender.com'],
+  origin: [
+    'http://localhost:8080',
+    'http://localhost:3004',
+    'https://rascarobingo.onrender.com',
+    'https://rascarobingo-wley.onrender.com'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -39,24 +45,9 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log('MongoDB connection error:', err));
 
-// Import routes
-const userRoutes = require('./routes/users');
-
-// Create router for user routes
-const router = express.Router();
-
-// Define routes on the router
-router.post('/login', userRoutes);
-router.post('/register', userRoutes);
-
-// Protected routes
-router.get('/me', auth, userRoutes);
-router.get('/', auth, userRoutes);
-router.put('/:id', auth, userRoutes);
-router.delete('/:id', auth, userRoutes);
-
-// Mount all routes under /api/users
-app.use('/api/users', router);
+// Mount routes
+app.use('/api/users', userRoutes);
+app.use('/api/bingo', bingoCardRoutes);
 
 // Base route
 app.get('/', (req, res) => {
