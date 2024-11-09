@@ -6,8 +6,6 @@
     />
     <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
       <h2 class="page-title">RascaroBingo V1.0</h2>
-
-      
       
       <div class="two-column-layout">
         <!-- Left Column: Trade Sections -->
@@ -83,34 +81,33 @@
               <h2>Bingo Section</h2>
             </div>
             <div class="section-content">
-
-            <!-- Bingo Grid -->
-            <div class="bingo-grid">
-              <div v-for="(cell, index) in activeCells" 
-                  :key="index" 
-                  class="bingo-cell"
-                  :class="{ 'selected': cell.selected }">
-                <!-- Info zone (top) -->
-                <div class="cell-info-zone" 
-                    @mouseenter="tooltipVisible = true"
-                    @mouseleave="tooltipVisible = false"
-                    @click="tooltipVisible = false">
-                  <div class="tooltip" v-show="tooltipVisible">
-                    <strong>{{ cell.title || 'Not set' }}</strong>
-                    <br>
-                    Points: {{ cell.points || '0' }}
+              <!-- Bingo Grid -->
+              <div class="bingo-grid">
+                <div v-for="(cell, index) in activeCells" 
+                    :key="index" 
+                    class="bingo-cell"
+                    :class="{ 'selected': cell.selected }">
+                  <!-- Info zone (top) -->
+                  <div class="cell-info-zone" 
+                      @mouseenter="tooltipVisible = true"
+                      @mouseleave="tooltipVisible = false"
+                      @click="tooltipVisible = false">
+                    <div class="tooltip" v-show="tooltipVisible">
+                      <strong>{{ cell.title || 'Not set' }}</strong>
+                      <br>
+                      Points: {{ cell.points || '0' }}
+                    </div>
                   </div>
+                  
+                  <!-- Content zone (middle) -->
+                  <div class="cell-content" @click="toggleCell(index)">
+                    {{ index + 1 }}
+                  </div>
+                  
+                  <!-- Edit zone (bottom) -->
+                  <div class="cell-edit-zone" @click.stop="editCell(index)"></div>
                 </div>
-                
-                <!-- Content zone (middle) -->
-                <div class="cell-content" @click="toggleCell(index)">
-                  {{ index + 1 }}
-                </div>
-                
-                <!-- Edit zone (bottom) -->
-                <div class="cell-edit-zone" @click.stop="editCell(index)"></div>
               </div>
-            </div>
 
               <!-- Risk/Reward Section -->
               <div class="risk-reward-area">
@@ -138,7 +135,8 @@
         </div>
       </div>
     </div>
-        <!-- Edit Modal -->
+
+    <!-- Edit Modal -->
     <div v-if="showEditModal" class="modal">
       <div class="modal-content">
         <h3>Edit Bingo Cell</h3>
@@ -149,7 +147,7 @@
           </div>
           <div class="form-group">
             <label>Points:</label>
-            <input v-model="editingCell.points" type="number" min="0">
+            <input v-model.number="editingCell.points" type="number" min="0">
           </div>
           <div class="modal-buttons">
             <button @click="saveCell" class="save-button">Save</button>
@@ -218,14 +216,37 @@ export default {
   },
 
   watch: {
+        'auth.isAuthenticated.value': {
+        async handler(newValue) {
+          console.log('🔐 Auth state changed:', newValue);
+          if (newValue) {
+            console.log('👤 Loading user card after auth change');
+            try {
+              await this.loadUserCard();
+              console.log('✅ Card loaded after auth change');
+            } catch (error) {
+              console.error('❌ Error loading card after auth:', error);
+            }
+          }
+        },
+        immediate: true
+      },
+      
+      activeScore: {
+        handler(newScore) {
+          console.log('📈 Score changed:', newScore);
+          this.updateRRChecks(newScore);
+        },
+        immediate: true
+      }
+    },
     activeScore: {
       handler(newScore) {
         console.log('📈 Score changed:', newScore);
         this.updateRRChecks(newScore);
       },
       immediate: true
-    }
-  },
+    },
 
   methods: {
     ...mapActions('bingo', ['loadUserCard', 'saveCardState']),
@@ -251,38 +272,27 @@ export default {
 
     updateRRChecks(newScore) {
       console.log('🎲 Updating RR checks for score:', newScore);
-      this.rrChecks.sixPoints = false;
-      this.rrChecks.twelvePoints = false;
-      this.rrChecks.eighteenPoints = false;
-
-      if (newScore >= 18) {
-        this.rrChecks.eighteenPoints = true;
-      } else if (newScore >= 12) {
-        this.rrChecks.twelvePoints = true;
-      } else if (newScore >= 6) {
-        this.rrChecks.sixPoints = true;
-      }
-      
+      this.rrChecks.sixPoints = newScore >= 6;
+      this.rrChecks.twelvePoints = newScore >= 12;
+      this.rrChecks.eighteenPoints = newScore >= 18;
       console.log('✅ New RR state:', this.rrChecks);
     },
 
     async toggleCell(index) {
-      console.log('🎯 Toggling cell:', index);
       try {
         if (this.auth.isAuthenticated.value) {
           console.log('👤 User is authenticated, updating store');
           const cell = { ...this.bingoCells[index] };
           cell.selected = !cell.selected;
           this.$store.commit('bingo/UPDATE_CELL', { index, cell });
-          await this.saveCardState();
+          await this.$store.dispatch('bingo/saveCardState');
           console.log('✅ Cell toggled and saved');
         } else {
-          console.log('👥 User is not authenticated, updating local state');
+          console.log('👥 Using local state');
           const cell = this.localBingoCells[index];
           cell.selected = !cell.selected;
           this.localTotalScore += cell.selected ? (cell.points || 0) : -(cell.points || 0);
           this.updateRRChecks(this.localTotalScore);
-          console.log('✅ Local cell toggled');
         }
       } catch (error) {
         console.error('❌ Error toggling cell:', error);
@@ -306,7 +316,7 @@ export default {
               index: this.editingIndex,
               cell: { ...this.editingCell }
             });
-            await this.saveCardState();
+            await this.$store.dispatch('bingo/saveCardState');
           } else {
             console.log('👥 Saving to local state');
             const oldCell = this.localBingoCells[this.editingIndex];
