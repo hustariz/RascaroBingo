@@ -29,6 +29,7 @@ import '../assets/styles/LoginForm.css';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
+import { useAuth } from '@/composables/useAuth';  // Import the composable
 
 export default {
   name: 'LoginForm',
@@ -40,6 +41,7 @@ export default {
   },
   setup(props, { emit }) {
     const router = useRouter();
+    const auth = useAuth();  // Call the composable to get the auth methods
     const username = ref('');
     const password = ref('');
     const isLoading = ref(false);
@@ -56,13 +58,21 @@ export default {
         });
         
         console.log('Login successful:', response);
+
+        // Use auth.login instead of auth.setToken
+        await auth.login({
+          username: username.value,
+          password: password.value
+        });
+
         // Emit login-success event with user data
         emit('login-success', response);
         closeForm();
-        router.push('/');
+        router.push('/bingo');
       } catch (error) {
         console.error('Login error:', error);
         errorMessage.value = error.msg || 'Login failed';
+        auth.logout(); // Clear any existing auth data on error
       } finally {
         isLoading.value = false;
       }
