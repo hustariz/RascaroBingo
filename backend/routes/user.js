@@ -27,96 +27,55 @@ router.post('/login', async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        username: user.username
+        username: user.username,
+        email: user.email
       }
     };
 
-    jwt.sign(
+    // Generate access token
+    const token = jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: '24h' },
-      (err, token) => {
-        if (err) {
-          console.error('JWT Sign Error:', err);
-          return res.status(500).json({ msg: 'Error generating token' });
-        }
-        console.log('Token generated successfully');
-        res.json({ 
-          token, 
-          username: user.username,
-          email: user.email
-        });
-      }
+      { expiresIn: '24h' }
     );
+
+    // Store token in user's refresh tokens
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    user.refreshTokens = user.refreshTokens || [];
+    user.refreshTokens.push({
+      token,
+      expiresAt,
+      lastUsed: new Date()
+    });
+
+    // Clean up old tokens
+    user.refreshTokens = user.refreshTokens.filter(t => 
+      new Date(t.expiresAt) > new Date()
+    );
+
+    await user.save();
+    console.log('Token generated and stored successfully');
+
+    res.json({ 
+      token, 
+      username: user.username,
+      email: user.email
+    });
   } catch (err) {
     console.error('Login Error:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
 
-// Register
-router.post('/register', async (req, res) => {
-  console.log('Register attempt');
-  const { username, email, password } = req.body;
-
-  try {
-    const existingUser = await User.findOne({ 
-      $or: [{ username }, { email }] 
-    });
-
-    if (existingUser) {
-      return res.status(400).json({ 
-        msg: existingUser.username === username 
-          ? 'Username already taken' 
-          : 'Email already registered' 
-      });
-    }
-
-    const user = new User({
-      username,
-      email,
-      password
-    });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    await user.save();
-    console.log('User registered successfully');
-
-    const payload = {
-      user: {
-        id: user.id,
-        username: user.username
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ 
-          token,
-          username: user.username,
-          email: user.email
-        });
-      }
-    );
-  } catch (err) {
-    console.error('Registration error:', err);
-    res.status(500).json({ msg: 'Server error' });
-  }
-});
+// Your existing register route...
 
 // Protected Routes (Auth required)
 
-// Get current user
-// routes/user.js
+// Get current user with token validation
 router.get('/me', async (req, res) => {
   try {
-    // Add check for req.user
     if (!req.user) {
       return res.status(401).json({ msg: 'User not authenticated' });
     }
@@ -125,6 +84,27 @@ router.get('/me', async (req, res) => {
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
+
+    // Validate token is in refresh tokens
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const validToken = user.refreshTokens?.some(t => 
+      t.token === token && new Date(t.expiresAt) > new Date()
+    );
+
+    if (!validToken) {
+      return res.status(401).json({ 
+        msg: 'Token not valid',
+        code: 'TOKEN_INVALID'
+      });
+    }
+
+    // Update last used timestamp
+    const tokenIndex = user.refreshTokens.findIndex(t => t.token === token);
+    if (tokenIndex !== -1) {
+      user.refreshTokens[tokenIndex].lastUsed = new Date();
+      await user.save();
+    }
+
     res.json(user);
   } catch (err) {
     console.error('Error in /me route:', err);
@@ -132,79 +112,93 @@ router.get('/me', async (req, res) => {
   }
 });
 
-// Get all users
-router.get('/', async (req, res) => {
+// Refresh token endpoint with enhanced security
+router.post('/refresh-token', async (req, res) => {
   try {
-    const users = await User.find().select('-password');
-    res.json(users);
-  } catch (err) {
-    console.error('Error getting users:', err);
-    res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-// Update user
-router.put('/:id', async (req, res) => {
-  const { username, email, password } = req.body;
-
-  try {
-    let user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
+    const { token } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ msg: 'No token provided' });
     }
 
-    // Make sure user can only update their own profile
-    if (user.id.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'Not authorized' });
-    }
+    try {
+      // Verify existing token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Find user and validate token
+      const user = await User.findById(decoded.user.id);
+      if (!user) {
+        return res.status(404).json({ msg: 'User not found' });
+      }
 
-    if (username) user.username = username;
-    if (email) user.email = email;
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-    }
+      // Check if token is in refresh tokens
+      const validToken = user.refreshTokens?.some(t => 
+        t.token === token && new Date(t.expiresAt) > new Date()
+      );
 
-    await user.save();
-    res.json({
-      msg: 'User updated',
-      user: {
-        id: user.id,
+      if (!validToken) {
+        return res.status(401).json({ msg: 'Token not valid' });
+      }
+
+      // Generate new token
+      const payload = {
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email
+        }
+      };
+
+      const newToken = jwt.sign(
+        payload,
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      // Update refresh tokens
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+      
+      // Remove old token
+      user.refreshTokens = user.refreshTokens.filter(t => t.token !== token);
+      
+      // Add new token
+      user.refreshTokens.push({
+        token: newToken,
+        expiresAt,
+        lastUsed: new Date()
+      });
+
+      // Clean up expired tokens
+      user.refreshTokens = user.refreshTokens.filter(t => 
+        new Date(t.expiresAt) > new Date()
+      );
+
+      await user.save();
+      console.log('Token refreshed successfully');
+
+      res.json({
+        token: newToken,
         username: user.username,
         email: user.email
+      });
+
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ 
+          msg: 'Token expired',
+          code: 'TOKEN_EXPIRED'
+        });
       }
-    });
-  } catch (err) {
-    console.error('Update error:', err);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'User not found' });
+      throw err;
     }
-    res.status(500).json({ msg: 'Server error' });
+
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({ msg: 'Server error during token refresh' });
   }
 });
 
-// Delete user
-router.delete('/:id', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
-
-    // Make sure user can only delete their own account
-    if (user.id.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'Not authorized' });
-    }
-
-    await user.deleteOne();
-    res.json({ msg: 'User deleted' });
-  } catch (err) {
-    console.error('Delete error:', err);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'User not found' });
-    }
-    res.status(500).json({ msg: 'Server error' });
-  }
-});
+// Your existing routes (get all users, update user, delete user)...
 
 module.exports = router;
