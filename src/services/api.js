@@ -23,13 +23,33 @@ api.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-// Add response interceptor
+// Add response interceptor with retry logic
 api.interceptors.response.use(
   response => response,
-  error => {
-    // Don't clear token on 401, let useAuth handle it
-    if (error.response?.status === 401) {
-      console.log('⚠️ Auth error in interceptor, keeping credentials');
+  async error => {
+    const originalRequest = error.config;
+
+    // Handle 401 errors with retry logic
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log('⚠️ Auth error in interceptor, attempting recovery');
+      originalRequest._retry = true;
+
+      try {
+        // Try to use stored token first
+        const token = localStorage.getItem('token');
+        if (token) {
+          console.log('🔄 Retrying with stored token');
+          originalRequest.headers['Authorization'] = `Bearer ${token}`;
+          return await api(originalRequest);
+        }
+      } catch (retryError) {
+        console.log('⚠️ Retry failed, using cached state');
+        // Return cached data if available
+        const cachedData = localStorage.getItem('bingoState');
+        if (cachedData) {
+          return Promise.resolve({ data: JSON.parse(cachedData) });
+        }
+      }
     }
     return Promise.reject(error);
   }
@@ -42,10 +62,12 @@ export default {
       console.log('🔑 Attempting login...');
       const response = await api.post('/users/login', userData);
       if (response.data.token) {
+        // Store auth data with metadata
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('username', response.data.username);
         const expiresAt = new Date().getTime() + (24 * 60 * 60 * 1000);
         localStorage.setItem('tokenExpires', expiresAt.toString());
+        localStorage.setItem('lastLogin', new Date().toISOString());
         console.log('✅ Login successful');
       }
       return response.data;
@@ -64,6 +86,7 @@ export default {
         localStorage.setItem('username', response.data.username);
         const expiresAt = new Date().getTime() + (24 * 60 * 60 * 1000);
         localStorage.setItem('tokenExpires', expiresAt.toString());
+        localStorage.setItem('lastLogin', new Date().toISOString());
         console.log('✅ Registration successful');
       }
       return response.data;
@@ -75,10 +98,19 @@ export default {
 
   logout() {
     console.log('🚪 Logging out...');
+    // Store last session info before clearing
+    const lastSession = {
+      username: localStorage.getItem('username'),
+      loginTime: localStorage.getItem('lastLogin'),
+      logoutTime: new Date().toISOString()
+    };
+    localStorage.setItem('lastSession', JSON.stringify(lastSession));
+    
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     localStorage.removeItem('tokenExpires');
-    localStorage.removeItem('bingoState'); // Clear bingo state on logout
+    localStorage.removeItem('lastLogin');
+    localStorage.removeItem('bingoState');
     console.log('✅ Logout complete');
   },
 
@@ -99,21 +131,42 @@ export default {
     console.log('🔍 Checking authentication');
     try {
       const token = localStorage.getItem('token');
+      const username = localStorage.getItem('username');
       console.log('🎟️ Token:', token ? 'present' : 'missing');
       
       if (!token) {
         return null;
       }
-
-      const response = await api.get('/users/me');
-      console.log('✅ Auth check successful:', response.data);
-      return response.data;
+  
+      try {
+        const response = await api.get('/users/me');
+        console.log('✅ Auth check successful:', response.data);
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401) {
+          console.log('⚠️ Auth check 401, using stored credentials');
+          // Return cached user data on 401
+          return {
+            username: username,
+            token: token
+          };
+        }
+        throw error;
+      }
     } catch (error) {
       console.error('❌ Auth check failed:', error);
-      // Don't clear token on 401, let useAuth handle it
+      // Only clear on non-401 errors
       if (error.response?.status !== 401) {
+        console.log('⚠️ Non-401 error, clearing auth data');
         localStorage.removeItem('token');
         localStorage.removeItem('username');
+      } else {
+        console.log('⚠️ 401 error, keeping credentials');
+        // Return cached user data
+        return {
+          username: localStorage.getItem('username'),
+          token: localStorage.getItem('token')
+        };
       }
       throw error;
     }
@@ -123,7 +176,7 @@ export default {
   async getBingoCard() {
     try {
       console.log('📥 Loading bingo card');
-      // Try to load from cache first
+      // Always try cache first
       const cachedCard = localStorage.getItem('bingoState');
       if (cachedCard) {
         console.log('📋 Found cached card');
@@ -132,9 +185,18 @@ export default {
 
       const response = await api.get('/bingo/card');
       console.log('✅ Card loaded from server');
+      // Cache the server response
+      localStorage.setItem('bingoState', JSON.stringify(response.data));
       return response.data;
     } catch (error) {
       console.error('❌ Error loading card:', error);
+      // Try to use cached data on error
+      const cachedCard = localStorage.getItem('bingoState');
+      if (cachedCard) {
+        console.log('⚠️ Using cached card data');
+        return JSON.parse(cachedCard);
+      }
+      
       if (error.response?.status === 404) {
         const defaultCard = {
           bingoCells: Array.from({ length: 25 }, (_, i) => ({
@@ -155,14 +217,21 @@ export default {
   async saveBingoCard(cardData) {
     try {
       console.log('💾 Saving card');
-      // Always cache the card
-      localStorage.setItem('bingoState', JSON.stringify(cardData));
+      // Always cache first
+      localStorage.setItem('bingoState', JSON.stringify({
+        ...cardData,
+        lastModified: new Date().toISOString()
+      }));
 
       const response = await api.post('/bingo/card', cardData);
       console.log('✅ Card saved to server');
       return response.data;
     } catch (error) {
-      console.error('❌ Error saving card:', error);
+      console.error('❌ Error saving card, but state is cached:', error);
+      if (error.response?.status === 401) {
+        console.log('⚠️ Auth error, using cached state');
+        return cardData;
+      }
       throw error.response?.data || error.message;
     }
   },
@@ -170,11 +239,26 @@ export default {
   async updateBingoCell(index, cellData) {
     try {
       console.log('📝 Updating cell:', index);
+      // Update cache first
+      const cachedCard = localStorage.getItem('bingoState');
+      if (cachedCard) {
+        const card = JSON.parse(cachedCard);
+        card.bingoCells[index] = cellData;
+        localStorage.setItem('bingoState', JSON.stringify({
+          ...card,
+          lastModified: new Date().toISOString()
+        }));
+      }
+
       const response = await api.patch(`/bingo/card/cell/${index}`, { cell: cellData });
       console.log('✅ Cell updated');
       return response.data;
     } catch (error) {
       console.error('❌ Error updating cell:', error);
+      if (error.response?.status === 401) {
+        console.log('⚠️ Auth error, using cached state');
+        return cellData;
+      }
       throw error.response?.data || error.message;
     }
   }
