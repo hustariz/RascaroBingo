@@ -7,12 +7,14 @@ import { faUser, faSignOutAlt, faCog, faDice, faEnvelope, faChartBar } from '@fo
 import router from './router'
 import api from '@/services/api'
 import '@fortawesome/fontawesome-free/css/all.css'
+import store from './store'
 
 
 library.add(faUser, faSignOutAlt, faCog, faDice, faEnvelope, faChartBar)
 
 const app = createApp(App)
 app.component('font-awesome-icon', FontAwesomeIcon)
+app.use(store)
 app.use(router)
 
 if (api.isAuthenticated()) {
