@@ -18,6 +18,25 @@
         <!-- Trade's Details Subsection -->
         <div class="trade-subsection">
           <h3>Trade's Details</h3>
+          
+        <!-- Long/Short Toggle -->
+        <div class="trade-type-toggle">
+        <button 
+            class="trade-toggle-button" 
+            :class="{ active: isLong }"
+            @click="isLong = true"
+        >
+            Long
+        </button>
+        <button 
+            class="trade-toggle-button" 
+            :class="{ active: !isLong }"
+            @click="isLong = false"
+        >
+            Short
+        </button>
+        </div>
+  
           <div class="price-inputs">
             <div class="price-input-group">
               <label class="price-label">Stoploss:</label>
@@ -55,15 +74,22 @@
                 >
               </div>
             </div>
-            <button class="save-button" @click="saveTrade">Save</button>
           </div>
+          
+          <button 
+            class="save-button" 
+            :class="{ 'long': isLong, 'short': !isLong }"
+            @click="saveTrade"
+          >
+            Save {{ isLong ? 'Long' : 'Short' }}
+          </button>
         </div>
       </div>
     </div>
   </template>
   
   <script>
-  import '../assets/styles/TradeSection.css';
+  import '../assets/styles/TradeSection.css'
   
   export default {
     name: 'TradeSection',
@@ -72,12 +98,14 @@
         tradeIdea: '',
         stoploss: null,
         entry: null,
-        target: null
+        target: null,
+        isLong: true // Default to long position
       }
     },
     methods: {
       saveTrade() {
         console.log('💾 Saving trade:', {
+          type: this.isLong ? 'Long' : 'Short',
           stoploss: this.stoploss,
           entry: this.entry,
           target: this.target,
