@@ -256,9 +256,20 @@ export default {
     },
     updateRRChecks(newScore) {
       console.log('🎲 Updating RR checks for score:', newScore);
-      this.rrChecks.sixPoints = newScore >= 6;
-      this.rrChecks.twelvePoints = newScore >= 11;
-      this.rrChecks.eighteenPoints = newScore >= 16;
+      this.rrChecks = {
+        sixPoints: false,
+        twelvePoints: false,
+        eighteenPoints: false
+    };
+    // Check only the highest applicable R:R
+    if (newScore >= 18) {
+        this.rrChecks.eighteenPoints = true;
+    } else if (newScore >= 12) {
+        this.rrChecks.twelvePoints = true;
+    } else if (newScore >= 6) {
+        this.rrChecks.sixPoints = true;
+    }
+    
       console.log('✅ New RR state:', this.rrChecks);
     },
     async toggleCell(index) {
