@@ -5,7 +5,7 @@
       @sidebar-toggle="handleSidebarToggle" 
     />
     <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
-      <h2 class="page-title">RascaroBingo V1.0</h2>
+      <h1 class="page-title">Here we cooking</h1>
       
       <div class="two-column-layout">
         <!-- Left Column: Trade Section Component -->
@@ -50,7 +50,7 @@
 
               <!-- Risk/Reward Section -->
               <div class="risk-reward-area">
-                <h2>Points Bingo: Risk/Reward</h2>
+                <h3>Points Bingo: Risk/Reward</h3>
                 <div class="rr-checkboxes">
                   <label class="rr-checkbox">
                     <input type="checkbox" v-model="rrChecks.sixPoints" disabled>
