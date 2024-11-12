@@ -8,70 +8,8 @@
       <h2 class="page-title">RascaroBingo V1.0</h2>
       
       <div class="two-column-layout">
-        <!-- Left Column: Combined Trade Section -->
-        <div class="left-column">
-          <div class="section-container">
-            <div class="section-header">
-              <h2>Trade's Section</h2>
-            </div>
-            <div class="section-content">
-              <!-- Trade's Idea Subsection -->
-              <div class="trade-subsection">
-                <h3>Trade's Idea</h3>
-                <textarea
-                  v-model="tradeIdea"
-                  placeholder="Enter your trade ideas here..."
-                  rows="4"
-                  class="trade-idea-input"
-                ></textarea>
-              </div>
-
-              <!-- Trade's Details Subsection -->
-              <div class="trade-subsection">
-                <h3>Trade's Details</h3>
-                <div class="price-inputs">
-                  <div class="price-input-group">
-                    <label class="price-label">Stoploss:</label>
-                    <div class="input-with-prefix">
-                      <span class="prefix">$</span>
-                      <input
-                        type="number"
-                        v-model="stoploss"
-                        step="1"
-                        placeholder="0"
-                      >
-                    </div>
-                  </div>
-                  <div class="price-input-group">
-                    <label class="price-label">Entry:</label>
-                    <div class="input-with-prefix">
-                      <span class="prefix">$</span>
-                      <input
-                        type="number"
-                        v-model="entry"
-                        step="1"
-                        placeholder="0"
-                      >
-                    </div>
-                  </div>
-                  <div class="price-input-group">
-                    <label class="price-label">Target:</label>
-                    <div class="input-with-prefix">
-                      <span class="prefix">$</span>
-                      <input
-                        type="number"
-                        v-model="target"
-                        step="1"
-                        placeholder="0"
-                      >
-                    </div>
-                  </div>
-                  <button class="save-button" @click="saveTrade">Save</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Left Column: Trade Section Component -->
+        <TradeSection class="left-column" />
 
         <!-- Right Column: Bingo Section -->
         <div class="right-column">
@@ -164,12 +102,14 @@
 import { mapState, mapActions } from 'vuex';
 import { useAuth } from '@/composables/useAuth';
 import '../assets/styles/BingoPage.css';
-import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue'
+import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue';
+import TradeSection from '@/components/TradeSection.vue';
 
 export default {
   name: 'BingoPage',
   components: {
-    RiskManagementSidebar
+    RiskManagementSidebar,
+    TradeSection
   },
   setup() {
     console.log('🔧 BingoPage setup initialized');
@@ -179,21 +119,15 @@ export default {
   computed: {
     ...mapState('bingo', ['bingoCells', 'totalScore']),
     activeCells() {
-      console.log('📊 Computing active cells, auth state:', this.auth.isAuthenticated.value);
       return this.auth.isAuthenticated.value ? this.bingoCells : this.localBingoCells;
     },
     activeScore() {
-      console.log('🎯 Computing active score, auth state:', this.auth.isAuthenticated.value);
       return this.auth.isAuthenticated.value ? this.totalScore : this.localTotalScore;
     }
   },
   data() {
     return {
       isSidebarCollapsed: false,
-      tradeIdea: '',
-      stoploss: null,
-      entry: null,
-      target: null,
       tooltipVisible: false,
       rrChecks: {
         sixPoints: false,
