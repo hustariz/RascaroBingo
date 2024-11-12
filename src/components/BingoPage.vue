@@ -120,11 +120,11 @@
                   </label>
                   <label class="rr-checkbox">
                     <input type="checkbox" v-model="rrChecks.twelvePoints" disabled>
-                    <span class="checkbox-text">12/20 : 3R/R</span>
+                    <span class="checkbox-text">11/20 : 3R/R</span>
                   </label>
                   <label class="rr-checkbox">
                     <input type="checkbox" v-model="rrChecks.eighteenPoints" disabled>
-                    <span class="checkbox-text">18/20 : 4R/R</span>
+                    <span class="checkbox-text">16/20 : 4R/R</span>
                   </label>
                 </div>
                 <div class="score-display">
@@ -257,8 +257,8 @@ export default {
     updateRRChecks(newScore) {
       console.log('🎲 Updating RR checks for score:', newScore);
       this.rrChecks.sixPoints = newScore >= 6;
-      this.rrChecks.twelvePoints = newScore >= 12;
-      this.rrChecks.eighteenPoints = newScore >= 18;
+      this.rrChecks.twelvePoints = newScore >= 11;
+      this.rrChecks.eighteenPoints = newScore >= 16;
       console.log('✅ New RR state:', this.rrChecks);
     },
     async toggleCell(index) {
