@@ -1,80 +1,79 @@
 <template>
   <div class="page-container">
     <RiskManagementSidebar 
-      @save-settings="handleSaveSettings"
-      @sidebar-toggle="handleSidebarToggle"
+      @save-settings="handleSaveSettings" 
+      @sidebar-toggle="handleSidebarToggle" 
     />
     <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
       <h2 class="page-title">RascaroBingo V1.0</h2>
       
       <div class="two-column-layout">
-        <!-- Left Column: Trade Sections -->
+        <!-- Left Column: Combined Trade Section -->
         <div class="left-column">
-          <!-- Trade's Idea Section -->
           <div class="section-container">
             <div class="section-header">
-              <h2>Trade's Idea</h2>
+              <h2>Trade's Section</h2>
             </div>
             <div class="section-content">
-              <textarea 
-                v-model="tradeIdea" 
-                placeholder="Enter your trade ideas here..." 
-                rows="4"
-                class="trade-idea-input"
-              ></textarea>
-            </div>
-          </div>
+              <!-- Trade's Idea Subsection -->
+              <div class="trade-subsection">
+                <h3>Trade's Idea</h3>
+                <textarea
+                  v-model="tradeIdea"
+                  placeholder="Enter your trade ideas here..."
+                  rows="4"
+                  class="trade-idea-input"
+                ></textarea>
+              </div>
 
-          <!-- Trade Details Section -->
-          <div class="section-container">
-            <div class="section-header">
-              <h2>Trade's Details</h2>
-            </div>
-            <div class="section-content">
-              <div class="price-inputs">
-                <div class="price-input-group">
-                  <label class="price-label">Stoploss:</label>
-                  <div class="input-with-prefix">
-                    <span class="prefix">$</span>
-                    <input 
-                      type="number" 
-                      v-model="stoploss" 
-                      step="1" 
-                      placeholder="0"
-                    >
+              <!-- Trade's Details Subsection -->
+              <div class="trade-subsection">
+                <h3>Trade's Details</h3>
+                <div class="price-inputs">
+                  <div class="price-input-group">
+                    <label class="price-label">Stoploss:</label>
+                    <div class="input-with-prefix">
+                      <span class="prefix">$</span>
+                      <input
+                        type="number"
+                        v-model="stoploss"
+                        step="1"
+                        placeholder="0"
+                      >
+                    </div>
                   </div>
-                </div>
-                <div class="price-input-group">
-                  <label class="price-label">Entry:</label>
-                  <div class="input-with-prefix">
-                    <span class="prefix">$</span>
-                    <input 
-                      type="number" 
-                      v-model="entry" 
-                      step="1" 
-                      placeholder="0"
-                    >
+                  <div class="price-input-group">
+                    <label class="price-label">Entry:</label>
+                    <div class="input-with-prefix">
+                      <span class="prefix">$</span>
+                      <input
+                        type="number"
+                        v-model="entry"
+                        step="1"
+                        placeholder="0"
+                      >
+                    </div>
                   </div>
-                </div>
-                <div class="price-input-group">
-                  <label class="price-label">Target:</label>
-                  <div class="input-with-prefix">
-                    <span class="prefix">$</span>
-                    <input 
-                      type="number" 
-                      v-model="target" 
-                      step="1" 
-                      placeholder="0"
-                    >
+                  <div class="price-input-group">
+                    <label class="price-label">Target:</label>
+                    <div class="input-with-prefix">
+                      <span class="prefix">$</span>
+                      <input
+                        type="number"
+                        v-model="target"
+                        step="1"
+                        placeholder="0"
+                      >
+                    </div>
                   </div>
+                  <button class="save-button" @click="saveTrade">Save</button>
                 </div>
-                <button class="save-button" @click="saveTrade">Save</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right Column: Bingo Sections -->
+        <!-- Right Column: Bingo Section -->
         <div class="right-column">
           <div class="section-container">
             <div class="section-header">
@@ -83,27 +82,29 @@
             <div class="section-content">
               <!-- Bingo Grid -->
               <div class="bingo-grid">
-                <div v-for="(cell, index) in activeCells" 
-                    :key="index" 
-                    class="bingo-cell"
-                    :class="{ 'selected': cell.selected }">
+                <div
+                  v-for="(cell, index) in activeCells"
+                  :key="index"
+                  class="bingo-cell"
+                  :class="{ 'selected': cell.selected }"
+                >
                   <!-- Info zone (top) -->
-                  <div class="cell-info-zone" 
-                      @mouseenter="tooltipVisible = true"
-                      @mouseleave="tooltipVisible = false"
-                      @click="tooltipVisible = false">
+                  <div
+                    class="cell-info-zone"
+                    @mouseenter="tooltipVisible = true"
+                    @mouseleave="tooltipVisible = false"
+                    @click="tooltipVisible = false"
+                  >
                     <div class="tooltip" v-show="tooltipVisible">
                       <strong>{{ cell.title || 'Not set' }}</strong>
                       <br>
                       Points: {{ cell.points || '0' }}
                     </div>
                   </div>
-                  
                   <!-- Content zone (middle) -->
                   <div class="cell-content" @click="toggleCell(index)">
                     {{ index + 1 }}
                   </div>
-                  
                   <!-- Edit zone (bottom) -->
                   <div class="cell-edit-zone" @click.stop="editCell(index)"></div>
                 </div>
@@ -167,28 +168,25 @@ import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue'
 
 export default {
   name: 'BingoPage',
-  components: { RiskManagementSidebar },
-  
+  components: {
+    RiskManagementSidebar
+  },
   setup() {
     console.log('🔧 BingoPage setup initialized');
     const auth = useAuth();
     return { auth };
   },
-
   computed: {
     ...mapState('bingo', ['bingoCells', 'totalScore']),
-    
     activeCells() {
       console.log('📊 Computing active cells, auth state:', this.auth.isAuthenticated.value);
       return this.auth.isAuthenticated.value ? this.bingoCells : this.localBingoCells;
     },
-    
     activeScore() {
       console.log('🎯 Computing active score, auth state:', this.auth.isAuthenticated.value);
       return this.auth.isAuthenticated.value ? this.totalScore : this.localTotalScore;
     }
   },
-
   data() {
     return {
       isSidebarCollapsed: false,
@@ -214,31 +212,21 @@ export default {
       localTotalScore: 0
     }
   },
-
   watch: {
-        'auth.isAuthenticated.value': {
-        async handler(newValue) {
-          console.log('🔐 Auth state changed:', newValue);
-          if (newValue) {
-            console.log('👤 Loading user card after auth change');
-            try {
-              await this.loadUserCard();
-              console.log('✅ Card loaded after auth change');
-            } catch (error) {
-              console.error('❌ Error loading card after auth:', error);
-            }
+    'auth.isAuthenticated.value': {
+      async handler(newValue) {
+        console.log('🔐 Auth state changed:', newValue);
+        if (newValue) {
+          console.log('👤 Loading user card after auth change');
+          try {
+            await this.loadUserCard();
+            console.log('✅ Card loaded after auth change');
+          } catch (error) {
+            console.error('❌ Error loading card after auth:', error);
           }
-        },
-        immediate: true
+        }
       },
-      
-      activeScore: {
-        handler(newScore) {
-          console.log('📈 Score changed:', newScore);
-          this.updateRRChecks(newScore);
-        },
-        immediate: true
-      }
+      immediate: true
     },
     activeScore: {
       handler(newScore) {
@@ -246,20 +234,17 @@ export default {
         this.updateRRChecks(newScore);
       },
       immediate: true
-    },
-
+    }
+  },
   methods: {
     ...mapActions('bingo', ['loadUserCard', 'saveCardState']),
-
     handleSaveSettings(settings) {
       console.log('⚙️ Settings saved:', settings);
     },
-
     handleSidebarToggle(isCollapsed) {
       console.log('📑 Sidebar toggled:', isCollapsed);
       this.isSidebarCollapsed = isCollapsed;
     },
-
     saveTrade() {
       console.log('💾 Saving trade:', {
         stoploss: this.stoploss,
@@ -269,7 +254,6 @@ export default {
         riskRewardChecks: this.rrChecks
       });
     },
-
     updateRRChecks(newScore) {
       console.log('🎲 Updating RR checks for score:', newScore);
       this.rrChecks.sixPoints = newScore >= 6;
@@ -277,7 +261,6 @@ export default {
       this.rrChecks.eighteenPoints = newScore >= 18;
       console.log('✅ New RR state:', this.rrChecks);
     },
-
     async toggleCell(index) {
       try {
         if (this.auth.isAuthenticated.value) {
@@ -298,14 +281,12 @@ export default {
         console.error('❌ Error toggling cell:', error);
       }
     },
-
     editCell(index) {
       console.log('📝 Editing cell:', index);
       this.editingIndex = index;
       this.editingCell = { ...this.activeCells[index] };
       this.showEditModal = true;
     },
-
     async saveCell() {
       console.log('💾 Saving cell changes');
       try {
@@ -339,14 +320,12 @@ export default {
       }
     }
   },
-
   async created() {
     console.log('🎮 BingoPage created');
     console.log('🔑 Auth state:', {
       isAuthenticated: this.auth.isAuthenticated.value,
       hasUser: !!this.auth.user.value
     });
-    
     try {
       if (this.auth.isAuthenticated.value) {
         console.log('👤 Loading authenticated user card');
