@@ -13,7 +13,7 @@ const BingoCard = new mongoose.Schema({
       type: Number,
       required: true,
       min: 1,
-      max: 20
+      max: 25
     },
     title: {
       type: String,
@@ -67,8 +67,8 @@ BingoCard.pre('save', function(next) {
   // Update RR checks based on total score
   this.rrChecks = {
     sixPoints: this.totalScore >= 6,
-    twelvePoints: this.totalScore >= 12,
-    eighteenPoints: this.totalScore >= 18
+    twelvePoints: this.totalScore >= 11,
+    eighteenPoints: this.totalScore >= 16
   };
 
   // Update lastModified
@@ -80,7 +80,7 @@ BingoCard.pre('save', function(next) {
 // Method to initialize bingo cells if they don't exist
 BingoCard.methods.initializeCells = function() {
   if (!this.bingoCells || this.bingoCells.length === 0) {
-    this.bingoCells = Array.from({ length: 20 }, (_, i) => ({
+    this.bingoCells = Array.from({ length: 25 }, (_, i) => ({
       id: i + 1,
       title: '',
       points: 0,
@@ -91,7 +91,7 @@ BingoCard.methods.initializeCells = function() {
 
 // Ensure bingoCells array always has 25 cells
 BingoCard.path('bingoCells').validate(function(cells) {
-  return cells.length === 20;
+  return cells.length === 25;
 }, 'Bingo card must have exactly 25 cells');
 
 module.exports = mongoose.model('BingoCard', BingoCard);
