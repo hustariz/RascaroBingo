@@ -1,10 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3004;
+
+app.use(express.static(path.join(__dirname, '../dist')));
 
 
 // Import routes
@@ -93,6 +96,10 @@ app.get('/', (req, res) => {
     version: '1.0',
     status: 'running'
   });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 // 404 handler
