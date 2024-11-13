@@ -32,6 +32,12 @@
       <div class="score-display">
         <h3>Total Score: <span class="score-value">{{ score }}</span></h3>
       </div>
+      <div v-if="score >= 20" class="bingo-text">
+          Bingo!
+          <div class="bingo-tooltip">
+              Great trade, 5R/R, MAXIMUM risk is allowed!
+            </div>
+        </div>
     </div>
 </template>
 
