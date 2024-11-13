@@ -1,0 +1,113 @@
+/* Risk/Reward Section Container */
+.risk-reward-section {
+    width: 100%;
+    padding: 15px;
+  }
+  
+  /* Risk/Reward Area */
+  .risk-reward-area {
+    margin-bottom: 20px;
+  }
+  
+  .risk-reward-area h3 {
+    color: rgb(238, 175, 17);
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-family: 'Legendarie', sans-serif;
+  }
+  
+  /* Checkboxes Container */
+  .rr-checkboxes {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+  }
+  
+  /* Individual Checkbox */
+  .rr-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    color: white;
+  }
+  
+  .rr-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgb(238, 175, 17);
+    border-radius: 4px;
+    margin-right: 10px;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .rr-checkbox input[type="checkbox"]:checked {
+    background-color: rgb(238, 175, 17);
+  }
+  
+  .rr-checkbox input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    color: black;
+    font-size: 14px;
+    font-weight: bold;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .rr-checkbox input[type="checkbox"]:disabled {
+    opacity: 1;
+    cursor: default;
+  }
+  
+  .rr-checkbox input[type="checkbox"]:disabled + .checkbox-text {
+    cursor: default;
+  }
+  
+  .checkbox-text {
+    font-size: 1.1rem;
+    color: rgb(238, 175, 17);
+    font-weight: bold;
+  }
+  
+  /* Score Display */
+  .score-display {
+    margin-top: 20px;
+    text-align: center;
+    padding: 15px;
+    border-top: 1px solid rgba(238, 175, 17, 0.3);
+  }
+  
+  .score-display h3 {
+    color: rgb(238, 175, 17);
+    font-size: 1.3rem;
+    margin: 0;
+  }
+  
+  .score-value {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: white;
+    margin-left: 10px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .rr-checkboxes {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .rr-checkbox {
+      width: 100%;
+      justify-content: center;
+    }
+  }

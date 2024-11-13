@@ -1,48 +1,61 @@
-/* Trade Section Styling */
+
+
+/* Trade Section Base Styling */
 .trade-subsection {
     padding: 15px 0;
     width: 100%;
     position: relative;
+  }
+  
+  /* Horizontal Layout */
+  .trade-subsection.horizontal-layout {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    padding: 15px;
+  }
+  
+  /* Left Side: Trade's Idea */
+  .idea-section {
+    flex: 0 0 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Right Side: Trade's Details */
+  .details-section {
+    flex: 0 0 60%;
     display: flex;
     flex-direction: column;
     gap: 15px;
+  }
+  
+/* Typography for titles */
+.trade-idea-section h3,
+.trade-details-section h3,
+.price-input-group h4,
+.label-with-tooltip h4 {
+  color: rgb(238, 175, 17);
+  font-family: 'Legendarie', sans-serif;
+  margin-bottom: 5px;
 }
 
-.trade-subsection:first-child {
-    padding-top: 0;
+.trade-idea-section h3,
+.trade-details-section h3 {
+  font-size: 1.5rem;
 }
 
-.trade-subsection:last-child {
-    padding-bottom: 0;
+.price-input-group h4,
+.label-with-tooltip h4 {
+  font-size: 1.4rem;
 }
-
-/* Typography */
-.trade-subsection h3, 
-.trade-subsection h4 {
-    color: rgb(238, 175, 17);
-    font-family: 'Legendarie', sans-serif;
-    margin-bottom: 5px;
-}
-
-.trade-subsection h3 {
-    font-size: 1.5rem;
-}
-
-.trade-subsection h4 {
-    font-size: 1.4rem;
-}
-
-/* Subsection Separator */
-.trade-subsection + .trade-subsection {
-    border-top: 1px solid rgba(238, 175, 17, 0.2);
-    margin-top: 15px;
-}
-
-/* Trade Idea Input */
-.trade-idea-input {
+  
+  /* Trade Idea Input */
+  .trade-idea-input {
     width: 100%;
     min-height: 100px;
-    min-width: 350px;
+    min-width: 300px;
     padding: 8px;
     border: 1px solid rgb(238, 175, 17);
     background-color: rgba(0, 0, 0, 0.8);
@@ -50,31 +63,31 @@
     border-radius: 4px;
     font-family: inherit;
     resize: vertical;
-}
-
-/* Price Inputs Section */
-.price-inputs {
+  }
+  
+  /* Price Inputs Section */
+  .price-inputs {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
     align-items: start;
     margin-top: 20px;
     width: 100%;
-}
-
-.price-input-group {
+  }
+  
+  .price-input-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
-}
-
-.input-with-prefix {
+  }
+  
+  .input-with-prefix {
     position: relative;
     display: flex;
     align-items: center;
-}
-
-.prefix {
+  }
+  
+  .prefix {
     position: absolute;
     left: 10px;
     top: 50%;
@@ -82,9 +95,9 @@
     color: rgba(255, 255, 255, 0.7);
     z-index: 1;
     pointer-events: none;
-}
-
-.price-input-group input {
+  }
+  
+  .price-input-group input {
     width: 100%;
     padding: 8px 8px 8px 25px;
     background-color: rgba(255, 255, 255, 0.1);
@@ -92,10 +105,10 @@
     border-radius: 4px;
     color: white;
     font-size: 1rem;
-}
-
-/* Long/Short Toggle */
-.trade-type-toggle {
+  }
+  
+  /* Long/Short Toggle */
+  .trade-type-toggle {
     display: flex;
     justify-content: center;
     margin: 5px auto;
@@ -105,9 +118,9 @@
     padding: 3px;
     position: relative;
     border: 1px solid rgb(238, 175, 17);
-}
-
-.trade-toggle-button {
+  }
+  
+  .trade-toggle-button {
     width: 50%;
     padding: 0px 15px;
     border: none;
@@ -120,17 +133,31 @@
     color: rgb(238, 175, 17);
     position: relative;
     z-index: 1;
-}
-
-/* Label with tooltip */
-.label-with-tooltip {
+  }
+  
+  /* Toggle Button States */
+  .trade-toggle-button:first-child.active,
+  .trade-toggle-button:first-child:hover {
+    background-color: rgba(0, 255, 0, 0.3);
+    color: rgb(0, 255, 0);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+  }
+  
+  .trade-toggle-button:last-child.active,
+  .trade-toggle-button:last-child:hover {
+    background-color: rgba(255, 0, 0, 0.3);
+    color: rgb(255, 0, 0);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+  }
+  
+  /* Tooltip Styling */
+  .label-with-tooltip {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-}
-
-
-.tooltip-icon {
+  }
+  
+  .tooltip-icon {
     position: relative;
     cursor: help;
     color: rgb(238, 175, 17);
@@ -144,16 +171,13 @@
     border-radius: 50%;
     background-color: rgba(238, 175, 17, 0.1);
     margin-top: 2px;
-}
-
-.tooltip-icon:hover {
+  }
+  
+  .tooltip-icon:hover {
     background-color: rgba(238, 175, 17, 0.2);
-}
-.tooltip-icon:hover .tooltip-content {
-    display: block;
-}
-
-.tooltip-content {
+  }
+  
+  .tooltip-content {
     display: none;
     position: absolute;
     top: -5px;
@@ -168,51 +192,14 @@
     z-index: 1000;
     font-family: inherit;
     box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
-}
-
-/* Add this to create an invisible bridge to the tooltip */
-.tooltip-icon::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 100%;
-    width: 30px; /* Match the gap to the tooltip */
-    height: 40px; /* Make it tall enough to reach the tooltip */
-    transform: translateY(-50%);
-    z-index: 999;
-}
-
-/* Adjust the hover behavior */
-.tooltip-icon:hover .tooltip-content,
-.tooltip-content:hover {
+  }
+  
+  .tooltip-icon:hover .tooltip-content {
     display: block;
-}
-
-/* Read-only input styling */
-.price-input-group input[readonly] {
-    background-color: rgba(238, 175, 17, 0.05);
-    cursor: not-allowed;
-    color: rgb(238, 175, 17);
-    border-color: rgb(238, 175, 17);
-}
-
-/* Toggle Button States */
-.trade-toggle-button:first-child.active,
-.trade-toggle-button:first-child:hover {
-    background-color: rgba(0, 255, 0, 0.3);
-    color: rgb(0, 255, 0);
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
-}
-
-.trade-toggle-button:last-child.active,
-.trade-toggle-button:last-child:hover {
-    background-color: rgba(255, 0, 0, 0.3);
-    color: rgb(255, 0, 0);
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
-}
-
-/* Save Button */
-.save-button {
+  }
+  
+  /* Save Button */
+  .save-button {
     width: calc(100% - 40px);
     margin: 10px 20px;
     padding: 10px;
@@ -220,42 +207,40 @@
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s ease;
-}
-
-/* Save Button States */
-.save-button.long {
+  }
+  
+  .save-button.long {
     background-color: rgba(0, 255, 0, 0.1);
     color: rgb(0, 255, 0);
     border-color: rgb(0, 255, 0);
-}
-
-.save-button.short {
+  }
+  
+  .save-button.short {
     background-color: rgba(255, 0, 0, 0.1);
     color: rgb(255, 0, 0);
     border-color: rgb(255, 0, 0);
-}
-
-.save-button.long:hover {
+  }
+  
+  .save-button.long:hover {
     background-color: rgba(0, 255, 0, 0.3);
-}
-
-.save-button.short:hover {
+  }
+  
+  .save-button.short:hover {
     background-color: rgba(255, 0, 0, 0.3);
-}
-
-/* History and Chart Buttons Container */
-.buttons-container {
+  }
+  
+  /* Buttons Container */
+  .buttons-container {
     width: calc(100% - 40px);
     margin: 10px 20px;
     display: flex;
     gap: 10px;
     justify-content: space-between;
-}
-
-/* History and Chart Buttons */
-.history-button,
-.chart-button {
-    width: calc(50% - 5px); /* Half width minus half of the gap */
+  }
+  
+  .history-button,
+  .chart-button {
+    width: calc(50% - 5px);
     padding: 10px;
     border: 1px solid rgb(238, 175, 17);
     border-radius: 4px;
@@ -267,70 +252,125 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-}
-
-.history-button:hover,
-.chart-button:hover {
+  }
+  
+  .history-button:hover,
+  .chart-button:hover {
     background-color: rgb(238, 175, 17);
-    color: whitesmoke;
-}
-
-.history-icon,
-.chart-icon {
-    font-size: 1.2rem;
-}
-
-/* Focus States */
-.trade-idea-input:focus,
-.price-input-group input:focus {
-    outline: none;
-    border-color: rgb(238, 175, 17);
-    box-shadow: 0 0 5px rgba(238, 175, 17, 0.3);
-}
-
-/* Container Layout */
-.section-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
+    color: black;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .trade-subsection.horizontal-layout {
+      flex-direction: column;
+    }
+  
+    .idea-section,
+    .details-section {
+      flex: 1 1 100%;
+      width: 100%;
+    }
+  
+    .trade-idea-input {
+      min-height: 150px;
+      min-width: unset;
+    }
+  
     .price-inputs {
-        grid-template-columns: 1fr;
+      grid-template-columns: 1fr;
     }
-    
-    .trade-type-toggle {
-        padding: 0 10px;
+  
+    .buttons-container {
+      flex-direction: column;
     }
-    
-    .save-button {
-        width: calc(100% - 20px);
-        margin: 10px 10px;
+  
+    .history-button,
+    .chart-button {
+      width: 100%;
     }
-}
-
-/* Tooltip content additions */
-.tooltip-action {
+  }
+  /* Label with tooltip */
+.label-with-tooltip {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .tooltip-icon {
+    position: relative;
+    cursor: help;
+    color: rgb(238, 175, 17);
+    font-size: 1.2rem;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(238, 175, 17);
+    border-radius: 50%;
+    background-color: rgba(238, 175, 17, 0.1);
+    margin-top: 2px;
+  }
+  
+  .tooltip-icon:hover {
+    background-color: rgba(238, 175, 17, 0.2);
+  }
+  
+  .tooltip-content {
+    display: none;
+    position: absolute;
+    top: -5px;
+    left: 30px;
+    background-color: rgba(0, 0, 0, 0.95);
+    border: 1px solid rgb(238, 175, 17);
+    border-radius: 4px;
+    padding: 12px 15px;
+    width: 280px;
+    color: rgb(238, 175, 17);
+    font-size: 0.9rem;
+    z-index: 1000;
+    font-family: inherit;
+    box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
+  }
+  
+  /* Add this to create an invisible bridge to the tooltip */
+  .tooltip-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 30px; /* Match the gap to the tooltip */
+    height: 40px; /* Make it tall enough to reach the tooltip */
+    transform: translateY(-50%);
+    z-index: 999;
+  }
+  
+  /* Adjust the hover behavior */
+  .tooltip-icon:hover .tooltip-content,
+  .tooltip-content:hover {
+    display: block;
+  }
+  
+  /* Tooltip action buttons */
+  .tooltip-action {
     margin-top: 10px;
     padding-top: 10px;
     border-top: 1px solid rgba(238, 175, 17, 0.3);
-}
-
-.tooltip-action p {
+  }
+  
+  .tooltip-action p {
     margin-bottom: 8px;
     color: rgb(238, 175, 17);
-}
-
-.tooltip-buttons {
+  }
+  
+  .tooltip-buttons {
     display: flex;
     justify-content: center;
     gap: 15px;
-}
-
-.tooltip-btn {
+  }
+  
+  .tooltip-btn {
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -341,35 +381,24 @@
     justify-content: center;
     transition: all 0.3s ease;
     font-size: 1rem;
-}
-
-.tooltip-btn.check {
+  }
+  
+  .tooltip-btn.check {
     border-color: rgb(0, 255, 0);
     color: rgb(0, 255, 0);
     background-color: rgba(0, 255, 0, 0.1);
-}
-
-.tooltip-btn.cross {
+  }
+  
+  .tooltip-btn.cross {
     border-color: rgb(255, 0, 0);
     color: rgb(255, 0, 0);
     background-color: rgba(255, 0, 0, 0.1);
-}
-
-.tooltip-btn.check:hover {
+  }
+  
+  .tooltip-btn.check:hover {
     background-color: rgba(0, 255, 0, 0.3);
-}
-
-.tooltip-btn.cross:hover {
+  }
+  
+  .tooltip-btn.cross:hover {
     background-color: rgba(255, 0, 0, 0.3);
-}
-
-/* Editable input styling */
-.price-input-group input.editable {
-    background-color: rgba(0, 255, 0, 0.05);
-    border-color: rgb(0, 255, 0);
-}
-
-.price-input-group input:not(.editable) {
-    background-color: rgba(255, 255, 255, 0.05);
-    cursor: not-allowed;
-}
+  }
