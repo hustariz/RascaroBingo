@@ -5,7 +5,7 @@
           <label class="rr-checkbox">
             <input 
               type="checkbox" 
-              :checked="score >= 6"
+              :checked="score >= 6 && score < 11"
               disabled
             >
             <span class="checkbox-text">6/20 : 2R/R</span>
@@ -13,7 +13,7 @@
           <label class="rr-checkbox">
             <input 
               type="checkbox" 
-              :checked="score >= 11"
+              :checked="score >= 11 && score < 16"
               disabled
             >
             <span class="checkbox-text">11/20 : 3R/R</span>
@@ -33,7 +33,7 @@
         <h3>Total Score: <span class="score-value">{{ score }}</span></h3>
       </div>
     </div>
-  </template>
+</template>
 
 <script>
 import '../assets/styles/RiskRewardSection.css';
@@ -51,10 +51,10 @@ export default {
     score: {
       immediate: true,
       handler(newScore) {
-        // Update rrChecks based on score thresholds
+        // Update rrChecks based on score ranges
         this.$emit('update:rrChecks', {
-          sixPoints: newScore >= 6,
-          twelvePoints: newScore >= 11,
+          sixPoints: newScore >= 6 && newScore < 11,
+          twelvePoints: newScore >= 11 && newScore < 16,
           eighteenPoints: newScore >= 16
         });
       }
