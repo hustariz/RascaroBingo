@@ -1,113 +1,186 @@
 /* Risk/Reward Section Container */
 .risk-reward-section {
-    width: 100%;
-    padding: 15px;
-  }
-  
-  /* Risk/Reward Area */
-  .risk-reward-area {
-    margin-bottom: 20px;
-  }
-  
-  .risk-reward-area h3 {
-    color: rgb(238, 175, 17);
-    font-size: 1.5rem;
-    margin-bottom: 5px;
-    margin-top: 5px;
-    font-family: 'Legendarie', sans-serif;
-  }
-  
-  /* Checkboxes Container */
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Risk/Reward Area */
+.risk-reward-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Checkboxes Container */
+.rr-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 10px;
+}
+
+/* Individual Checkbox */
+.rr-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.checkbox-text {
+  font-size: 1.1rem;
+  color: rgb(238, 175, 17);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.rr-checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 24px; /* Slightly larger checkboxes */
+  height: 24px;
+  border: 2px solid rgb(238, 175, 17);
+  border-radius: 4px;
+  margin-right: 12px;
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.rr-checkbox input[type="checkbox"]:checked {
+  background-color: rgb(238, 175, 17);
+}
+
+.rr-checkbox input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  color: black;
+  font-size: 16px; /* Larger checkmark */
+  font-weight: bold;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.rr-checkbox input[type="checkbox"]:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.rr-checkbox input[type="checkbox"]:disabled + .checkbox-text {
+  cursor: default;
+}
+
+.checkbox-text {
+  font-size: 1.2rem;
+  color: rgb(238, 175, 17);
+  font-weight: bold;
+  min-width: 80px; /* Ensure consistent width */
+  text-align: left;
+}
+
+/* Score Display */
+.score-display {
+  margin-top: 25px;
+  text-align: center;
+  padding: 20px 15px;
+  border-top: 1px solid rgba(238, 175, 17, 0.3);
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 0 0 8px 8px;
+}
+
+.score-display h3 {
+  color: rgb(238, 175, 17);
+  font-size: 1.4rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.score-value {
+  font-weight: bold;
+  font-size: 1.6rem;
+  color: white;
+  display: inline-block;
+  min-width: 40px; /* Ensure consistent width for numbers */
+  text-align: center;
+}
+
+/* Bingo Text and Tooltip */
+.bingo-container {
+  position: relative;
+  display: inline-block;
+  margin-top: 15px;
+}
+
+.bingo-text {
+  color: rgb(238, 175, 17);
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  animation: glowPulse 2s infinite;
+  font-family: 'Legendarie', sans-serif;
+  text-shadow: 0 0 10px rgba(238, 175, 17, 0.5);
+  cursor: help;
+}
+
+.bingo-tooltip {
+  position: absolute;
+  bottom: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  border: 2px solid rgb(238, 175, 17);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-family: Arial, sans-serif;
+  white-space: nowrap;
+  color: rgb(238, 175, 17);
+  display: none;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
+}
+
+.bingo-text:hover .bingo-tooltip {
+  display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .rr-checkboxes {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 0;
+    flex-direction: column;
+    gap: 20px;
   }
-  
-  /* Individual Checkbox */
+
   .rr-checkbox {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    color: white;
+    width: 100%;
+    justify-content: center;
   }
-  
-  .rr-checkbox input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgb(238, 175, 17);
-    border-radius: 4px;
-    margin-right: 10px;
-    background-color: transparent;
-    cursor: pointer;
-    position: relative;
-  }
-  
-  .rr-checkbox input[type="checkbox"]:checked {
-    background-color: rgb(238, 175, 17);
-  }
-  
-  .rr-checkbox input[type="checkbox"]:checked::after {
-    content: '✓';
-    position: absolute;
-    color: black;
-    font-size: 14px;
-    font-weight: bold;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
-  
-  .rr-checkbox input[type="checkbox"]:disabled {
-    opacity: 1;
-    cursor: default;
-  }
-  
-  .rr-checkbox input[type="checkbox"]:disabled + .checkbox-text {
-    cursor: default;
-  }
-  
+
   .checkbox-text {
-    font-size: 1.1rem;
-    color: rgb(238, 175, 17);
-    font-weight: bold;
-  }
-  
-  /* Score Display */
-  .score-display {
-    margin-top: 20px;
     text-align: center;
-    padding: 15px;
-    border-top: 1px solid rgba(238, 175, 17, 0.3);
   }
-  
-  .score-display h3 {
-    color: rgb(238, 175, 17);
-    font-size: 1.3rem;
-    margin: 0;
+}
+
+@keyframes glowPulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  .score-value {
-    font-weight: bold;
-    font-size: 1.5rem;
-    color: white;
-    margin-left: 10px;
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
   }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .rr-checkboxes {
-      flex-direction: column;
-      gap: 15px;
-    }
-    
-    .rr-checkbox {
-      width: 100%;
-      justify-content: center;
-    }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
+}
