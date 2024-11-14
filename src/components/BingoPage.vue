@@ -66,19 +66,21 @@ import draggable from 'vuedraggable';
 import { useAuth } from '@/composables/useAuth';
 import '../assets/styles/BingoPage.css';
 import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue';
-import TradeSection from '@/components/TradeSection.vue';
 import BingoGrid from '@/components/BingoGrid.vue';
 import RiskRewardSection from '@/components/RiskRewardSection.vue';
+import TradeIdeaSection from '@/components/TradeIdeaSection.vue';
+import TradeDetailsSection from '@/components/TradeDetailsSection.vue';
 
 export default defineComponent({
   name: 'BingoPage',
   
   components: {
     RiskManagementSidebar,
-    TradeSection,
     BingoGrid,
     RiskRewardSection,
-    draggable
+    TradeIdeaSection,    
+    TradeDetailsSection, 
+    draggable,
   },
 
   setup() {
@@ -88,7 +90,7 @@ export default defineComponent({
           id: 1,
           title: 'Bingo Section',
           component: 'BingoGrid',
-          size: 'large',
+          size: 'extra-large',
           props: {
         cells: [] // This will be updated through computed property
       }
@@ -104,9 +106,15 @@ export default defineComponent({
         },
         {
           id: 3,
-          title: "Trade's Section",
-          component: 'TradeSection',
-          size: 'extra-extra-large'
+          title: "Trade's Idea",
+          component: 'TradeIdeaSection',
+          size: 'medium'
+        },
+        {
+          id: 4,
+          title: "Trade's Details",
+          component: 'TradeDetailsSection',
+          size: 'large'
         }
       ]);
 
