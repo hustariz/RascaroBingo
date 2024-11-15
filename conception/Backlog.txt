@@ -1,10 +1,2 @@
-In the navbar :
-RascaroBingo = Homepage
-Add Start Here -> Click on miniKakul, open Bingo
-Bingo = LoadBingoPage
-Contact = Open a Form
-Login = Open a Login/Signin Form
-Save the users in a json file before doing the backend.
-Do the backend with MongoDB
-Test with REST API
-Make a session for users.
+Screenshot Detector if the app is open and it register you take a screenshot, 
+Pop a windows saying, TAKE YOUR FUCKING PROFIT!
