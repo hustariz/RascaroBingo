@@ -6,8 +6,8 @@
   gap: 20px;
   padding: 20px;
   width: 100%;
-  min-width: 0; /* Add this */
-  overflow: hidden; /* Add this */
+  min-width: 0; 
+  overflow: hidden; 
 }
 
 /* Page Layout */
@@ -24,8 +24,8 @@
   padding: 20px;
   margin-left: 270px;
   transition: margin-left 0.3s ease;
-  min-width: 0; /* Add this */
-  overflow: hidden; /* Add this */
+  min-width: 0; 
+  overflow: hidden; 
 }
 
 .main-content.expanded {
@@ -54,6 +54,12 @@
 }
 
 /* Widget Sizes */
+
+.widget-container.long {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
 .widget-container.small {
   grid-column: span 1;
   grid-row: span 1;
@@ -62,11 +68,15 @@
 .widget-container.medium {
   grid-column: span 2;
   grid-row: span 1;
+  min-height: 250px;
+  max-height: 350px; 
 }
 
 .widget-container.large {
   grid-column: span 3;
   grid-row: span 1;
+  min-height: 250px; /* Add this specific height for medium widgets */
+  max-height: 350px; /* Add this to limit the height */
 }
 
 .widget-container.extra-large {
