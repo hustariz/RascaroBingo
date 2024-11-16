@@ -221,9 +221,9 @@ h2 {
 
 /* Tooltip */
 .tooltip {
-  position: absolute;
-  top: -60px;
-  left: 50%;
+  position: fixed; 
+  top: auto;
+  bottom:64%;
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.9);
   border: 2px solid rgb(238, 175, 17);
@@ -232,10 +232,12 @@ h2 {
   font-size: 1.2rem;
   font-family: Arial, sans-serif;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 1500;
   min-width: 250px;
   box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
   display: none;
+  pointer-events: none;
+  margin-bottom: 20px; /* Add some space between tooltip and cell */
 }
 
 .cell-info-zone:hover .tooltip {
