@@ -1,8 +1,6 @@
 <template>
     <div class="trade-details-container">
       <div class="trade-details-content">
-        <h3>Trade's Details</h3>
-        
         <!-- Long/Short Toggle -->
         <div class="trade-type-toggle">
           <button 
@@ -77,15 +75,15 @@
           </div>
         </div>
   
-        <button 
-          class="save-button" 
-          :class="{ 'long': isLong, 'short': !isLong }"
-          @click="saveTrade"
-        >
-          Save {{ isLong ? 'Long' : 'Short' }}
-        </button>
-  
         <div class="buttons-container">
+          <button 
+            class="save-button" 
+            :class="{ 'long': isLong, 'short': !isLong }"
+            @click="saveTrade"
+          >
+            Save {{ isLong ? 'Long' : 'Short' }}
+          </button>
+          
           <button class="history-button" @click="checkTradeHistory">
             <span class="history-icon">📊</span>
             Trade History

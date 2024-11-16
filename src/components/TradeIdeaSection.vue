@@ -1,8 +1,6 @@
 <template>
     <div class="trade-idea-container">
       <div class="trade-idea-content">
-        <h3>Trade's Idea</h3>
-        
         <div class="textarea-container">
           <textarea
             v-model="tradeIdea"
