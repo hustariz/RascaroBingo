@@ -8,7 +8,7 @@
 .trade-details-content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
 }
 
 /* Typography */
@@ -33,9 +33,9 @@ h4 {
   width: 200px;
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 20px;
-  padding: 3px;
+  padding: 2px;
   border: 1px solid rgb(238, 175, 17);
-  margin: 10px auto;
+  margin: 5px auto;
 }
 
 .trade-toggle-button {
@@ -72,7 +72,7 @@ h4 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
-  margin: 15px 0;
+  margin: 5px 0 10px 0;
 }
 
 .price-input-group {
@@ -160,7 +160,7 @@ h4 {
   color: rgb(238, 175, 17);
   z-index: 1500;
   font-family: Arial, sans-serif;
-  margin-left: -160px; 
+  margin-left: -200px; 
   margin-top: -100px;
 }
 
@@ -230,15 +230,40 @@ h4 {
   background-color: rgba(255, 0, 0, 0.3);
 }
 
+.buttons-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+/* Modify both buttons */
+.save-button, .history-button {
+  flex: 1;
+  padding: 8px 15px; /* Reduce from 10px */
+  height: 50px; /* Add fixed height */
+  font-size: 1.5rem; /* Reduce font size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0; /* Remove margin */
+}
+
+/* Adjust history button icon */
+.history-icon {
+  font-size: 1rem; /* Reduce from 1.2rem */
+}
+
 /* Save Button */
 .save-button {
   width: 100%;
-  padding: 10px;
+  padding: 8px 15px;
   border: 1px solid;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin: 10px 0;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .save-button.long {
@@ -253,9 +278,31 @@ h4 {
   border-color: rgb(255, 0, 0);
 }
 
+/* Hover effects */
+.save-button.long:hover {
+  background-color: rgb(0, 255, 0);
+  color: black;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+}
+
+.save-button.short:hover {
+  background-color: rgb(255, 0, 0);
+  color: black;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+}
+
+/* Add transition back */
+.save-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
 /* History Button */
 .history-button {
   width: 100%;
+  flex: 1;
   padding: 10px;
   border: 1px solid rgb(238, 175, 17);
   border-radius: 4px;
