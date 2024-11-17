@@ -109,6 +109,10 @@ export default {
         sixteenPoints: false,  // 4R/R
         twentyPoints: false    // 5R/R (Hidden Bingo)
       })
+    },
+    tradeIdea: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -132,6 +136,12 @@ export default {
   watch: {
     stoploss: {
       handler: 'calculateTarget',
+      immediate: true
+    },
+    tradeIdea: {
+      handler(newIdea) {
+        console.log('Trade idea received:', newIdea);
+      },
       immediate: true
     },
     entry: {
@@ -197,7 +207,8 @@ export default {
         this.stoploss = Number(this.entry) - risk;
       }
     },
-    saveTrade() {
+    
+    async saveTrade() {  // Add async here
       if (!this.validateTrade()) return;
 
       const trade = {
@@ -205,19 +216,32 @@ export default {
         stoploss: Number(this.stoploss),
         entry: Number(this.entry),
         target: Number(this.target),
-        riskReward: this.currentRR, // Use computed R/R instead of fixed 2
+        riskReward: this.currentRR,
+        tradeIdea: this.tradeIdea,
         timestamp: new Date().toISOString()
       };
 
-      console.log('💾 Saving trade:', trade);
-      this.$emit('save-trade', trade);
+      try {
+        await this.$store.dispatch('trades/saveTrade', trade);
+        console.log('💾 Saving trade:', trade);
+        this.clearForm();
+      } catch (error) {
+        console.error('Error saving trade:', error);
+        // Handle error (show error message to user)
+      }
+    },
+
+    clearForm() {
+      this.stoploss = null;
+      this.entry = null;
+      this.target = null;
+      this.isTargetEditable = false;
     },
     validateTrade() {
       if (!this.stoploss || !this.entry || !this.target) {
         console.error('All fields must be filled');
         return false;
       }
-
       if (this.isLong) {
         // Validate Long position
         if (Number(this.entry) <= Number(this.stoploss)) {
