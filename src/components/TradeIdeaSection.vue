@@ -6,6 +6,7 @@
             v-model="tradeIdea"
             placeholder="Enter your trade ideas here..."
             class="trade-idea-input"
+            @input="emitTradeIdea"
           ></textarea>
         </div>
         
@@ -29,6 +30,9 @@
       }
     },
     methods: {
+      emitTradeIdea() {
+        this.$emit('trade-idea-update', this.tradeIdea);
+      },
       checkChart() {
         console.log('📈 Checking chart');
       }

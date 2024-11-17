@@ -23,14 +23,16 @@
               <h2>{{ element.title }}</h2>
             </div>
             <component 
-              :is="element.component" 
-              :cells="element.component === 'BingoGrid' ? activeCells : undefined"
-              :score="element.component === 'RiskRewardSection' ? activeScore : undefined"
-              :rrChecks="element.component === 'TradeDetailsSection' ? rrChecks : undefined"
-              @cell-click="toggleCell" 
-              @cell-edit="editCell"
-              @update:modelValue="updateWidgetData(element.id, $event)"
-            />
+            :is="element.component" 
+            :cells="element.component === 'BingoGrid' ? activeCells : undefined"
+            :score="element.component === 'RiskRewardSection' ? activeScore : undefined"
+            :rrChecks="element.component === 'TradeDetailsSection' ? rrChecks : undefined"
+            :tradeIdea="element.component === 'TradeDetailsSection' ? currentTradeIdea : undefined"
+            @trade-idea-update="updateTradeIdea"
+            @cell-click="toggleCell" 
+            @cell-edit="editCell"
+            @update:modelValue="updateWidgetData(element.id, $event)"
+          />
           </div>
         </div>
       </template>
@@ -144,7 +146,8 @@ export default defineComponent({
         elevenPoints: false,   // 3R/R
         sixteenPoints: false,  // 4R/R
         twentyPoints: false    // 5R/R (Hidden Bingo)
-      }
+      },
+      currentTradeIdea: '',
     };
   },
 
@@ -179,21 +182,26 @@ export default defineComponent({
     ...mapActions('bingo', ['loadUserCard', 'saveCardState']),
     
     updateWidgetData(widgetId, ) {
-  const widget = this.widgets.find(w => w.id === widgetId);
-  if (widget) {
-    if (widget.component === 'BingoGrid') {
-      widget.props = {
-        ...widget.props,
-        cells: this.activeCells
-      };
-    } else if (widget.component === 'RiskRewardSection') {
-      widget.props = {
-        ...widget.props,
-        score: this.activeScore
-      };
-    }
-  }
-},
+        const widget = this.widgets.find(w => w.id === widgetId);
+        if (widget) {
+          if (widget.component === 'BingoGrid') {
+            widget.props = { ...widget.props, cells: this.activeCells };
+          } else if (widget.component === 'RiskRewardSection') {
+            widget.props = { ...widget.props, score: this.activeScore };
+          } else if (widget.component === 'TradeDetailsSection') {
+            widget.props = { ...widget.props, tradeIdea: this.currentTradeIdea };
+          }
+        }
+    },
+    updateTradeIdea(idea) {
+      console.log('Updating trade idea:', idea); // Debug log
+      this.currentTradeIdea = idea;
+      // Update TradeDetailsSection widget
+      const tradeDetailsWidget = this.widgets.find(w => w.component === 'TradeDetailsSection');
+      if (tradeDetailsWidget) {
+        this.updateWidgetData(tradeDetailsWidget.id, { tradeIdea: idea });
+      }
+    },
 
     handleSaveSettings(settings) {
       console.log('Settings saved:', settings);
