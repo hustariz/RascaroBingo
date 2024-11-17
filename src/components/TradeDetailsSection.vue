@@ -92,41 +92,192 @@
       </div>
     </div>
   </template>
-  
-  <script>
-  import '../assets/styles/TradeDetailsSection.css'
-  
-  export default {
-    name: 'TradeDetailsSection',
-    data() {
-      return {
-        stoploss: null,
-        entry: null,
-        target: null,
-        isLong: true,
-        isTargetEditable: false 
+
+
+<script>
+import '../assets/styles/TradeDetailsSection.css';
+
+export default {
+  name: 'TradeDetailsSection',
+  props: {
+    rrChecks: {
+      type: Object,
+      required: true,
+      default: () => ({
+        sixPoints: false,      // 2R/R
+        elevenPoints: false,   // 3R/R
+        sixteenPoints: false,  // 4R/R
+        twentyPoints: false    // 5R/R (Hidden Bingo)
+      })
+    },
+    tradeIdea: {
+      type: String,
+      default: ''
+    }
+  },
+  data() {
+    return {
+      stoploss: null,
+      entry: null,
+      target: null,
+      isLong: true,
+      isTargetEditable: false
+    }
+  },
+  computed: {
+    currentRR() {
+      if (this.rrChecks.twentyPoints) return 5;    // Hidden Bingo (≥20 points)
+      if (this.rrChecks.sixteenPoints) return 4;   // ≥16 points
+      if (this.rrChecks.elevenPoints) return 3;    // ≥11 points
+      if (this.rrChecks.sixPoints) return 2;       // ≥6 points
+      return 1; // default R/R
+    }
+  },
+  watch: {
+    stoploss: {
+      handler: 'calculateTarget',
+      immediate: true
+    },
+    tradeIdea: {
+      handler(newIdea) {
+        console.log('Trade idea received:', newIdea);
+      },
+      immediate: true
+    },
+    entry: {
+      handler() {
+        if (this.isTargetEditable) {
+          this.calculateStoploss();
+        } else {
+          this.calculateTarget();
+        }
+      },
+      immediate: true
+    },
+    target: {
+      handler() {
+        if (this.isTargetEditable) {
+          this.calculateStoploss();
+        }
       }
     },
-    methods: {
-      saveTrade() {
-        console.log('💾 Saving trade:', {
-          type: this.isLong ? 'Long' : 'Short',
-          stoploss: this.stoploss,
-          entry: this.entry,
-          target: this.target
-        });
-      },
-      checkTradeHistory() {
-        console.log('📊 Checking trade history');
-      },
-      enableTargetEdit() {
-        this.isTargetEditable = true;
-        console.log('Target input enabled');
-      },
-      disableTargetEdit() {
-        this.isTargetEditable = false;
-        console.log('Target input disabled');
+    isLong: {
+      handler: 'calculateTarget',
+      immediate: true
+    },
+    currentRR: {
+      handler: 'calculateTarget',
+      immediate: true
+    }
+  },
+  methods: {
+    calculateTarget() {
+      if (!this.entry || !this.stoploss || this.isTargetEditable) return;
+
+      // For Short positions (isLong = false)
+      if (!this.isLong) {
+        // For shorts: risk is stoploss - entry (stoploss is above entry)
+        const risk = Number(this.stoploss) - Number(this.entry);
+        const reward = risk * this.currentRR;
+        this.target = Number(this.entry) - reward;
+      } 
+      // For Long positions (isLong = true)
+      else {
+        // For longs: risk is entry - stoploss (stoploss is below entry)
+        const risk = Number(this.entry) - Number(this.stoploss);
+        const reward = risk * this.currentRR;
+        this.target = Number(this.entry) + reward;
       }
+    },
+    
+    // Add new method for reverse calculation
+    calculateStoploss() {
+      if (!this.entry || !this.target || !this.isTargetEditable) return;
+
+      // For Short positions
+      if (!this.isLong) {
+        const reward = Number(this.entry) - Number(this.target);
+        const risk = reward / this.currentRR;
+        this.stoploss = Number(this.entry) + risk;
+      }
+      // For Long positions
+      else {
+        const reward = Number(this.target) - Number(this.entry);
+        const risk = reward / this.currentRR;
+        this.stoploss = Number(this.entry) - risk;
+      }
+    },
+    
+    async saveTrade() {  // Add async here
+      if (!this.validateTrade()) return;
+
+      const trade = {
+        type: this.isLong ? 'Long' : 'Short',
+        stoploss: Number(this.stoploss),
+        entry: Number(this.entry),
+        target: Number(this.target),
+        riskReward: this.currentRR,
+        tradeIdea: this.tradeIdea,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        await this.$store.dispatch('trades/saveTrade', trade);
+        console.log('💾 Saving trade:', trade);
+        this.clearForm();
+      } catch (error) {
+        console.error('Error saving trade:', error);
+        // Handle error (show error message to user)
+      }
+    },
+
+    clearForm() {
+      this.stoploss = null;
+      this.entry = null;
+      this.target = null;
+      this.isTargetEditable = false;
+    },
+    validateTrade() {
+      if (!this.stoploss || !this.entry || !this.target) {
+        console.error('All fields must be filled');
+        return false;
+      }
+      if (this.isLong) {
+        // Validate Long position
+        if (Number(this.entry) <= Number(this.stoploss)) {
+          console.error('For Long positions, Entry must be higher than Stoploss');
+          return false;
+        }
+        if (Number(this.target) <= Number(this.entry)) {
+          console.error('For Long positions, Target must be higher than Entry');
+          return false;
+        }
+      } else {
+        // Validate Short position
+        if (Number(this.entry) <= Number(this.stoploss)) {
+          console.error('For Short positions, Entry must be lower than Stoploss');
+          return false;
+        }
+        if (Number(this.target) >= Number(this.entry)) {
+          console.error('For Short positions, Target must be lower than Entry');
+          return false;
+        }
+      }
+
+        return true;
+      },
+    checkTradeHistory() {
+      console.log('📊 Checking trade history');
+    },
+    enableTargetEdit() {
+      this.isTargetEditable = true;
+      console.log('Target input enabled');
+    },
+    disableTargetEdit() {
+      this.isTargetEditable = false;
+      this.calculateTarget(); // Recalculate target when disabling manual edit
+      console.log('Target input disabled');
     }
   }
-  </script>
+}
+</script>
