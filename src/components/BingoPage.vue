@@ -23,10 +23,11 @@
               <h2>{{ element.title }}</h2>
             </div>
             <component 
-              :is="element.component"
+              :is="element.component" 
               :cells="element.component === 'BingoGrid' ? activeCells : undefined"
               :score="element.component === 'RiskRewardSection' ? activeScore : undefined"
-              @cell-click="toggleCell"
+              :rrChecks="element.component === 'TradeDetailsSection' ? rrChecks : undefined"
+              @cell-click="toggleCell" 
               @cell-edit="editCell"
               @update:modelValue="updateWidgetData(element.id, $event)"
             />
@@ -139,9 +140,10 @@ export default defineComponent({
       })),
       localTotalScore: 0,
       rrChecks: {
-        sixPoints: false,
-        twelvePoints: false,
-        eighteenPoints: false
+        sixPoints: false,      // 2R/R
+        elevenPoints: false,   // 3R/R
+        sixteenPoints: false,  // 4R/R
+        twentyPoints: false    // 5R/R (Hidden Bingo)
       }
     };
   },
@@ -203,9 +205,10 @@ export default defineComponent({
 
     updateRRChecks(newScore) {
       this.rrChecks = {
-        sixPoints: newScore >= 6,
-        twelvePoints: newScore >= 11,
-        eighteenPoints: newScore >= 16
+        sixPoints: newScore >= 6 && newScore < 11,
+        elevenPoints: newScore >= 11 && newScore < 16,
+        sixteenPoints: newScore >= 16 && newScore < 20,
+        twentyPoints: newScore >= 20
       };
     },
     
