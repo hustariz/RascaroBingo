@@ -19,7 +19,7 @@
         <div class="widget-container" :class="element.size">
           <div class="widget-handle">⋮⋮</div>
           <div class="section-container">
-            <div class="section-header">
+            <div class="section-header  widget-title">
               <h2>{{ element.title }}</h2>
             </div>
             <component 
