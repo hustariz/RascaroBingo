@@ -96,9 +96,16 @@
 
 <script>
 import '../assets/styles/TradeDetailsSection.css';
+import { useAuth } from '@/composables/useAuth';
 
 export default {
   name: 'TradeDetailsSection',
+  setup() {
+    const auth = useAuth();
+    console.log('Auth state:', auth.isAuthenticated.value); // Debug log
+    console.log('Token:', localStorage.getItem('token')); // Debug log
+    return { auth };
+  },
   props: {
     rrChecks: {
       type: Object,
@@ -222,7 +229,11 @@ export default {
       };
 
       try {
-        await this.$store.dispatch('trades/saveTrade', trade);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        await this.$store.dispatch('trades/saveTrade', { trade, token });
         console.log('💾 Saving trade:', trade);
         this.clearForm();
       } catch (error) {
