@@ -75,9 +75,10 @@
           </div>
         </div>
         <div>
-        <TradeHistorySection 
+          <TradeHistorySection 
             v-if="showHistory"
             :is-visible="showHistory"
+            :is-sidebar-collapsed="isSidebarCollapsed"
             @close="showHistory = false"
           />
         </div>
