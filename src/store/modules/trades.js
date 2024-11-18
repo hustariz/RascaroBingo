@@ -1,4 +1,4 @@
-// src/store/trades.module.js
+// store/modules/trades.js
 export default {
     namespaced: true,
     state: {
@@ -21,32 +21,58 @@ export default {
       }
     },
     actions: {
-      async saveTrade({ commit }, trade) {
-        try {
-          commit('SET_LOADING', true);
-          // API call will go here
-          const response = await fetch('/api/trades', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(trade)
-          });
-          const savedTrade = await response.json();
-          commit('ADD_TRADE', savedTrade);
-          return savedTrade;
-        } catch (error) {
-          commit('SET_ERROR', error.message);
-          throw error;
-        } finally {
-          commit('SET_LOADING', false);
-        }
-      },
+        async saveTrade({ commit }, { trade, token }) {
+            try {
+              commit('SET_LOADING', true);
+              
+              if (!token) {
+                throw new Error('No authentication token found');
+              }
+      
+              const response = await fetch('http://localhost:3004/api/trades', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(trade)
+              });
+      
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save trade');
+              }
+      
+              const savedTrade = await response.json();
+              commit('ADD_TRADE', savedTrade);
+              return savedTrade;
+            } catch (error) {
+              commit('SET_ERROR', error.message);
+              throw error;
+            } finally {
+              commit('SET_LOADING', false);
+            }
+          },
       async fetchTrades({ commit }) {
         try {
           commit('SET_LOADING', true);
-          // API call will go here
-          const response = await fetch('/api/trades');
+          const token = localStorage.getItem('token');
+          
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
+
+          // Update the URL to use your backend port
+          const response = await fetch('http://localhost:3004/api/trades', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
           const trades = await response.json();
           commit('SET_TRADES', trades);
           return trades;
@@ -64,4 +90,4 @@ export default {
       hasError: state => state.error !== null,
       errorMessage: state => state.error
     }
-  };
+};
