@@ -82,6 +82,30 @@ export default {
         } finally {
           commit('SET_LOADING', false);
         }
+      },
+      async updateTradeStatus({ commit }, { tradeId, status }) {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`/api/trades/${tradeId}/status`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status })
+          });
+  
+          if (!response.ok) {
+            throw new Error('Failed to update trade status');
+          }
+  
+          const updatedTrade = await response.json();
+          commit('UPDATE_TRADE', updatedTrade);
+          return updatedTrade;
+        } catch (error) {
+          commit('SET_ERROR', error.message);
+          throw error;
+        }
       }
     },
     getters: {
