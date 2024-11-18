@@ -9,5 +9,6 @@ router.post('/', auth, tradeController.createTrade);
 router.get('/', auth, tradeController.getTrades);
 router.put('/:id', auth, tradeController.updateTrade);
 router.delete('/:id', auth, tradeController.deleteTrade);
+router.patch('/:tradeId/status', auth, tradeController.updateTradeStatus);
 
 module.exports = router;

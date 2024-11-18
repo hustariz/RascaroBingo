@@ -62,3 +62,24 @@ exports.deleteTrade = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.updateTradeStatus = async (req, res) => {
+    try {
+      const { tradeId } = req.params;
+      const { status } = req.body;
+  
+      const trade = await Trade.findOneAndUpdate(
+        { _id: tradeId, userId: req.user.id },
+        { status },
+        { new: true }
+      );
+  
+      if (!trade) {
+        return res.status(404).json({ message: 'Trade not found' });
+      }
+  
+      res.json(trade);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  };
