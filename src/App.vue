@@ -20,8 +20,9 @@ export default {
 body {
   margin: 0;
   padding: 0;
-  background-image: url('./assets/images/RascaroBingo_Background.png');
+  background-image: url('./assets/images/BingoBackgroundClassy.png');
   background-size: cover;
+  background-size: 72%;
   background-position: center;
   background-attachment: fixed;
   min-height: 100vh;

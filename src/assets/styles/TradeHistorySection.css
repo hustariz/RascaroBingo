@@ -4,18 +4,22 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    /* Remove or modify the background color to be more transparent */
+    background-color: rgba(0, 0, 0, 0.3); /* Less opacity */
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    pointer-events: auto; /* Ensures clicks work on the modal */
   }
   
   .trade-history-container {
-    width: 80%;
+    /* Add margin-left to avoid covering the sidebar */
+    margin-left: 270px; /* Match your sidebar width */
+    width: calc(80% - 270px); /* Adjust width accounting for sidebar */
     max-width: 800px;
     max-height: 80vh;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.9);
     border: 1px solid rgb(238, 175, 17);
     border-radius: 8px;
     overflow: hidden;
@@ -181,6 +185,12 @@
     background: rgb(238, 175, 17);
     border-radius: 4px;
   }
+
+  /* Add a media query for when sidebar is collapsed */
+.trade-history-container.sidebar-collapsed {
+    margin-left: 40px; /* Match your collapsed sidebar width */
+    width: calc(80% - 40px);
+  }
   
   /* Responsive Design */
   @media (max-width: 768px) {
@@ -197,3 +207,5 @@
       flex-direction: column;
     }
   }
+
+  

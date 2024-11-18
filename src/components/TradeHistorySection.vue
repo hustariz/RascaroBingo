@@ -63,6 +63,11 @@
                 >
                   Stoploss Hit ❌
                 </button>
+                <div class="modal" v-if="isVisible">
+                  <div class="trade-history-container" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
+                    <!-- Rest of your template -->
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -81,6 +86,9 @@ export default {
   name: 'TradeHistorySection',
   props: {
     isVisible: {
+      type: Boolean,
+      default: false
+    },    isSidebarCollapsed: { // Add this prop
       type: Boolean,
       default: false
     }
