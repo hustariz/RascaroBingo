@@ -1,5 +1,5 @@
 <template>
-  <div class="modal" v-if="isVisible">
+  <div class="modal" v-if="isVisible"    @click.self="$emit('close')">
     <div class="trade-history-container widget-container">
       <div class="section-header">
         <h2>Trade History</h2>
