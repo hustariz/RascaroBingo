@@ -4,6 +4,8 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
+
+
 const app = express();
 const PORT = process.env.PORT || 3004;
 
@@ -11,8 +13,9 @@ app.use(express.static(path.join(__dirname, '../dist')));
 
 
 // Import routes
-const userRoutes = require('./routes/user');
+const userRoutes = require('./routes/userRoutes');
 const bingoCardRoutes = require('./routes/bingoCardRoutes');
+const tradeRoutes = require('./routes/tradeRoutes');
 
 // CORS Configuration
 const corsOptions = {
@@ -88,6 +91,7 @@ app.get('/health', (req, res) => {
 // Mount routes with version prefix
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoCardRoutes);
+app.use('/api/trades', tradeRoutes);
 
 // Base route
 app.get('/', (req, res) => {
@@ -106,6 +110,14 @@ app.get('*', (req, res) => {
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
+    message: `Route ${req.method} ${req.url} not found`
+  });
+});
+
+// Then 404 handler for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    error: 'API Route Not Found',
     message: `Route ${req.method} ${req.url} not found`
   });
 });

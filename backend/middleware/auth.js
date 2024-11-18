@@ -6,6 +6,7 @@ module.exports = async (req, res, next) => {
   try {
     // Get token from header
     const authHeader = req.header('Authorization');
+    console.log('Auth header:', authHeader);
     
     if (!authHeader) {
       console.log('❌ No Authorization header');
@@ -17,6 +18,7 @@ module.exports = async (req, res, next) => {
 
     // Extract token
     const token = authHeader.replace('Bearer ', '');
+    console.log('Extracted token:', token);
     
     if (!token) {
       console.log('❌ No token found in Authorization header');
@@ -29,6 +31,7 @@ module.exports = async (req, res, next) => {
     try {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Decoded token:', decoded);
       
       if (!decoded.user || !decoded.user.id) {
         console.log('❌ Invalid token payload');
