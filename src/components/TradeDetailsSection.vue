@@ -74,6 +74,13 @@
             </div>
           </div>
         </div>
+        <div>
+        <TradeHistorySection 
+            v-if="showHistory"
+            :is-visible="showHistory"
+            @close="showHistory = false"
+          />
+        </div>
   
         <div class="buttons-container">
           <button 
@@ -96,6 +103,7 @@
 
 <script>
 import '../assets/styles/TradeDetailsSection.css';
+import TradeHistorySection from './TradeHistorySection.vue';
 import { useAuth } from '@/composables/useAuth';
 
 export default {
@@ -105,6 +113,9 @@ export default {
     console.log('Auth state:', auth.isAuthenticated.value); // Debug log
     console.log('Token:', localStorage.getItem('token')); // Debug log
     return { auth };
+  },
+  components: {
+    TradeHistorySection
   },
   props: {
     rrChecks: {
@@ -128,7 +139,8 @@ export default {
       entry: null,
       target: null,
       isLong: true,
-      isTargetEditable: false
+      isTargetEditable: false,
+      showHistory: false
     }
   },
   computed: {
@@ -265,7 +277,7 @@ export default {
         }
       } else {
         // Validate Short position
-        if (Number(this.entry) <= Number(this.stoploss)) {
+        if (Number(this.entry) >= Number(this.stoploss)) { // Changed this condition
           console.error('For Short positions, Entry must be lower than Stoploss');
           return false;
         }
@@ -274,11 +286,10 @@ export default {
           return false;
         }
       }
-
-        return true;
-      },
+      return true;
+    },
     checkTradeHistory() {
-      console.log('📊 Checking trade history');
+      this.showHistory = true;
     },
     enableTargetEdit() {
       this.isTargetEditable = true;
