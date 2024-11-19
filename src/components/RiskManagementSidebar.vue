@@ -22,11 +22,12 @@
             </div>
             <input 
               type="range" 
-              v-model="tradeStreak" 
+              v-model="localTradeStreak" 
               min="-2" 
               max="2" 
               step="1"
               class="streak-slider"
+              disabled
             />
           </div>
         </div>
@@ -42,11 +43,12 @@
             </div>
             <input 
               type="range" 
-              v-model="slTaken" 
+              v-model="localSlTaken" 
               min="0" 
               max="3" 
               step="1"
               class="streak-slider"
+              disabled
             />
           </div>
         </div>
@@ -57,19 +59,23 @@
 
 <script>
 import '../assets/styles/RiskManagementSidebar.css';
+import { mapState } from 'vuex';
+
 export default {
   name: 'RiskManagementSidebar',
   data() {
     return {
-      accountSize: 10000,
-      tradeStreak: 0,
-      slTaken: 0,
-      maxDailyLoss: 500,
-      maxTradesPerDay: 3,
-      isCollapsed: false
+      isCollapsed: false,
+      localTradeStreak: 0,
+      localSlTaken: 0
     }
   },
   computed: {
+    ...mapState('riskManagement', {
+      accountSize: state => state.accountSize,
+      tradeStreak: state => state.tradeStreak,
+      slTaken: state => state.slTaken
+    }),
     tradeSize() {
       const percentages = {
         '-2': 3.3,
@@ -126,21 +132,23 @@ export default {
       return colors[this.slTaken];
     }
   },
+  watch: {
+    tradeStreak(newValue) {
+      this.localTradeStreak = newValue;
+    },
+    slTaken(newValue) {
+      this.localSlTaken = newValue;
+    }
+  },
   methods: {
     toggleSidebar() {
       this.isCollapsed = !this.isCollapsed;
       this.$emit('sidebar-toggle', this.isCollapsed);
-    },
-    saveSettings() {
-      this.$emit('save-settings', {
-        accountSize: this.accountSize,
-        tradeStreak: this.tradeStreak,
-        tradeSize: this.tradeSize,
-        slTaken: this.slTaken,
-        maxDailyLoss: this.maxDailyLoss,
-        maxTradesPerDay: this.maxTradesPerDay
-      });
     }
+  },
+  async created() {
+    // Initialize risk management data when component is created
+    await this.$store.dispatch('riskManagement/fetchRiskManagement');
   }
 }
 </script>

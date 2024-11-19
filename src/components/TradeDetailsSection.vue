@@ -89,7 +89,7 @@
             :class="{ 'long': isLong, 'short': !isLong }"
             @click="saveTrade"
           >
-            Save {{ isLong ? 'Long' : 'Short' }}
+            {{ isLong ? 'Long' : 'Short' }}
           </button>
           
           <button class="history-button" @click="checkTradeHistory">

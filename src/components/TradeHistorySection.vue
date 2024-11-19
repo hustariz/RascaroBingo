@@ -137,7 +137,7 @@ export default {
       default: false
     }
   },
-  setup() {
+  setup(props, { emit }) {
     const store = useStore();
     const trades = ref([]);
     const loading = ref(true);
@@ -156,7 +156,6 @@ export default {
       }
     };
 
-
     const fetchTrades = async () => {
       try {
         loading.value = true;
@@ -171,14 +170,18 @@ export default {
 
     const updateTradeStatus = async (tradeId, status) => {
       try {
-        await store.dispatch('trades/updateTradeStatus', { tradeId, status });
-        await fetchTrades(); // Refresh trades after update
-      } catch (error) {
-        console.error('Error updating trade status:', error);
-      }
-    };
+          // First update the trade status
+          await store.dispatch('trades/updateTradeStatus', { tradeId, status });
+          // Then update risk management
+          await store.dispatch('riskManagement/updateAfterTrade', { status });
+          // Emit the status update to parent
+          emit('trade-status-update', status);
+          await fetchTrades();
+        } catch (error) {
+          console.error('Error updating trade status:', error);
+        }
+      };
 
-    // Add these new functions
     const startEdit = (trade) => {
       editingTrade.value = { ...trade };
     };
@@ -188,7 +191,7 @@ export default {
         if (!editingTrade.value) return;
         await store.dispatch('trades/updateTrade', editingTrade.value);
         editingTrade.value = null;
-        await fetchTrades(); // Refresh the list
+        await fetchTrades();
       } catch (error) {
         console.error('Error updating trade:', error);
       }
@@ -202,13 +205,12 @@ export default {
       if (confirm('Are you sure you want to delete this trade?')) {
         try {
           await store.dispatch('trades/deleteTrade', tradeId);
-          await fetchTrades(); // Refresh the list
+          await fetchTrades();
         } catch (error) {
           console.error('Error deleting trade:', error);
         }
       }
     };
-    
 
     const formatDate = (timestamp) => {
       return new Date(timestamp).toLocaleString();
@@ -226,7 +228,7 @@ export default {
       cancelEdit,
       confirmDelete,
       formatDate,
-      getStatusText 
+      getStatusText
     };
   }
 }
