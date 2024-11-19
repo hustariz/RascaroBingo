@@ -29,6 +29,14 @@ const UserSchema = new mongoose.Schema({
       type: Number,
       default: 10000
     },
+    baseTradeSize: {
+      type: Number,
+      default: 1000
+    },
+    adjustedTradeSize: {
+      type: Number,
+      default: 1000
+    },
     tradeStreak: {
       type: Number,
       default: 0,

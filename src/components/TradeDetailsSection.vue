@@ -132,7 +132,11 @@ export default {
     tradeIdea: {
       type: String,
       default: ''
-    }
+    },
+    isSidebarCollapsed: {
+    type: Boolean,
+    default: false
+  }
   },
   data() {
     return {
@@ -228,33 +232,45 @@ export default {
       }
     },
     
-    async saveTrade() {  // Add async here
-      if (!this.validateTrade()) return;
+    async saveTrade() {
+        if (!this.validateTrade()) return;
 
-      const trade = {
-        type: this.isLong ? 'Long' : 'Short',
-        stoploss: Number(this.stoploss),
-        entry: Number(this.entry),
-        target: Number(this.target),
-        riskReward: this.currentRR,
-        tradeIdea: this.tradeIdea,
-        timestamp: new Date().toISOString(),
-        status: 'OPEN'
-      };
-
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
+        // Get current trade size from risk management store
+        const tradeSize = this.$store.state.riskManagement.adjustedTradeSize;
+        
+        // Calculate potential profit and loss
+        let potentialProfit = 0;
+        if (this.isLong) {
+          const risk = Number(this.entry) - Number(this.stoploss);
+          const reward = Number(this.target) - Number(this.entry);
+          potentialProfit = reward * (tradeSize / risk);
+        } else {
+          const risk = Number(this.stoploss) - Number(this.entry);
+          const reward = Number(this.entry) - Number(this.target);
+          potentialProfit = reward * (tradeSize / risk);
         }
-        await this.$store.dispatch('trades/saveTrade', { trade, token });
-        console.log('💾 Saving trade:', trade);
-        this.clearForm();
-      } catch (error) {
-        console.error('Error saving trade:', error);
-        // Handle error (show error message to user)
-      }
-    },
+
+        const trade = {
+          type: this.isLong ? 'Long' : 'Short',
+          stoploss: Number(this.stoploss),
+          entry: Number(this.entry),
+          target: Number(this.target),
+          riskReward: this.currentRR,
+          tradeIdea: this.tradeIdea,
+          timestamp: new Date().toISOString(),
+          tradeSize,
+          potentialProfit,
+          potentialLoss: -tradeSize // Maximum loss is always the trade size
+        };
+
+        try {
+          await this.$store.dispatch('trades/saveTrade', trade);
+          console.log('💾 Saving trade:', trade);
+          this.clearForm();
+        } catch (error) {
+          console.error('Error saving trade:', error);
+        }
+      },
 
     clearForm() {
       this.stoploss = null;

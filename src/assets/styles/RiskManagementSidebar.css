@@ -147,3 +147,71 @@
     color: rgb(238, 175, 17);
     margin-bottom: 20px;
   }
+
+  .input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.prefix {
+  position: absolute;
+  left: 10px;
+  color: rgba(238, 175, 17, 0.7);
+}
+
+.risk-input {
+  width: 100%;
+  padding: 8px 8px 8px 25px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(238, 175, 17, 0.3);
+  border-radius: 4px;
+  color: white;
+}
+
+.risk-input:focus {
+  border-color: rgb(238, 175, 17);
+  outline: none;
+}
+
+.percentage-display {
+  display: block;
+  margin-top: 5px;
+  color: rgba(238, 175, 17, 0.7);
+  font-size: 0.9em;
+}
+
+.input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.prefix {
+  position: absolute;
+  left: 10px;
+  color: rgba(238, 175, 17, 0.7);
+}
+
+.risk-input {
+  width: 100%;
+  padding: 8px 8px 8px 25px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(238, 175, 17, 0.3);
+  border-radius: 4px;
+  color: white;
+}
+
+.risk-input:focus {
+  border-color: rgb(238, 175, 17);
+  outline: none;
+}
+
+.percentage-display {
+  display: block;
+  margin-top: 5px;
+  color: rgba(238, 175, 17, 0.7);
+  font-size: 0.9em;
+}

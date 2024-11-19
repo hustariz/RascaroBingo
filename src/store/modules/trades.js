@@ -36,16 +36,29 @@ export default {
     }
   },
   actions: {
-    async saveTrade({ commit }, { trade, token }) {
-      commit('SET_LOADING', true);
-      
-      if (!token) {
-        commit('SET_ERROR', 'No authentication token found');
-        commit('SET_LOADING', false);
-        throw new Error('No authentication token found');
-      }
-
+    async saveTrade({ commit, rootState }, trade) {
       try {
+        commit('SET_LOADING', true);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        // Calculate trade size and potential profit/loss
+        const tradeSize = rootState.riskManagement.adjustedTradeSize;
+        if (trade.isLong) {
+          const risk = trade.entry - trade.stoploss;
+          const reward = trade.target - trade.entry;
+          trade.potentialProfit = reward * (tradeSize / risk);
+          trade.potentialLoss = -tradeSize;
+        } else {
+          const risk = trade.stoploss - trade.entry;
+          const reward = trade.entry - trade.target;
+          trade.potentialProfit = reward * (tradeSize / risk);
+          trade.potentialLoss = -tradeSize;
+        }
+
         const response = await fetch('http://localhost:3004/api/trades', {
           method: 'POST',
           headers: {
@@ -62,12 +75,12 @@ export default {
 
         const savedTrade = await response.json();
         commit('ADD_TRADE', savedTrade);
-        commit('SET_LOADING', false);
         return savedTrade;
       } catch (error) {
         commit('SET_ERROR', error.message);
-        commit('SET_LOADING', false);
         throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
 
@@ -94,12 +107,12 @@ export default {
 
         const trades = await response.json();
         commit('SET_TRADES', trades);
-        commit('SET_LOADING', false);
         return trades;
       } catch (error) {
         commit('SET_ERROR', error.message);
-        commit('SET_LOADING', false);
         throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
 
@@ -110,7 +123,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`/api/trades/${tradeId}/status`, {
+      const response = await fetch(`http://localhost:3004/api/trades/${tradeId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +150,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`/api/trades/${trade._id}`, {
+      const response = await fetch(`http://localhost:3004/api/trades/${trade._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +177,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`/api/trades/${tradeId}`, {
+      const response = await fetch(`http://localhost:3004/api/trades/${tradeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
