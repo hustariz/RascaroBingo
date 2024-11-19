@@ -238,7 +238,8 @@ export default {
         target: Number(this.target),
         riskReward: this.currentRR,
         tradeIdea: this.tradeIdea,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        status: 'OPEN'
       };
 
       try {

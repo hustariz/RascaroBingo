@@ -1,117 +1,190 @@
 // store/modules/trades.js
 export default {
-    namespaced: true,
-    state: {
-      trades: [],
-      loading: false,
-      error: null
+  namespaced: true,
+  state: {
+    trades: [],
+    loading: false,
+    error: null
+  },
+  mutations: {
+    SET_TRADES(state, trades) {
+      state.trades = trades;
     },
-    mutations: {
-      SET_TRADES(state, trades) {
-        state.trades = trades;
-      },
-      ADD_TRADE(state, trade) {
-        state.trades.push(trade);
-      },
-      SET_LOADING(state, status) {
-        state.loading = status;
-      },
-      SET_ERROR(state, error) {
-        state.error = error;
+    ADD_TRADE(state, trade) {
+      state.trades.push(trade);
+    },
+    UPDATE_TRADE(state, updatedTrade) {
+      const index = state.trades.findIndex(t => t._id === updatedTrade._id);
+      if (index !== -1) {
+        state.trades.splice(index, 1, updatedTrade);
       }
     },
-    actions: {
-        async saveTrade({ commit }, { trade, token }) {
-            try {
-              commit('SET_LOADING', true);
-              
-              if (!token) {
-                throw new Error('No authentication token found');
-              }
-      
-              const response = await fetch('http://localhost:3004/api/trades', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(trade)
-              });
-      
-              if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to save trade');
-              }
-      
-              const savedTrade = await response.json();
-              commit('ADD_TRADE', savedTrade);
-              return savedTrade;
-            } catch (error) {
-              commit('SET_ERROR', error.message);
-              throw error;
-            } finally {
-              commit('SET_LOADING', false);
-            }
-          },
-      async fetchTrades({ commit }) {
-        try {
-          commit('SET_LOADING', true);
-          const token = localStorage.getItem('token');
-          
-          if (!token) {
-            throw new Error('No authentication token found');
-          }
-
-          // Update the URL to use your backend port
-          const response = await fetch('http://localhost:3004/api/trades', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const trades = await response.json();
-          commit('SET_TRADES', trades);
-          return trades;
-        } catch (error) {
-          commit('SET_ERROR', error.message);
-          throw error;
-        } finally {
-          commit('SET_LOADING', false);
-        }
-      },
-      async updateTradeStatus({ commit }, { tradeId, status }) {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`/api/trades/${tradeId}/status`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ status })
-          });
-  
-          if (!response.ok) {
-            throw new Error('Failed to update trade status');
-          }
-  
-          const updatedTrade = await response.json();
-          commit('UPDATE_TRADE', updatedTrade);
-          return updatedTrade;
-        } catch (error) {
-          commit('SET_ERROR', error.message);
-          throw error;
-        }
+    UPDATE_TRADE_STATUS(state, { tradeId, status }) {
+      const trade = state.trades.find(t => t._id === tradeId);
+      if (trade) {
+        trade.status = status;
       }
     },
-    getters: {
-      allTrades: state => state.trades,
-      isLoading: state => state.loading,
-      hasError: state => state.error !== null,
-      errorMessage: state => state.error
+    DELETE_TRADE(state, tradeId) {
+      state.trades = state.trades.filter(t => t._id !== tradeId);
+    },
+    SET_LOADING(state, status) {
+      state.loading = status;
+    },
+    SET_ERROR(state, error) {
+      state.error = error;
     }
+  },
+  actions: {
+    async saveTrade({ commit }, { trade, token }) {
+      commit('SET_LOADING', true);
+      
+      if (!token) {
+        commit('SET_ERROR', 'No authentication token found');
+        commit('SET_LOADING', false);
+        throw new Error('No authentication token found');
+      }
+
+      try {
+        const response = await fetch('http://localhost:3004/api/trades', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(trade)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to save trade');
+        }
+
+        const savedTrade = await response.json();
+        commit('ADD_TRADE', savedTrade);
+        commit('SET_LOADING', false);
+        return savedTrade;
+      } catch (error) {
+        commit('SET_ERROR', error.message);
+        commit('SET_LOADING', false);
+        throw error;
+      }
+    },
+
+    async fetchTrades({ commit }) {
+      commit('SET_LOADING', true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        commit('SET_ERROR', 'No authentication token found');
+        commit('SET_LOADING', false);
+        throw new Error('No authentication token found');
+      }
+
+      try {
+        const response = await fetch('http://localhost:3004/api/trades', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const trades = await response.json();
+        commit('SET_TRADES', trades);
+        commit('SET_LOADING', false);
+        return trades;
+      } catch (error) {
+        commit('SET_ERROR', error.message);
+        commit('SET_LOADING', false);
+        throw error;
+      }
+    },
+
+    async updateTradeStatus({ commit }, { tradeId, status }) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        commit('SET_ERROR', 'No authentication token found');
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`/api/trades/${tradeId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+
+      if (!response.ok) {
+        const error = new Error('Failed to update trade status');
+        commit('SET_ERROR', error.message);
+        throw error;
+      }
+
+      const updatedTrade = await response.json();
+      commit('UPDATE_TRADE', updatedTrade);
+      return updatedTrade;
+    },
+
+    async updateTrade({ commit }, trade) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        commit('SET_ERROR', 'No authentication token found');
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`/api/trades/${trade._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(trade)
+      });
+
+      if (!response.ok) {
+        const error = new Error('Failed to update trade');
+        commit('SET_ERROR', error.message);
+        throw error;
+      }
+
+      const updatedTrade = await response.json();
+      commit('UPDATE_TRADE', updatedTrade);
+      return updatedTrade;
+    },
+
+    async deleteTrade({ commit }, tradeId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        commit('SET_ERROR', 'No authentication token found');
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`/api/trades/${tradeId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = new Error('Failed to delete trade');
+        commit('SET_ERROR', error.message);
+        throw error;
+      }
+
+      commit('DELETE_TRADE', tradeId);
+    }
+  },
+
+  getters: {
+    allTrades: state => state.trades,
+    isLoading: state => state.loading,
+    hasError: state => state.error !== null,
+    errorMessage: state => state.error
+  }
 };
