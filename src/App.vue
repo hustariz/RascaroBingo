@@ -22,7 +22,7 @@ body {
   padding: 0;
   background-image: url('./assets/images/BingoBackgroundClassy.png');
   background-size: cover;
-  background-size: 72%;
+  background-size: 76%;
   background-position: center;
   background-attachment: fixed;
   min-height: 100vh;

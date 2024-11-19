@@ -10,5 +10,8 @@ router.get('/', auth, tradeController.getTrades);
 router.put('/:id', auth, tradeController.updateTrade);
 router.delete('/:id', auth, tradeController.deleteTrade);
 router.patch('/:tradeId/status', auth, tradeController.updateTradeStatus);
+router.put('/:id', auth, tradeController.updateTrade);
+router.delete('/:id', auth, tradeController.deleteTrade);
+router.patch('/:tradeId/status', auth, tradeController.updateStatus);
 
 module.exports = router;

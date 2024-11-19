@@ -38,9 +38,9 @@ const TradeSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Open', 'Closed', 'Cancelled'],
-    default: 'Open'
-  }
+    enum: ['OPEN', 'TARGET_HIT', 'STOPLOSS_HIT'],
+    default: 'OPEN'
+  },
 });
 
 module.exports = mongoose.model('Trade', TradeSchema);
