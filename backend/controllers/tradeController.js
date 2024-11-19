@@ -83,3 +83,56 @@ exports.updateTradeStatus = async (req, res) => {
       res.status(400).json({ message: error.message });
     }
   };
+
+  exports.updateTrade = async (req, res) => {
+    try {
+      const trade = await Trade.findOneAndUpdate(
+        { _id: req.params.id, userId: req.user.id },
+        req.body,
+        { new: true }
+      );
+      
+      if (!trade) {
+        return res.status(404).json({ message: 'Trade not found' });
+      }
+      res.json(trade);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  };
+  
+  exports.deleteTrade = async (req, res) => {
+    try {
+      const trade = await Trade.findOneAndDelete({
+        _id: req.params.id,
+        userId: req.user.id
+      });
+      
+      if (!trade) {
+        return res.status(404).json({ message: 'Trade not found' });
+      }
+      res.json({ message: 'Trade deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+  exports.updateStatus = async (req, res) => {
+    try {
+      const { tradeId } = req.params;
+      const { status } = req.body;
+  
+      const trade = await Trade.findOneAndUpdate(
+        { _id: tradeId, userId: req.user.id },
+        { status },
+        { new: true }
+      );
+  
+      if (!trade) {
+        return res.status(404).json({ message: 'Trade not found' });
+      }
+  
+      res.json(trade);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  };

@@ -19,7 +19,7 @@
     width: calc(80% - 270px); /* Adjust width accounting for sidebar */
     max-width: 800px;
     max-height: 80vh;
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(25, 16, 5, 1);
     border: 1px solid rgb(238, 175, 17);
     border-radius: 8px;
     overflow: hidden;
@@ -64,7 +64,7 @@
   }
   
   .trade-card {
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: black;
     border: 1px solid rgb(238, 175, 17);
     border-radius: 8px;
     margin-bottom: 1rem;
@@ -79,11 +79,11 @@
   }
   
   .trade-header.long {
-    background-color: rgba(0, 255, 0, 0.1);
+    background-color: rgba(0, 255, 0, 0.479);
   }
   
   .trade-header.short {
-    background-color: rgba(255, 0, 0, 0.1);
+    background-color: rgba(255, 0, 0, 0.461);
   }
   
   .trade-type {
@@ -92,7 +92,7 @@
   }
   
   .trade-date {
-    color: rgba(238, 175, 17, 0.7);
+    color: rgba(238, 175, 17, 0.95);
   }
   
   .trade-details {
@@ -191,6 +191,193 @@
     margin-left: 40px; /* Match your collapsed sidebar width */
     width: calc(80% - 40px);
   }
+
+  .status-actions-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(238, 175, 17, 0.2);
+  }
+  
+  .trade-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .action-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgb(238, 175, 17);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+  }
+  
+  .action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .edit-btn, .delete-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+  }
+  
+  .success-btn:hover:not(:disabled) {
+    background-color: rgba(0, 255, 0, 0.2);
+    border-color: #4CAF50;
+  }
+  
+  .failure-btn:hover:not(:disabled) {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-color: #f44336;
+  }
+  
+  .trade-status {
+    color: rgb(238, 175, 17);
+  }
+  
+  .trade-status .target-hit {
+    color: #4CAF50;
+  }
+  
+  .trade-status .stoploss-hit {
+    color: #f44336;
+  }
+
+  
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.success-btn:hover:not(:disabled) {
+  background-color: rgba(0, 255, 0, 0.2);
+  border-color: #4CAF50;
+}
+
+.failure-btn:hover:not(:disabled) {
+  background-color: rgba(255, 0, 0, 0.2);
+  border-color: #f44336;
+}
+  
+  .edit-btn, .delete-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+  }
+  
+  .edit-btn:hover {
+    background-color: rgba(238, 175, 17, 0.2);
+  }
+  
+  .delete-btn:hover {
+    background-color: rgba(255, 0, 0, 0.2);
+  }
+/* Edit Form */
+.edit-form {
+  background-color: rgba(5, 0, 0, 0.75);
+  border: 1px solid rgb(238, 175, 17);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: rgba(238, 175, 17, 0.1);
+  border-bottom: 1px solid rgb(238, 175, 17);
+}
+
+.edit-header h3 {
+  color: rgb(238, 175, 17);
+  margin: 0;
+}
+
+.edit-content {
+  padding: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  color: rgb(238, 175, 17);
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgb(238, 175, 17);
+  border-radius: 4px;
+  color: white;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.save-btn, .cancel-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgb(238, 175, 17);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: rgba(0, 255, 0, 0.2);
+  border-color: #4CAF50;
+}
+
+.cancel-btn:hover {
+  background-color: rgba(255, 0, 0, 0.2);
+  border-color: #f44336;
+}
+
+.trade-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(238, 175, 17);
+}
+
+.trade-status .target-hit {
+  color: #4CAF50;
+}
+
+.trade-status .stoploss-hit {
+  color: #f44336;
+}
+
+.success-btn:hover {
+  background-color: rgba(0, 255, 0, 0.2);
+  border-color: #4CAF50;
+}
+
+.failure-btn:hover {
+  background-color: rgba(255, 0, 0, 0.2);
+  border-color: #f44336;
+}
   
   /* Responsive Design */
   @media (max-width: 768px) {

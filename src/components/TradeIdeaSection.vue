@@ -9,16 +9,14 @@
             @input="emitTradeIdea"
           ></textarea>
         </div>
-        
-        <div class="buttons-container">
           <button class="chart-button" @click="checkChart">
             <span class="chart-icon">📈</span>
             Check Chart
           </button>
-        </div>
       </div>
     </div>
   </template>
+  
   <script>
   import '../assets/styles/TradeIdeaSection.css'
   
