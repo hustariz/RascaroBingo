@@ -8,7 +8,7 @@
 .trade-details-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5.5px;
 }
 
 /* Typography */
@@ -35,7 +35,7 @@ h4 {
   border-radius: 20px;
   padding: 2px;
   border: 1px solid rgb(238, 175, 17);
-  margin: 5px auto;
+  margin: 0px auto;
 }
 
 .trade-toggle-button {
@@ -78,7 +78,7 @@ h4 {
 .price-input-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .input-with-prefix {
@@ -233,14 +233,13 @@ h4 {
 .buttons-container {
   display: flex;
   gap: 10px;
-  margin-top: 5px;
 }
 
 /* Modify both buttons */
 .save-button, .history-button {
   flex: 1;
-  padding: 8px 15px; /* Reduce from 10px */
-  height: 50px; /* Add fixed height */
+  padding: 10px 15px; /* Reduce from 10px */
+  height: 58px; /* Add fixed height */
   font-size: 1.5rem; /* Reduce font size */
   display: flex;
   align-items: center;
