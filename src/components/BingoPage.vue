@@ -28,6 +28,7 @@
             :score="element.component === 'RiskRewardSection' ? activeScore : undefined"
             :rrChecks="element.component === 'TradeDetailsSection' ? rrChecks : undefined"
             :tradeIdea="element.component === 'TradeDetailsSection' ? currentTradeIdea : undefined"
+            @trade-status-update="handleTradeStatusUpdate"
             @trade-idea-update="updateTradeIdea"
             @cell-click="toggleCell" 
             @cell-edit="editCell"
@@ -200,6 +201,13 @@ export default defineComponent({
       const tradeDetailsWidget = this.widgets.find(w => w.component === 'TradeDetailsSection');
       if (tradeDetailsWidget) {
         this.updateWidgetData(tradeDetailsWidget.id, { tradeIdea: idea });
+      }
+    },
+
+       handleTradeStatusUpdate(status) {
+      const sidebar = this.$refs.riskSidebar;
+      if (sidebar) {
+        sidebar.updateFromTradeStatus(status);
       }
     },
 

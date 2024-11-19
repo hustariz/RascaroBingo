@@ -16,6 +16,7 @@ app.use(express.static(path.join(__dirname, '../dist')));
 const userRoutes = require('./routes/userRoutes');
 const bingoCardRoutes = require('./routes/bingoCardRoutes');
 const tradeRoutes = require('./routes/tradeRoutes');
+const riskManagementRoutes = require('./routes/riskManagementRoutes');
 
 // CORS Configuration
 const corsOptions = {
@@ -92,6 +93,7 @@ app.get('/health', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoCardRoutes);
 app.use('/api/trades', tradeRoutes);
+app.use('/api/risk-management', riskManagementRoutes);
 
 // Base route
 app.get('/', (req, res) => {
