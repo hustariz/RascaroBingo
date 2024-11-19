@@ -137,7 +137,7 @@ export default {
       default: false
     }
   },
-  setup(props, { emit }) {
+  setup(_, { emit }) {  // Change props to _ since we're not using it directly
     const store = useStore();
     const trades = ref([]);
     const loading = ref(true);
@@ -170,17 +170,49 @@ export default {
 
     const updateTradeStatus = async (tradeId, status) => {
       try {
-          // First update the trade status
-          await store.dispatch('trades/updateTradeStatus', { tradeId, status });
-          // Then update risk management
-          await store.dispatch('riskManagement/updateAfterTrade', { status });
-          // Emit the status update to parent
-          emit('trade-status-update', status);
-          await fetchTrades();
-        } catch (error) {
-          console.error('Error updating trade status:', error);
+        const trade = trades.value.find(t => t._id === tradeId);
+        if (!trade) return;
+
+        const tradeSize = store.state.riskManagement.adjustedTradeSize;
+        let profitLoss = 0;
+
+        if (trade.type === 'Long') {
+          if (status === 'TARGET_HIT') {
+            // Calculate actual profit in dollars
+            profitLoss = tradeSize * ((trade.target - trade.entry) / trade.entry);
+          } else if (status === 'STOPLOSS_HIT') {
+            // Calculate actual loss in dollars
+            profitLoss = -tradeSize * ((trade.entry - trade.stoploss) / trade.entry);
+          }
+        } else {
+          // Short position
+          if (status === 'TARGET_HIT') {
+            profitLoss = tradeSize * ((trade.entry - trade.target) / trade.entry);
+          } else if (status === 'STOPLOSS_HIT') {
+            profitLoss = -tradeSize * ((trade.stoploss - trade.entry) / trade.entry);
+          }
         }
-      };
+
+        // Round the profit/loss to 2 decimal places
+        profitLoss = Math.round(profitLoss * 100) / 100;
+
+        console.log('Trade result:', {
+          type: trade.type,
+          entry: trade.entry,
+          exit: status === 'TARGET_HIT' ? trade.target : trade.stoploss,
+          tradeSize,
+          profitLoss
+        });
+
+        await store.dispatch('trades/updateTradeStatus', { tradeId, status });
+        await store.dispatch('riskManagement/updateAfterTrade', { status, profitLoss });
+        
+        emit('trade-status-update', { status, profitLoss });
+        await fetchTrades();
+      } catch (error) {
+        console.error('Error updating trade status:', error);
+      }
+    };
 
     const startEdit = (trade) => {
       editingTrade.value = { ...trade };

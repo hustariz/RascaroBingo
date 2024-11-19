@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <RiskManagementSidebar 
+      ref="riskSidebar"
       @save-settings="handleSaveSettings" 
       @sidebar-toggle="handleSidebarToggle" 
     />
@@ -28,6 +29,7 @@
             :score="element.component === 'RiskRewardSection' ? activeScore : undefined"
             :rrChecks="element.component === 'TradeDetailsSection' ? rrChecks : undefined"
             :tradeIdea="element.component === 'TradeDetailsSection' ? currentTradeIdea : undefined"
+            :isSidebarCollapsed="isSidebarCollapsed"
             @trade-status-update="handleTradeStatusUpdate"
             @trade-idea-update="updateTradeIdea"
             @cell-click="toggleCell" 
@@ -204,10 +206,11 @@ export default defineComponent({
       }
     },
 
-       handleTradeStatusUpdate(status) {
+    handleTradeStatusUpdate({ status, profitLoss }) {
+      console.log('Trade status update received:', { status, profitLoss });
       const sidebar = this.$refs.riskSidebar;
       if (sidebar) {
-        sidebar.updateFromTradeStatus(status);
+        sidebar.updateFromTradeResult({ status, profitLoss });
       }
     },
 

@@ -6,5 +6,6 @@ const auth = require('../middleware/auth');
 
 router.post('/update', auth, riskManagementController.updateRiskManagement);
 router.get('/', auth, riskManagementController.getRiskManagement);
+router.post('/settings', auth, riskManagementController.updateSettings);
 
 module.exports = router;
