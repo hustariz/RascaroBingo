@@ -35,6 +35,7 @@
             ({{ calculatePercentage }}% of account)
           </span>
         </div>
+        <h2>Risk Limits</h2>
         <div class="setting-item">
           <label>Trade's Streak:</label>
           <div class="streak-slider-container">
@@ -52,10 +53,6 @@
             />
           </div>
         </div>
-      </div>
-      
-      <div class="settings-group">
-        <h2>Risk Limits</h2>
         <div class="setting-item">
           <label>Number of Stoploss Taken:</label>
           <div class="streak-slider-container">
@@ -78,24 +75,12 @@
       <div class="settings-group">
         <h2>Daily Stats</h2>
         <div class="setting-item">
-          <label>Daily Profit:</label>
-          <span class="profit-value" :class="{ 'positive': dailyStats?.dailyProfit > 0 }">
-            ${{ (dailyStats?.dailyProfit || 0).toLocaleString() }}
-          </span>
-        </div>
-        <div class="setting-item">
-          <label>Daily Loss:</label>
-          <span class="loss-value" :class="{ 'negative': dailyStats?.dailyLoss > 0 }">
-            ${{ (dailyStats?.dailyLoss || 0).toLocaleString() }}
-          </span>
-        </div>
-        <div class="setting-item">
-          <label>Daily Net:</label>
+          <label>Daily Net P/L:</label>
           <span class="net-value" :class="{
-            'positive': (dailyStats?.dailyProfit || 0) - (dailyStats?.dailyLoss || 0) > 0,
-            'negative': (dailyStats?.dailyProfit || 0) - (dailyStats?.dailyLoss || 0) < 0
+            'positive': dailyNet > 0,
+            'negative': dailyNet < 0
           }">
-            ${{ ((dailyStats?.dailyProfit || 0) - (dailyStats?.dailyLoss || 0)).toLocaleString() }}
+            ${{ (dailyNet || 0).toLocaleString() }}
           </span>
         </div>
         <div class="setting-item">
@@ -127,8 +112,14 @@ export default {
       'adjustedTradeSize',
       'tradeStreak',
       'slTaken',
-      'dailyStats'
+      'dailyStats',
     ]),
+
+    dailyNet() {
+    const profit = this.dailyStats?.dailyProfit || 0;
+    const loss = this.dailyStats?.dailyLoss || 0;
+    return profit - loss;
+  },
     
     calculatePercentage() {
       return ((this.localTradeSize / this.localAccountSize) * 100).toFixed(1);
@@ -189,6 +180,7 @@ export default {
           accountSize: this.localAccountSize,
           baseTradeSize: this.localTradeSize
         });
+        console.log('Account size updated:', this.localAccountSize);
       } catch (error) {
         console.error('Error updating account size:', error);
       }
@@ -200,6 +192,7 @@ export default {
           accountSize: this.localAccountSize,
           baseTradeSize: this.localTradeSize
         });
+        console.log('Trade size updated:', this.localTradeSize);
       } catch (error) {
         console.error('Error updating trade size:', error);
       }
