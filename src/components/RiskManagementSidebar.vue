@@ -4,16 +4,38 @@
       {{ isCollapsed ? '>' : '<' }}
     </button>
     <div class="sidebar-content" v-show="!isCollapsed">
-      <h2>Risk Settings</h2>
+      <h2>Asset's Management</h2>
       <div class="settings-group">
         <div class="setting-item">
           <label>Account Size:</label>
-          <span class="account-size-value">{{ formatAccountSize }}</span>
+          <div class="input-with-prefix">
+            <span class="prefix">$</span>
+            <input 
+              type="number" 
+              v-model.number="localAccountSize"
+              @change="updateAccountSize"
+              placeholder="Enter account size"
+              class="risk-input"
+            />
+          </div>
         </div>
         <div class="setting-item">
           <label>Trade Size:</label>
-          <span class="trade-size-value">{{ formatTradeSize }}</span>
+          <div class="input-with-prefix">
+            <span class="prefix">$</span>
+            <input 
+              type="number" 
+              v-model.number="localTradeSize"
+              @change="updateTradeSize"
+              placeholder="Enter trade size"
+              class="risk-input"
+            />
+          </div>
+          <span class="percentage-display">
+            ({{ calculatePercentage }}% of account)
+          </span>
         </div>
+        <h2>Risk's Management</h2>
         <div class="setting-item">
           <label>Trade's Streak:</label>
           <div class="streak-slider-container">
@@ -22,18 +44,15 @@
             </div>
             <input 
               type="range" 
-              v-model="tradeStreak" 
+              :value="tradeStreak"
               min="-2" 
               max="2" 
               step="1"
               class="streak-slider"
+              disabled
             />
           </div>
         </div>
-      </div>
-      
-      <div class="settings-group">
-        <h2>Risk Limits</h2>
         <div class="setting-item">
           <label>Number of Stoploss Taken:</label>
           <div class="streak-slider-container">
@@ -42,13 +61,31 @@
             </div>
             <input 
               type="range" 
-              v-model="slTaken" 
+              :value="slTaken"
               min="0" 
               max="3" 
               step="1"
               class="streak-slider"
+              disabled
             />
           </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h2>Daily Stats</h2>
+        <div class="setting-item">
+          <label>Daily Net P/L:</label>
+          <span class="net-value" :class="{
+            'positive': dailyNet > 0,
+            'negative': dailyNet < 0
+          }">
+            ${{ (dailyNet || 0).toLocaleString() }}
+          </span>
+        </div>
+        <div class="setting-item">
+          <label>Trades Today:</label>
+          <span class="trades-count">{{ dailyStats?.dailyTradeCount || 0 }}</span>
         </div>
       </div>
     </div>
@@ -57,46 +94,52 @@
 
 <script>
 import '../assets/styles/RiskManagementSidebar.css';
+import { mapState } from 'vuex';
+
 export default {
   name: 'RiskManagementSidebar',
   data() {
     return {
-      accountSize: 10000,
-      tradeStreak: 0,
-      slTaken: 0,
-      maxDailyLoss: 500,
-      maxTradesPerDay: 3,
-      isCollapsed: false
+      isCollapsed: false,
+      localAccountSize: 10000,
+      localTradeSize: 1000,
+      currentPercentage: 10
     }
   },
   computed: {
-    tradeSize() {
-      const percentages = {
-        '-2': 3.3,
-        '-1': 5,
-        '0': 10,
-        '1': 15,
-        '2': 20
-      };
-      const percentage = percentages[this.tradeStreak] || 10;
-      return Math.round((this.accountSize * percentage) / 100);
-    },
-    formatTradeSize() {
-      return `$${this.tradeSize.toLocaleString()}`;
-    },
-    formatAccountSize() {
-      return `$${this.accountSize.toLocaleString()}`;
-    },
-    streakLabel() {
+    ...mapState('riskManagement', [
+      'accountSize',
+      'baseTradeSize',
+      'adjustedTradeSize',
+      'tradeStreak',
+      'slTaken',
+      'dailyStats',
+    ]),
+
+    dailyNet() {
+    const profit = this.dailyStats?.dailyProfit || 0;
+    const loss = this.dailyStats?.dailyLoss || 0;
+    return profit - loss;
+  },
+    
+  calculatePercentage() {
+    return ((this.localTradeSize / this.localAccountSize) * 100).toFixed(1);
+  },
+
+  streakLabel() {
+      // Use the current percentage directly without multiplying
+      const currentPercentage = Number(this.calculatePercentage);
+      
       const labels = {
-        '-2': `Cold streak (3.3%)`,
-        '-1': `Malus streak (5%)`,
-        '0': `Normal trade (10%)`,
-        '1': `Bonus streak (15%)`,
-        '2': `HOT streak (20%)`
+        '-2': `Cold streak (${currentPercentage}%)`,
+        '-1': `Malus streak (${currentPercentage}%)`,
+        '0': `Normal trade (${currentPercentage}%)`,
+        '1': `Bonus streak (${currentPercentage}%)`,
+        '2': `HOT streak (${currentPercentage}%)`
       };
-      return labels[this.tradeStreak];
+      return labels[this.tradeStreak] || labels['0'];
     },
+
     streakColor() {
       const colors = {
         '-2': '#0066cc',
@@ -105,8 +148,9 @@ export default {
         '1': '#ffb366',
         '2': '#f57c00'
       };
-      return colors[this.tradeStreak];
+      return colors[this.tradeStreak] || colors['0'];
     },
+
     slLabel() {
       const labels = {
         '0': 'No SL taken',
@@ -114,8 +158,9 @@ export default {
         '2': '2 SL taken',
         '3': '3 SL taken <br> Session ended'
       };
-      return labels[this.slTaken];
+      return labels[this.slTaken] || labels['0'];
     },
+
     slColor() {
       const colors = {
         '0': '#4CAF50',
@@ -123,24 +168,124 @@ export default {
         '2': '#FF9800',
         '3': '#f44336'
       };
-      return colors[this.slTaken];
+      return colors[this.slTaken] || colors['0'];
     }
   },
+  
   methods: {
     toggleSidebar() {
       this.isCollapsed = !this.isCollapsed;
       this.$emit('sidebar-toggle', this.isCollapsed);
     },
-    saveSettings() {
-      this.$emit('save-settings', {
-        accountSize: this.accountSize,
-        tradeStreak: this.tradeStreak,
-        tradeSize: this.tradeSize,
-        slTaken: this.slTaken,
-        maxDailyLoss: this.maxDailyLoss,
-        maxTradesPerDay: this.maxTradesPerDay
+
+    async updateAccountSize() {
+      try {
+        await this.$store.dispatch('riskManagement/updateSettings', {
+          accountSize: this.localAccountSize,
+          baseTradeSize: this.localTradeSize
+        });
+        // Update current percentage after account size change
+        this.currentPercentage = Number(this.calculatePercentage);
+      } catch (error) {
+        console.error('Error updating account size:', error);
+      }
+    },
+    
+    async updateTradeSize() {
+      try {
+        await this.$store.dispatch('riskManagement/updateSettings', {
+          accountSize: this.localAccountSize,
+          baseTradeSize: this.localTradeSize
+        });
+        // Update current percentage after trade size change
+        this.currentPercentage = Number(this.calculatePercentage);
+      } catch (error) {
+        console.error('Error updating trade size:', error);
+      }
+    },
+
+
+    updateFromTradeResult(result) {
+      const { status, profitLoss } = result;
+      this.$store.dispatch('riskManagement/updateAfterTrade', { 
+        status, 
+        profitLoss,
+        currentPercentage: this.currentPercentage
       });
+    }
+  },
+  
+    watch: {
+      accountSize: {
+        handler(newVal) {
+          if (newVal !== this.localAccountSize) {
+            this.localAccountSize = newVal;
+            this.currentPercentage = Number(this.calculatePercentage);
+          }
+        },
+        immediate: true
+      },
+      baseTradeSize: {
+        handler(newVal) {
+          if (newVal !== this.localTradeSize) {
+            this.localTradeSize = newVal;
+            this.currentPercentage = Number(this.calculatePercentage);
+          }
+        },
+        immediate: true
+      },
+    },
+  
+  async created() {
+    try {
+      await this.$store.dispatch('riskManagement/fetchRiskManagement');
+    } catch (error) {
+      console.error('Error initializing risk management:', error);
     }
   }
 }
 </script>
+
+<style scoped>
+.input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.prefix {
+  position: absolute;
+  left: 10px;
+  color: rgba(238, 175, 17, 0.7);
+}
+
+.risk-input {
+  width: 100%;
+  padding: 8px 8px 8px 25px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(238, 175, 17, 0.3);
+  border-radius: 4px;
+  color: white;
+}
+
+.risk-input:focus {
+  border-color: rgb(238, 175, 17);
+  outline: none;
+}
+
+.percentage-display {
+  display: block;
+  margin-top: 5px;
+  color: rgba(238, 175, 17, 0.7);
+  font-size: 0.9em;
+}
+
+.profit-value.positive {
+  color: #4CAF50;
+}
+
+.loss-value.negative {
+  color: #f44336;
+}
+</style>
