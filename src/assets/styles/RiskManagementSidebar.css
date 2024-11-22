@@ -1,99 +1,154 @@
 .sidebar {
-    width: 280px;
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 80px 20px 20px 20px;
-    color: white;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    overflow: visible;
-    transition: all 0.3s ease;
-    z-index: 100;
+  width: 280px;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 80px 20px 20px 20px;
+  color: white;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.sidebar.collapsed {
+  width: 40px;
+  padding: 80px 0 20px 0;
+}
+
+.toggle-button {
+  position: absolute;
+  right: -5px;
+  top: 90px;
+  width: 24px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgb(238, 175, 17);
+  border-radius: 0 4px 4px 0;
+  color: rgb(238, 175, 17);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 99;
+  transition: all 0.2s ease;
+}
+
+.toggle-button:hover {
+  background-color: rgba(238, 175, 17, 0.15);
+  right: -14px;
+}
+
+.toggle-button:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 8px rgba(238, 175, 17, 0.2);
+  pointer-events: none;
+}
+
+.sidebar-content {
+  height: calc(100vh - 100px);
+  overflow-y: auto;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.settings-group {
+  margin-bottom: 10px;
+}
+
+.setting-item {
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.setting-item label {
+  display: block;
+  margin-bottom: 5px;
+  color: #ffffff;
+}
+
+.streak-info {
+  text-align: center;
+  margin-bottom: 5px;
+  position: relative;
+}
+
+.streak-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+
+/* New styles for session end tooltip */
+.session-ended {
+  animation: glow 1.5s ease-in-out infinite alternate;
+  cursor: pointer;
+  position: relative;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #f44336;
   }
-  
-  .sidebar.collapsed {
-    width: 40px;
-    padding: 80px 0 20px 0;
+  to {
+    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #f44336;
   }
-  
-  .toggle-button {
-    position: absolute; /* Changed from fixed to absolute */
-    right: -5px; /* Reduced to show less of the button */
-    top: 90px;
-    width: 24px;
-    height: 40px;
-    background-color: rgba(0, 0, 0, 0.9);
-    border: 1px solid rgb(238, 175, 17);
-    border-radius: 0 4px 4px 0;
-    color: rgb(238, 175, 17);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    z-index: 99; /* Lower than sidebar to ensure proper layering */
-    transition: all 0.2s ease;
-  }
-  
-  .toggle-button:hover {
-    background-color: rgba(238, 175, 17, 0.15);
-    right: -14px; /* Slight reveal on hover */
-  }
-  
-  /* Optional: Add a subtle glow effect on hover */
-  .toggle-button:hover::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 0 4px 4px 0;
-    box-shadow: 0 0 8px rgba(238, 175, 17, 0.2);
-    pointer-events: none;
-  }
-  
-  .sidebar-content {
-    height: calc(100vh - 100px);
-    overflow-y: auto;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-  }
-  
-  .settings-group {
-    margin-bottom: 10px;
-  }
-  
-  .setting-item {
-    margin-top: 10px;
-    margin-bottom: 15px;
-  }
-  
-  .setting-item label {
-    display: block;
-    margin-bottom: 5px;
-    color: #ffffff;
-  }
-  
-  .streak-info {
-    text-align: center;
-    margin-bottom: 5px;
-  }
-  
-  .streak-value {
-    font-size: 1.2rem;
-    font-weight: bold;
-    transition: color 0.3s ease;
-  }
-  
-  .streak-slider-container {
-    position: relative;
-    padding: 10px 0;
-    margin: 0px 0;
-  }
+}
+
+.risk-tooltip-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.risk-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  border: 1px solid rgb(238, 175, 17);
+  box-shadow: 0 0 10px rgba(238, 175, 17, 0.2);
+}
+
+.risk-tooltip-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.risk-tooltip-button {
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid rgb(238, 175, 17);
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.risk-tooltip-button:hover {
+  background: rgba(238, 175, 17, 0.15);
+  box-shadow: 0 0 8px rgba(238, 175, 17, 0.2);
+}
   
   .streak-slider {
     -webkit-appearance: none;
@@ -215,4 +270,46 @@
   margin-top: 5px;
   color: rgba(238, 175, 17, 0.7);
   font-size: 0.9em;
+}
+
+.input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.prefix {
+  position: absolute;
+  left: 10px;
+  color: rgba(238, 175, 17, 0.7);
+}
+
+.risk-input {
+  width: 100%;
+  padding: 8px 8px 8px 25px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(238, 175, 17, 0.3);
+  border-radius: 4px;
+  color: white;
+}
+
+.risk-input:focus {
+  border-color: rgb(238, 175, 17);
+  outline: none;
+}
+
+.percentage-display {
+  display: block;
+  margin-top: 5px;
+  color: rgba(238, 175, 17, 0.7);
+  font-size: 0.9em;
+}
+
+.profit-value.positive {
+  color: #4CAF50;
+}
+
+.loss-value.negative {
+  color: #f44336;
 }

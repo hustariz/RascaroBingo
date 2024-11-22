@@ -16,76 +16,48 @@ exports.getRiskManagement = async (req, res) => {
 exports.updateRiskManagement = async (req, res) => {
   try {
     const { status, profitLoss } = req.body;
-    console.log('Received update request:', { status, profitLoss }); // Debug log
-
     const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Ensure profitLoss is a number
     const numericProfitLoss = Number(profitLoss);
     if (isNaN(numericProfitLoss)) {
       return res.status(400).json({ message: 'Invalid profit/loss value' });
     }
 
-    console.log('Current account state:', {
-      accountSize: user.riskManagement.accountSize,
-      tradeStreak: user.riskManagement.tradeStreak,
-      slTaken: user.riskManagement.slTaken
-    }); // Debug log
-
     // Update trade streak and account size
     if (status === 'TARGET_HIT') {
+      // Step up through percentage levels
+      let newPercentage;
+      if (user.riskManagement.currentPercentage <= 3.33) newPercentage = 6.67;
+      else if (user.riskManagement.currentPercentage <= 6.67) newPercentage = 10;
+      else if (user.riskManagement.currentPercentage <= 10) newPercentage = 15;
+      else if (user.riskManagement.currentPercentage <= 15) newPercentage = 20;
+      else newPercentage = 20;
+
+      user.riskManagement.currentPercentage = newPercentage;
       user.riskManagement.tradeStreak = Math.min(user.riskManagement.tradeStreak + 1, 2);
-      user.riskManagement.slTaken = 0;
-      user.riskManagement.accountSize = Number(user.riskManagement.accountSize) + numericProfitLoss;
-      user.riskManagement.dailyStats.dailyProfit = Number(user.riskManagement.dailyStats.dailyProfit || 0) + numericProfitLoss;
+      user.riskManagement.accountSize += numericProfitLoss;
+      user.riskManagement.dailyStats.dailyProfit += numericProfitLoss;
     } else if (status === 'STOPLOSS_HIT') {
+      // Step down through percentage levels
+      let newPercentage;
+      if (user.riskManagement.currentPercentage >= 20) newPercentage = 15;
+      else if (user.riskManagement.currentPercentage >= 15) newPercentage = 10;
+      else if (user.riskManagement.currentPercentage >= 10) newPercentage = 6.67;
+      else if (user.riskManagement.currentPercentage >= 6.67) newPercentage = 3.33;
+      else newPercentage = 3.33;
+
+      user.riskManagement.currentPercentage = newPercentage;
       user.riskManagement.tradeStreak = Math.max(user.riskManagement.tradeStreak - 1, -2);
       user.riskManagement.slTaken += 1;
-      user.riskManagement.accountSize = Number(user.riskManagement.accountSize) + numericProfitLoss;
-      user.riskManagement.dailyStats.dailyLoss = Number(user.riskManagement.dailyStats.dailyLoss || 0) + Math.abs(numericProfitLoss);
+      user.riskManagement.accountSize += numericProfitLoss;
+      user.riskManagement.dailyStats.dailyLoss += Math.abs(numericProfitLoss);
     }
 
-    // Update daily stats
-    const today = new Date().toDateString();
-    const lastTradeDate = user.riskManagement.dailyStats.lastTradeDate?.toDateString();
-    
-    if (today !== lastTradeDate) {
-      user.riskManagement.dailyStats = {
-        lastTradeDate: new Date(),
-        dailyTradeCount: 1,
-        dailyLoss: status === 'STOPLOSS_HIT' ? Math.abs(numericProfitLoss) : 0,
-        dailyProfit: status === 'TARGET_HIT' ? numericProfitLoss : 0
-      };
-    } else {
-      user.riskManagement.dailyStats.dailyTradeCount += 1;
-    }
-
-    // Recalculate trade sizes
-    const basePercentage = (user.riskManagement.baseTradeSize / user.riskManagement.accountSize) * 100;
-    user.riskManagement.baseTradeSize = Math.round((user.riskManagement.accountSize * basePercentage) / 100);
-
-    // Calculate adjusted trade size based on streak
-    const multipliers = {
-      '-2': 0.33,
-      '-1': 0.5,
-      '0': 1,
-      '1': 1.5,
-      '2': 2
-    };
-    user.riskManagement.adjustedTradeSize = Math.round(
-      user.riskManagement.baseTradeSize * (multipliers[user.riskManagement.tradeStreak] || 1)
-    );
-
-    console.log('Updated account state:', {
-      accountSize: user.riskManagement.accountSize,
-      tradeStreak: user.riskManagement.tradeStreak,
-      slTaken: user.riskManagement.slTaken,
-      baseTradeSize: user.riskManagement.baseTradeSize,
-      adjustedTradeSize: user.riskManagement.adjustedTradeSize
-    }); // Debug log
+    // Calculate new trade size based on current percentage
+    user.riskManagement.baseTradeSize = Math.round((user.riskManagement.accountSize * user.riskManagement.currentPercentage) / 100);
+    user.riskManagement.adjustedTradeSize = user.riskManagement.baseTradeSize;
 
     await user.save();
     res.json(user.riskManagement);
@@ -94,6 +66,7 @@ exports.updateRiskManagement = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 exports.updateSettings = async (req, res) => {
   try {
     const { accountSize, baseTradeSize } = req.body;
@@ -121,6 +94,46 @@ exports.updateSettings = async (req, res) => {
     await user.save();
     res.json(user.riskManagement);
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// In riskManagementController.js
+exports.resetStopLoss = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      console.log('❌ Reset SL failed: User not found');
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('🔄 Attempting to reset SL count for user:', {
+      userId: user._id,
+      currentSL: user.riskManagement.slTaken,
+      currentPercentage: user.riskManagement.currentPercentage
+    });
+
+    // Update the document directly
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { 'riskManagement.slTaken': 0 },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      console.log('❌ Reset SL failed: Update failed');
+      return res.status(404).json({ message: 'Failed to update user' });
+    }
+
+    console.log('✅ SL count reset successful:', {
+      userId: updatedUser._id,
+      newSLCount: updatedUser.riskManagement.slTaken,
+      percentage: updatedUser.riskManagement.currentPercentage
+    });
+
+    res.json(updatedUser.riskManagement);
+  } catch (error) {
+    console.error('❌ Error resetting SL count:', error);
     res.status(500).json({ message: error.message });
   }
 };
