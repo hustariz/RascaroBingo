@@ -4,8 +4,10 @@ const router = express.Router();
 const riskManagementController = require('../controllers/riskManagementController');
 const auth = require('../middleware/auth');
 
-router.post('/update', auth, riskManagementController.updateRiskManagement);
+// Existing routes
 router.get('/', auth, riskManagementController.getRiskManagement);
+router.post('/update', auth, riskManagementController.updateRiskManagement);
 router.post('/settings', auth, riskManagementController.updateSettings);
+router.post('/reset', auth, riskManagementController.resetStopLoss);
 
 module.exports = router;
