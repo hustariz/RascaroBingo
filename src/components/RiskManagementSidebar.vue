@@ -4,7 +4,7 @@
       {{ isCollapsed ? '>' : '<' }}
     </button>
     <div class="sidebar-content" v-show="!isCollapsed">
-      <h2>Risk Settings</h2>
+      <h2>Asset's Management</h2>
       <div class="settings-group">
         <div class="setting-item">
           <label>Account Size:</label>
@@ -35,7 +35,7 @@
             ({{ calculatePercentage }}% of account)
           </span>
         </div>
-        <h2>Risk Limits</h2>
+        <h2>Risk's Management</h2>
         <div class="setting-item">
           <label>Trade's Streak:</label>
           <div class="streak-slider-container">
@@ -103,6 +103,7 @@ export default {
       isCollapsed: false,
       localAccountSize: 10000,
       localTradeSize: 1000,
+      currentPercentage: 10
     }
   },
   computed: {
@@ -121,17 +122,20 @@ export default {
     return profit - loss;
   },
     
-    calculatePercentage() {
-      return ((this.localTradeSize / this.localAccountSize) * 100).toFixed(1);
-    },
+  calculatePercentage() {
+    return ((this.localTradeSize / this.localAccountSize) * 100).toFixed(1);
+  },
 
-    streakLabel() {
+  streakLabel() {
+      // Use the current percentage directly without multiplying
+      const currentPercentage = Number(this.calculatePercentage);
+      
       const labels = {
-        '-2': `Cold streak (${(this.calculatePercentage * 0.33).toFixed(1)}%)`,
-        '-1': `Malus streak (${(this.calculatePercentage * 0.5).toFixed(1)}%)`,
-        '0': `Normal trade (${this.calculatePercentage}%)`,
-        '1': `Bonus streak (${(this.calculatePercentage * 1.5).toFixed(1)}%)`,
-        '2': `HOT streak (${(this.calculatePercentage * 2).toFixed(1)}%)`
+        '-2': `Cold streak (${currentPercentage}%)`,
+        '-1': `Malus streak (${currentPercentage}%)`,
+        '0': `Normal trade (${currentPercentage}%)`,
+        '1': `Bonus streak (${currentPercentage}%)`,
+        '2': `HOT streak (${currentPercentage}%)`
       };
       return labels[this.tradeStreak] || labels['0'];
     },
@@ -180,7 +184,8 @@ export default {
           accountSize: this.localAccountSize,
           baseTradeSize: this.localTradeSize
         });
-        console.log('Account size updated:', this.localAccountSize);
+        // Update current percentage after account size change
+        this.currentPercentage = Number(this.calculatePercentage);
       } catch (error) {
         console.error('Error updating account size:', error);
       }
@@ -192,36 +197,44 @@ export default {
           accountSize: this.localAccountSize,
           baseTradeSize: this.localTradeSize
         });
-        console.log('Trade size updated:', this.localTradeSize);
+        // Update current percentage after trade size change
+        this.currentPercentage = Number(this.calculatePercentage);
       } catch (error) {
         console.error('Error updating trade size:', error);
       }
     },
 
+
     updateFromTradeResult(result) {
       const { status, profitLoss } = result;
-      this.$store.dispatch('riskManagement/updateAfterTrade', { status, profitLoss });
+      this.$store.dispatch('riskManagement/updateAfterTrade', { 
+        status, 
+        profitLoss,
+        currentPercentage: this.currentPercentage
+      });
     }
   },
   
-  watch: {
-    accountSize: {
-      handler(newVal) {
-        if (newVal !== this.localAccountSize) {
-          this.localAccountSize = newVal;
-        }
+    watch: {
+      accountSize: {
+        handler(newVal) {
+          if (newVal !== this.localAccountSize) {
+            this.localAccountSize = newVal;
+            this.currentPercentage = Number(this.calculatePercentage);
+          }
+        },
+        immediate: true
       },
-      immediate: true
+      baseTradeSize: {
+        handler(newVal) {
+          if (newVal !== this.localTradeSize) {
+            this.localTradeSize = newVal;
+            this.currentPercentage = Number(this.calculatePercentage);
+          }
+        },
+        immediate: true
+      },
     },
-    baseTradeSize: {
-      handler(newVal) {
-        if (newVal !== this.localTradeSize) {
-          this.localTradeSize = newVal;
-        }
-      },
-      immediate: true
-    }
-  },
   
   async created() {
     try {

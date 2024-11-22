@@ -10,6 +10,17 @@ import Navbar from './components/AppNavbar.vue'
 
 export default {
   name: 'App',
+  async beforeMount() {
+    // Check if auth state exists before accessing token
+    if (this.$store.state.auth?.token) {
+      try {
+        await this.$store.dispatch('riskManagement/fetchRiskManagement');
+        console.log('Risk management data initialized');
+      } catch (error) {
+        console.error('Error loading risk management data:', error);
+      }
+    }
+  },
   components: {
     Navbar
   }
@@ -35,5 +46,4 @@ body {
   text-align: center;
   color: #ffffff;
 }
-
 </style>
