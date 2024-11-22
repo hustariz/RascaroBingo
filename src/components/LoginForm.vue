@@ -1,25 +1,28 @@
+<!-- LoginForm.vue -->
 <template>
-  <div class="form-overlay" v-if="isOpen" @click.self="closeForm">
-    <div class="form">
-      <h2>Login</h2>
+  <div class="login-form-overlay" 
+     :class="{ visible: isOpen }" 
+     @click.self="closeForm">
+    <div class="login-form-container">
+      <h2 class="login-form-title">Login</h2>
       <form @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="username">Username:</label>
-          <input type="text" id="username" v-model="username" required>
+        <div class="login-form-group">
+          <label class="login-form-label" for="username">Username:</label>
+          <input class="login-form-input" type="text" id="username" v-model="username" required>
         </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" id="password" v-model="password" required>
+        <div class="login-form-group">
+          <label class="login-form-label" for="password">Password:</label>
+          <input class="login-form-input" type="password" id="password" v-model="password" required>
         </div>
-        <div class="form-actions">
-          <button type="submit" :disabled="isLoading">
+        <div class="login-form-actions">
+          <button class="login-form-submit" type="submit" :disabled="isLoading">
             {{ isLoading ? 'Logging in...' : 'Login' }}
           </button>
-          <button type="button" @click="closeForm" :disabled="isLoading">Close</button>
+          <button class="login-form-close" type="button" @click="closeForm" :disabled="isLoading">Close</button>
         </div>
       </form>
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-      <p class="sign-in-link">Don't have an account yet? <a href="#" @click.prevent="openRegisterForm">Sign up now!</a></p>
+      <p v-if="errorMessage" class="login-form-error">{{ errorMessage }}</p>
+      <p class="login-form-signup">Don't have an account yet? <a href="#" @click.prevent="openRegisterForm">Sign up now!</a></p>
     </div>
   </div>
 </template>

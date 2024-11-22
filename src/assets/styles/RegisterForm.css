@@ -1,0 +1,138 @@
+.register-form-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .register-form-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .register-form-container {
+    background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.15);
+    width: 360px;
+    position: relative;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+  }
+  
+  .register-form-title {
+    font-family: 'Legendarie', sans-serif;
+    font-size: 2.8rem;
+    margin: 0 0 1.5rem 0;
+    color: rgb(255, 215, 0);
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .register-form-group {
+    margin-bottom: 1.2rem;
+  }
+  
+  .register-form-label {
+    font-family: 'Legendarie', sans-serif;
+    font-size: 1.7rem;
+    color: rgb(255, 215, 0);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  
+  .register-form-input {
+    width: 100%;
+    padding: 0.8rem;
+    background: rgba(25, 16, 5, 0.9);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: rgb(255, 215, 0);
+    border-radius: 6px;
+  }
+  
+  .register-form-input:focus {
+    border-color: rgb(255, 215, 0);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    outline: none;
+  }
+  
+  .register-form-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .register-form-submit {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(205, 127, 50, 0.05));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: rgb(255, 215, 0);
+    font-size: 1.6rem;
+    font-family: 'Legendarie', sans-serif;
+    transition: all 0.3s ease;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    flex: 1;
+  }
+  
+  .register-form-submit:hover {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(205, 127, 50, 0.15));
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    transform: translateY(-1px);
+    border-color: rgb(255, 215, 0);
+  }
+  
+  .register-form-close {
+    background: linear-gradient(135deg, rgba(89, 0, 0, 0.8), rgba(43, 24, 16, 0.9));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: rgb(255, 215, 0);
+    font-size: 1.6rem;
+    font-family: 'Legendarie', sans-serif;
+    transition: all 0.3s ease;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    flex: 1;
+  }
+  
+  .register-form-close:hover {
+    background: linear-gradient(135deg, rgba(139, 0, 0, 0.8), rgba(89, 0, 0, 0.9));
+    box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+    transform: translateY(-1px);
+    border-color: rgb(139, 0, 0);
+    animation: registerFormCloseShine 1.5s infinite;
+  }
+  
+  .register-form-error {
+    color: #f44336;
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .register-form-success {
+    color: #4CAF50;
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  @keyframes registerFormCloseShine {
+    0% { 
+      box-shadow: 0 0 10px rgba(139, 0, 0, 0.2);
+      text-shadow: 0 0 10px rgba(139, 0, 0, 0.2);
+    }
+    50% { 
+      box-shadow: 0 0 15px rgba(139, 0, 0, 0.5);
+      text-shadow: 0 0 15px rgba(139, 0, 0, 0.5);
+    }
+    100% { 
+      box-shadow: 0 0 10px rgba(139, 0, 0, 0.2);
+      text-shadow: 0 0 10px rgba(139, 0, 0, 0.2);
+    }
+  }
