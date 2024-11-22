@@ -137,6 +137,11 @@ export default {
       default: false
     }
   },
+  watch: {
+    'store.state.riskManagement.adjustedTradeSize'(newSize) {
+      console.log('Trade size updated in history:', newSize);
+    }
+  },
   setup(_, { emit }) {  // Change props to _ since we're not using it directly
     const store = useStore();
     const trades = ref([]);
@@ -173,35 +178,28 @@ export default {
         const trade = trades.value.find(t => t._id === tradeId);
         if (!trade) return;
 
-        const tradeSize = store.state.riskManagement.adjustedTradeSize;
         let profitLoss = 0;
+        const tradeSize = store.state.riskManagement.adjustedTradeSize;
 
-        if (trade.type === 'Long') {
-          if (status === 'TARGET_HIT') {
-            // Calculate actual profit in dollars
-            profitLoss = tradeSize * ((trade.target - trade.entry) / trade.entry);
-          } else if (status === 'STOPLOSS_HIT') {
-            // Calculate actual loss in dollars
-            profitLoss = -tradeSize * ((trade.entry - trade.stoploss) / trade.entry);
-          }
-        } else {
-          // Short position
-          if (status === 'TARGET_HIT') {
-            profitLoss = tradeSize * ((trade.entry - trade.target) / trade.entry);
-          } else if (status === 'STOPLOSS_HIT') {
-            profitLoss = -tradeSize * ((trade.stoploss - trade.entry) / trade.entry);
-          }
-        }
+        // Calculate absolute points difference
+        const points = trade.type === 'Long' 
+          ? (status === 'TARGET_HIT' ? trade.target - trade.entry : trade.stoploss - trade.entry)
+          : (status === 'TARGET_HIT' ? trade.entry - trade.target : trade.entry - trade.stoploss);
 
-        // Round the profit/loss to 2 decimal places
-        profitLoss = Math.round(profitLoss * 100) / 100;
+        // Calculate profit/loss based on fixed points
+        profitLoss = Math.round(points * (tradeSize / trade.entry));
 
         console.log('Trade result:', {
           type: trade.type,
           entry: trade.entry,
           exit: status === 'TARGET_HIT' ? trade.target : trade.stoploss,
           tradeSize,
-          profitLoss
+          profitLoss,
+          calculation: {
+            points,
+            tradeSize,
+            entry: trade.entry
+          }
         });
 
         await store.dispatch('trades/updateTradeStatus', { tradeId, status });
@@ -232,6 +230,7 @@ export default {
     const cancelEdit = () => {
       editingTrade.value = null;
     };
+    
 
     const confirmDelete = async (tradeId) => {
       if (confirm('Are you sure you want to delete this trade?')) {
@@ -249,6 +248,8 @@ export default {
     };
 
     onMounted(fetchTrades);
+
+    
 
     return {
       trades,
