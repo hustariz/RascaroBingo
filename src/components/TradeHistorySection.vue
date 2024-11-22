@@ -16,7 +16,13 @@
         </div>
         
         <div v-else class="trades-list">
-          <div v-for="trade in trades" :key="trade._id" class="trade-card">
+          <div v-for="trade in trades" :key="trade._id" 
+           class="trade-card" 
+           :class="{
+              'open': trade.status === 'OPEN' || !trade.status,
+              'long': trade.type === 'Long',
+              'short': trade.type === 'Short'
+            }">
             <!-- Normal View -->
             <div v-if="!editingTrade || editingTrade._id !== trade._id">
               <div class="trade-header" :class="trade.type.toLowerCase()">
@@ -52,7 +58,12 @@
                   <div class="status-section">
                     <div class="trade-status">
                       Status: 
-                      <span :class="trade.status.toLowerCase()">
+                      <span :class="{
+                        'target-hit': trade.status === 'TARGET_HIT',
+                        'stoploss-hit': trade.status === 'STOPLOSS_HIT',
+                        'open': trade.status === 'OPEN' || !trade.status,
+                        'closed': trade.status === 'TARGET_HIT' || trade.status === 'STOPLOSS_HIT'
+                      }">
                         {{ getStatusText(trade.status) }}
                       </span>
                     </div>
