@@ -137,7 +137,12 @@ export default {
       default: false
     }
   },
-  setup() {
+  watch: {
+    'store.state.riskManagement.adjustedTradeSize'(newSize) {
+      console.log('Trade size updated in history:', newSize);
+    }
+  },
+  setup(_, { emit }) {  // Change props to _ since we're not using it directly
     const store = useStore();
     const trades = ref([]);
     const loading = ref(true);
@@ -156,7 +161,6 @@ export default {
       }
     };
 
-
     const fetchTrades = async () => {
       try {
         loading.value = true;
@@ -171,14 +175,43 @@ export default {
 
     const updateTradeStatus = async (tradeId, status) => {
       try {
+        const trade = trades.value.find(t => t._id === tradeId);
+        if (!trade) return;
+
+        let profitLoss = 0;
+        const tradeSize = store.state.riskManagement.adjustedTradeSize;
+
+        // Calculate absolute points difference
+        const points = trade.type === 'Long' 
+          ? (status === 'TARGET_HIT' ? trade.target - trade.entry : trade.stoploss - trade.entry)
+          : (status === 'TARGET_HIT' ? trade.entry - trade.target : trade.entry - trade.stoploss);
+
+        // Calculate profit/loss based on fixed points
+        profitLoss = Math.round(points * (tradeSize / trade.entry));
+
+        console.log('Trade result:', {
+          type: trade.type,
+          entry: trade.entry,
+          exit: status === 'TARGET_HIT' ? trade.target : trade.stoploss,
+          tradeSize,
+          profitLoss,
+          calculation: {
+            points,
+            tradeSize,
+            entry: trade.entry
+          }
+        });
+
         await store.dispatch('trades/updateTradeStatus', { tradeId, status });
-        await fetchTrades(); // Refresh trades after update
+        await store.dispatch('riskManagement/updateAfterTrade', { status, profitLoss });
+        
+        emit('trade-status-update', { status, profitLoss });
+        await fetchTrades();
       } catch (error) {
         console.error('Error updating trade status:', error);
       }
     };
 
-    // Add these new functions
     const startEdit = (trade) => {
       editingTrade.value = { ...trade };
     };
@@ -188,7 +221,7 @@ export default {
         if (!editingTrade.value) return;
         await store.dispatch('trades/updateTrade', editingTrade.value);
         editingTrade.value = null;
-        await fetchTrades(); // Refresh the list
+        await fetchTrades();
       } catch (error) {
         console.error('Error updating trade:', error);
       }
@@ -197,24 +230,26 @@ export default {
     const cancelEdit = () => {
       editingTrade.value = null;
     };
+    
 
     const confirmDelete = async (tradeId) => {
       if (confirm('Are you sure you want to delete this trade?')) {
         try {
           await store.dispatch('trades/deleteTrade', tradeId);
-          await fetchTrades(); // Refresh the list
+          await fetchTrades();
         } catch (error) {
           console.error('Error deleting trade:', error);
         }
       }
     };
-    
 
     const formatDate = (timestamp) => {
       return new Date(timestamp).toLocaleString();
     };
 
     onMounted(fetchTrades);
+
+    
 
     return {
       trades,
@@ -226,7 +261,7 @@ export default {
       cancelEdit,
       confirmDelete,
       formatDate,
-      getStatusText 
+      getStatusText
     };
   }
 }
