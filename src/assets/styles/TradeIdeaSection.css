@@ -71,6 +71,8 @@
     cursor: pointer;
     background-color: rgba(238, 230, 230, 0.1);
     color: rgb(238, 175, 17);
+    font-family: 'Legendarie', sans-serif;
+    font-size: 1.6rem;
     display: flex;
     align-items: center;
     justify-content: center;
