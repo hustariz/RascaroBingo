@@ -145,7 +145,7 @@ export default {
       stoploss: null,
       entry: null,
       target: null,
-      isLong: true,
+      isLong: false,
       isTargetEditable: false,
       showHistory: false
     }
