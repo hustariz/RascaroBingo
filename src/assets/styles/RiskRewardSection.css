@@ -1,140 +1,118 @@
-/* Risk/Reward Section Container */
-.risk-reward-section {
+/* Container */
+.riskreward-section-container {
   width: 100%;
   height: 100%;
-  padding: 15px;
+  padding: 0.8rem;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(255, 215, 0, 0.15);
 }
 
-/* Risk/Reward Area */
-.risk-reward-area {
-  flex: 1;
+/* Checkboxes Area */
+.riskreward-checkboxes {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 0.8rem;
+  padding: 0.5rem;
 }
 
-/* Checkboxes Container */
-.rr-checkboxes {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: flex-start;
-  padding: 10px;
-}
-
-/* Individual Checkbox */
-.rr-checkbox {
+.riskreward-checkbox {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.8rem;
   width: 100%;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
 }
 
-.checkbox-text {
-  font-size: 1.1rem;
-  color: rgb(238, 175, 17);
-  font-weight: bold;
-  white-space: nowrap;
+.riskreward-checkbox:last-child {
+  border-bottom: none;
 }
 
-.rr-checkbox input[type="checkbox"] {
+.riskreward-checkbox input[type="checkbox"] {
   appearance: none;
-  -webkit-appearance: none;
-  width: 24px; /* Slightly larger checkboxes */
-  height: 24px;
-  border: 2px solid rgb(238, 175, 17);
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgb(255, 215, 0);
   border-radius: 4px;
-  margin-right: 12px;
-  background-color: transparent;
-  cursor: pointer;
+  background: rgba(25, 16, 5, 0.9);
   position: relative;
+  cursor: default;
 }
 
-.rr-checkbox input[type="checkbox"]:checked {
-  background-color: rgb(238, 175, 17);
+.riskreward-checkbox input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(205, 127, 50, 0.15));
+  border-color: rgb(255, 215, 0);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
-.rr-checkbox input[type="checkbox"]:checked::after {
+.riskreward-checkbox input[type="checkbox"]:checked::after {
   content: '✓';
   position: absolute;
-  color: black;
-  font-size: 16px; /* Larger checkmark */
+  color: rgb(255, 215, 0);
+  font-size: 14px;
   font-weight: bold;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
 }
 
-.rr-checkbox input[type="checkbox"]:disabled {
-  opacity: 1;
-  cursor: default;
-}
-
-.rr-checkbox input[type="checkbox"]:disabled + .checkbox-text {
-  cursor: default;
-}
-
-.checkbox-text {
-  font-size: 1.2rem;
-  color: rgb(238, 175, 17);
+.riskreward-checkbox-text {
+  font-size: 1.1rem;
+  color: rgb(255, 215, 0);
   font-weight: bold;
-  min-width: 80px; /* Ensure consistent width */
-  text-align: left;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  min-width: 100px;
 }
 
 /* Score Display */
-.score-display {
-  margin-top: 25px;
-  text-align: center;
-  padding: 20px 15px;
-  border-top: 1px solid rgba(238, 175, 17, 0.3);
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 0 0 8px 8px;
+.riskreward-score {
+  margin-top: 0.8rem;
+  padding: 0.6rem;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  min-width: 100px;
 }
 
-.score-display h3 {
-  color: rgb(238, 175, 17);
-  font-size: 1.4rem;
+.riskreward-score h3 {
+  color: rgb(255, 215, 0);
+  font-size: 1.5rem;
   margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
-.score-value {
+.riskreward-score-value {
   font-weight: bold;
-  font-size: 1.6rem;
-  color: white;
-  display: inline-block;
-  min-width: 40px; /* Ensure consistent width for numbers */
+  font-size: 1.5rem;
+  color: rgb(255, 215, 0);
+  display: inline;
   text-align: center;
 }
 
-/* Bingo Text and Tooltip */
-.bingo-container {
-  position: relative;
-  display: inline-block;
-  margin-top: 15px;
-}
-
-.bingo-text {
-  color: rgb(238, 175, 17);
-  font-size: 2.5rem;
+/* Hidden Bingo Feature */
+.riskreward-bingo {
+  color: rgb(255, 215, 0);
+  font-size: 2rem;
   font-weight: bold;
   text-align: center;
-  animation: glowPulse 2s infinite;
   font-family: 'Legendarie', sans-serif;
-  text-shadow: 0 0 10px rgba(238, 175, 17, 0.5);
-  z-index: 1500;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  margin-top: 0.8rem;
   cursor: help;
+  position: relative;
+  animation: riskrewardGlowPulse 2s infinite;
+  z-index: 1500;
 }
 
-.bingo-tooltip {
+.riskreward-bingo-tooltip {
   position: fixed;
-  top:auto;
+  top: auto;
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.9);
   border: 2px solid rgb(238, 175, 17);
@@ -149,38 +127,12 @@
   box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
 }
 
-.bingo-text:hover .bingo-tooltip {
+.riskreward-bingo:hover .riskreward-bingo-tooltip {
   display: block;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .rr-checkboxes {
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .rr-checkbox {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .checkbox-text {
-    text-align: center;
-  }
-}
-
-@keyframes glowPulse {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.1);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+@keyframes riskrewardGlowPulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
 }

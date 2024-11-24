@@ -1,103 +1,106 @@
-/* Trade Idea Container */
-.trade-idea-container {
+/* Trade Idea Section Container */
+.tradeidea-section-container {
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+
+.tradeidea-section-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 1rem;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Textarea Wrapper */
+.tradeidea-textarea-wrapper {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Textarea Input */
+.tradeidea-section-input {
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  background: rgba(25, 16, 5, 0.9);
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
+  color: rgb(255, 215, 0);
+  border-radius: 6px;
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 140px;
+  max-height: calc(100% - 100px);
+}
+
+.tradeidea-section-input:focus {
+  outline: none;
+  border-color: rgb(255, 215, 0);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+/* Custom resize handle */
+.tradeidea-section-input::-webkit-resizer {
+  border-width: 8px;
+  border-style: solid;
+  border-color: transparent rgb(255, 215, 0) rgb(255, 215, 0) transparent;
+  background-color: transparent;
+}
+
+/* Chart Button */
+.tradeidea-chart-button {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 0.6);
+  color: rgb(255, 215, 0);
+  font-size: 1.6rem;
+  font-family: 'Legendarie', sans-serif;
+  transition: all 0.3s ease;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.tradeidea-chart-button:hover {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  border: 1px solid rgba(238, 175, 17, 1);
+  transform: translateY(-1px);
+  border-color: rgb(255, 215, 0);
+}
+
+.tradeidea-chart-icon {
+  font-size: 1.2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tradeidea-section-container {
+    padding: 1rem;
+  }
+  
+  .tradeidea-chart-button {
     width: 100%;
-    height: 100%;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    min-width: 0; /* Add this to prevent overflow */
-    overflow: hidden; /* Add this to contain children */
   }
-  
-  .trade-idea-content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    gap: 15px;
-    position: relative; /* Add this */
-    min-width: 0; /* Add this */
-    overflow: hidden; /* Add this */
-  }
-  
-  /* Typography */
-  h3 {
-    color: rgb(238, 175, 17);
-    font-family: 'Legendarie', sans-serif;
-    font-size: 1.5rem;
-    margin: 0;
-    margin-bottom: 10px;
-    white-space: nowrap; /* Prevent title wrapping */
-  }
-  
-  /* Textarea Container */
-  .textarea-container {
-    flex: 1;
-    position: relative;
-    min-height: 0; /* Important for flex containment */
-    width: 100%;
-    overflow: hidden; /* Contain the textarea */
-  }
-/* Textarea */
-.trade-idea-input {
-    width: 100%;
-    height: 100%;
-    padding: 12px;
-    border: 1px solid rgb(238, 175, 17);
-    background-color: rgba(0, 0, 0, 0.75);
-    color: white;
-    border-radius: 4px;
-    font-family: Arial, sans-serif;
-    font-size: 1rem;
-    line-height: 1.5;
-    resize: vertical; /* Allow vertical resizing only */
-    min-height: 140px; /* Minimum height */
-    max-height: calc(100% - 100px); /* Maximum height, leaving space for button */
-  }
-  
-/* Add custom resize handle styling */
-.trade-idea-input::-webkit-resizer {
-    border-width: 8px;
-    border-style: solid;
-    border-color: transparent rgb(238, 175, 17) rgb(238, 175, 17) transparent;
-    background-color: transparent;
-  }
-  
-  
-  /* Chart Button */
-  .chart-button {
-    padding: 10px 20px;
-    border: 1px solid rgb(238, 175, 17);
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: rgba(238, 230, 230, 0.1);
-    color: rgb(238, 175, 17);
-    font-family: 'Legendarie', sans-serif;
-    font-size: 1.6rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.3s ease;
-    min-width: 150px;
-    white-space: nowrap;
-  }
-  
-  .chart-button:hover {
-    background-color: rgb(238, 175, 17);
-    color: black;
-  }
-  
-  .chart-icon {
-    font-size: 1.2rem;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .trade-idea-container {
-      padding: 10px;
-    }
-    
-    .chart-button {
-      width: 100%;
-    }
-  }
+}

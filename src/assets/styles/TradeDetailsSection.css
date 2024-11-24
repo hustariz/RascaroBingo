@@ -1,331 +1,296 @@
-/* Trade Details Container */
-.trade-details-container {
+/* Container */
+.tradedetails-section-container {
   width: 100%;
   height: 100%;
-  padding: 15px;
+  max-height: 350px;
+  padding: 1rem;
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
-.trade-details-content {
+.tradedetails-section-container.long-mode {
+  background: linear-gradient(145deg, rgba(76, 175, 80, 0.4), rgba(0, 43, 16, 0.98));
+  border: 1px solid rgba(0, 255, 0, 0.3);
+}
+
+.tradedetails-content {
   display: flex;
   flex-direction: column;
-  gap: 5.5px;
-}
-
-/* Typography */
-h3, h4 {
-  color: rgb(238, 175, 17);
-  font-family: 'Legendarie', sans-serif;
-  margin: 0;
-}
-
-h3 {
-  font-size: 1.5rem;
-}
-
-h4 {
-  font-size: 1.4rem;
+  gap: 0.8rem;
 }
 
 /* Long/Short Toggle */
-.trade-type-toggle {
+.tradedetails-type-toggle {
   display: flex;
   justify-content: center;
-  width: 200px;
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 20px;
-  padding: 2px;
-  border: 1px solid rgb(238, 175, 17);
-  margin: 0px auto;
+  gap: 0.8rem;
 }
 
-.trade-toggle-button {
-  width: 50%;
-  padding: 5px 15px;
-  border: none;
-  border-radius: 18px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+/* Make Long toggle always green */
+.tradedetails-toggle-button:first-child {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(0, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 0.6);
+  color: rgba(238, 175, 17, 1);
+}
+
+/* Short toggle button in long mode */
+.tradedetails-section-container.long-mode .tradedetails-toggle-button:last-child {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 0.6);
+  color: rgba(238, 175, 17, 1);
+}
+
+/* Trade history button in long mode */
+.tradedetails-section-container.long-mode .tradedetails-history-button {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(0, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 0.6);
+  color: rgba(238, 175, 17, 1);
+}
+
+/* Hover states in long mode */
+.tradedetails-section-container.long-mode .tradedetails-toggle-button:last-child:hover{
+  border: 1px solid rgba(238, 175, 17, 1);
+  transform: translateY(-1px);
+}
+.tradedetails-section-container.long-mode .tradedetails-history-button:hover {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(0, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 1);
+  transform: translateY(-1px);
+}
+
+.tradedetails-toggle-button {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 0.6);
+  color: rgb(255, 215, 0);
   font-size: 1.3rem;
   font-family: 'Legendarie', sans-serif;
-  background-color: transparent;
-  color: rgb(238, 175, 17);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 108px;
+  transition: all 0.3s ease;
+}
+.tradedetails-toggle-button:hover{
+    transform: translateY(-1px);
+    border: 1px solid rgba(238, 175, 17, 1);
 }
 
-.trade-toggle-button.active,
-.trade-toggle-button:hover {
-  background-color: rgba(238, 175, 17, 0.2);
-}
-
-.trade-toggle-button:first-child.active,
-.trade-toggle-button:first-child:hover {
-  background-color: rgba(0, 255, 0, 0.3);
+.tradedetails-toggle-button.active[class*="long"] {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(0, 127, 50, 0.05));
+  border: 1px solid rgba(0, 255, 0, 0.6);
   color: rgb(0, 255, 0);
 }
 
-.trade-toggle-button:last-child.active,
-.trade-toggle-button:last-child:hover {
-  background-color: rgba(255, 0, 0, 0.3);
+.tradedetails-toggle-button.active[class*="short"] {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(255, 0, 0, 0.6);
   color: rgb(255, 0, 0);
 }
 
 /* Price Inputs */
-.price-inputs {
+.tradedetails-price-inputs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  margin: 5px 0 10px 0;
+  gap: 0.8rem;
 }
 
-.price-input-group {
+.tradedetails-input-group {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 0.4rem;
 }
 
-.input-with-prefix {
+.tradedetails-input-group h4 {
+  color: rgb(255, 215, 0);
+  font-size: 1.3rem;
+  margin: 0;
+  font-family: 'Legendarie', sans-serif;
+}
+
+.tradedetails-input-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
-.prefix {
+.tradedetails-input-prefix {
   position: absolute;
-  left: 10px;
-  color: rgba(255, 255, 255, 0.7);
-  z-index: 1;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 215, 0, 0.7);
 }
 
-.price-input-group input {
+.tradedetails-input {
   width: 100%;
-  padding: 8px 8px 8px 25px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(238, 175, 17, 0.3);
-  border-radius: 4px;
-  color: white;
+  padding: 0.5rem 0.5rem 0.5rem 1.7rem;
+  background: rgba(25, 16, 5, 0.9);
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
+  color: rgb(255, 215, 0);
+  border-radius: 6px;
+  font-size: 1.2rem;
 }
 
-/* Target Input */
-.input-with-prefix input[readonly]:not(.editable) {
-  background-color: rgba(255, 255, 255, 0.05);
+.tradedetails-input:focus {
+  border-color: rgb(255, 215, 0);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+  outline: none;
+}
+
+/* Target Input States */
+.tradedetails-input[readonly]:not(.editable) {
+  background: rgba(25, 16, 5, 0.6);
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-.input-with-prefix input.editable {
-  background-color: rgba(255, 255, 255, 0.1);
+.tradedetails-input.editable {
+  background: rgba(25, 16, 5, 0.9);
   cursor: text;
   opacity: 1;
 }
 
-/* Tooltip */
-.label-with-tooltip {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  position: relative;
-}
-
-.tooltip-icon {
-  position: relative;
-  cursor: help;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgb(238, 175, 17);
-  border-radius: 50%;
-  background-color: rgba(238, 175, 17, 0.1);
-  color: rgb(238, 175, 17);
-}
-
-/* Add hover bridge */
-.tooltip-icon::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: -30px;
-  width: 30px;
-  height: 100px;
-  transform: translateY(-50%);
-}
-
-.tooltip-content {
-  display: none;
-  position: absolute; /* Change from fixed to absolute */
-  background-color: rgba(0, 0, 0, 0.95);
-  border: 1px solid rgb(238, 175, 17);
-  border-radius: 4px;
-  padding: 12px;
-  width: 280px;
-  color: rgb(238, 175, 17);
-  z-index: 1500;
-  font-family: Arial, sans-serif;
-  margin-left: -200px; 
-  margin-top: -100px;
-}
-
-/* Update hover behavior */
-.tooltip-icon:hover .tooltip-content,
-.tooltip-content:hover {
-  display: block;
-  right: auto;
-  left: 30px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-/* Add hover bridge for tooltip content */
-.tooltip-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -30px;
-  width: 30px;
-  height: 100%;
-}
-
-/* Tooltip Action Buttons */
-.tooltip-action {
-  margin-top: 10px;
-  text-align: center;
-}
-
-.tooltip-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.tooltip-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.tooltip-btn.check {
-  border-color: rgb(0, 255, 0);
-  color: rgb(0, 255, 0);
-  background-color: rgba(0, 255, 0, 0.1);
-}
-
-.tooltip-btn.cross {
-  border-color: rgb(255, 0, 0);
-  color: rgb(255, 0, 0);
-  background-color: rgba(255, 0, 0, 0.1);
-}
-
-.tooltip-btn.check:hover {
-  background-color: rgba(0, 255, 0, 0.3);
-}
-
-.tooltip-btn.cross:hover {
-  background-color: rgba(255, 0, 0, 0.3);
-}
-
-.buttons-container {
-  display: flex;
-  gap: 10px;
-}
-
-/* Modify both buttons */
-.save-button, .history-button {
-  flex: 1;
-  padding: 10px 15px; /* Reduce from 10px */
-  height: 58px; /* Add fixed height */
-  font-size: 1.6rem; /* Reduce font size */
-  font-family: 'Legendarie', sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0; /* Remove margin */
-}
-
-/* Adjust history button icon */
-.history-icon {
-  font-size: 1rem; /* Reduce from 1.2rem */
-}
-
-/* Save Button */
-.save-button {
-  width: 100%;
-  padding: 8px 15px;
-  border: 1px solid;
-  font-size: 1.6rem; 
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.save-button.long {
-  background-color: rgba(0, 255, 0, 0.1);
-  color: rgb(0, 255, 0);
-  border-color: rgb(0, 255, 0);
-}
-
-.save-button.short {
-  background-color: rgba(255, 0, 0, 0.1);
-  color: rgb(255, 0, 0);
-  border-color: rgb(255, 0, 0);
-}
-
-/* Hover effects */
-.save-button.long:hover {
-  background-color: rgb(0, 255, 0);
-  color: black;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
-}
-
-.save-button.short:hover {
-  background-color: rgb(255, 0, 0);
-  color: black;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
-}
-
-/* Add transition back */
-.save-button:active {
-  transform: translateY(0);
+.tradedetails-input[readonly]:not(.editable):hover {
+  border-color: rgba(255, 215, 0, 0.3);
   box-shadow: none;
 }
 
-/* History Button */
-.history-button {
-  width: 100%;
-  flex: 1;
-  padding: 10px;
-  border: 1px solid rgb(238, 175, 17);
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: rgba(238, 230, 230, 0.1);
-  color: rgb(238, 175, 17);
+/* Tooltip */
+.tradedetails-label-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tradedetails-tooltip-icon {
+  width: 19px;
+  height: 19px;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  font-size: 1rem;
+  color: rgb(255, 215, 0);
+  cursor: help;
+  background: rgba(25, 16, 5, 0.9);
+  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
+  position: relative;
+}
+
+.tradedetails-tooltip-content {
+  position: fixed;
+  top: auto;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  border: 2px solid rgb(238, 175, 17);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  color: rgb(238, 175, 17);
+  width: 240px;
+  z-index: 1500;
+  display: none;
+  box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
+}
+
+.tradedetails-tooltip-icon:hover .tradedetails-tooltip-content {
+  display: block;
+}
+
+/* Tooltip Buttons */
+.tradedetails-tooltip-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+}
+
+.tradedetails-tooltip-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.history-button:hover {
-  background-color: rgb(238, 175, 17);
-  color: black;
+.tradedetails-tooltip-btn.check {
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  color: rgb(0, 255, 0);
 }
 
-/* Responsive Design */
+.tradedetails-tooltip-btn.cross {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.5);
+  color: rgb(255, 0, 0);
+}
+
+/* Buttons */
+.tradedetails-buttons {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+}
+
+.tradedetails-save-button,
+.tradedetails-history-button {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 0.6);
+  color: rgb(255, 215, 0);
+  font-size: 1.5rem;
+  font-family: 'Legendarie', sans-serif;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.tradedetails-save-button.long {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(0, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 0.6);
+  color: rgb(255, 215, 0);
+}
+
+.tradedetails-save-button.short {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 0.6);
+  color: rgb(255, 215, 0);
+}
+.tradedetails-save-button.short:hover {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 1);
+  transform: translateY(-1px);
+  color: rgb(255, 215, 0);
+}
+.tradedetails-save-button.long:hover {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(0, 127, 50, 0.05));
+  border: 1px solid rgba(238, 175, 17, 1);
+  transform: translateY(-1px);
+  color: rgb(255, 215, 0);
+}
+
+.tradedetails-history-button:hover {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  transform: translateY(-1px);
+  border: 1px solid rgba(238, 175, 17, 1);
+}
+
 @media (max-width: 768px) {
-  .price-inputs {
+  .tradedetails-price-inputs {
     grid-template-columns: 1fr;
+  }
+  
+  .tradedetails-buttons {
+    flex-direction: column;
   }
 }

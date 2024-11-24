@@ -51,7 +51,8 @@
     width: 100%;
     padding: 0.8rem;
     background: rgba(25, 16, 5, 0.9);
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
     color: rgb(255, 215, 0);
     border-radius: 6px;
   }
@@ -71,7 +72,7 @@
   
   .register-form-submit {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(205, 127, 50, 0.05));
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    border: 1px solid rgb(238, 175, 17);
     color: rgb(255, 215, 0);
     font-size: 1.6rem;
     font-family: 'Legendarie', sans-serif;
@@ -91,7 +92,7 @@
   
   .register-form-close {
     background: linear-gradient(135deg, rgba(89, 0, 0, 0.8), rgba(43, 24, 16, 0.9));
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    border: 1px solid rgb(139, 0, 0);
     color: rgb(255, 215, 0);
     font-size: 1.6rem;
     font-family: 'Legendarie', sans-serif;
