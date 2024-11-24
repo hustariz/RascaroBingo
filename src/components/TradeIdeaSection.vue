@@ -1,21 +1,21 @@
 <template>
-    <div class="trade-idea-container">
-      <div class="trade-idea-content">
-        <div class="textarea-container">
-          <textarea
-            v-model="tradeIdea"
-            placeholder="Enter your trade ideas here..."
-            class="trade-idea-input"
-            @input="emitTradeIdea"
-          ></textarea>
-        </div>
-          <button class="chart-button" @click="checkChart">
-            <span class="chart-icon">📈</span>
-            Check Chart
-          </button>
+  <div class="tradeidea-section-container">
+    <div class="tradeidea-section-content">
+      <div class="tradeidea-textarea-wrapper">
+        <textarea
+          v-model="tradeIdea"
+          placeholder="Enter your trade ideas here..."
+          class="tradeidea-section-input"
+          @input="emitTradeIdea"
+        ></textarea>
       </div>
+      <button class="tradeidea-chart-button" @click="checkChart">
+        <span class="tradeidea-chart-icon">📈</span>
+        Check Chart
+      </button>
     </div>
-  </template>
+  </div>
+</template>
   
   <script>
   import '../assets/styles/TradeIdeaSection.css'

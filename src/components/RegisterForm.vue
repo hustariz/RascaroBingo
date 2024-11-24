@@ -1,36 +1,42 @@
 <!-- src/components/RegisterForm.vue -->
 <template>
-  <div class="form-overlay" v-if="isOpen" @click.self="closeForm">
-    <div class="form">
-      <h2>Register</h2>
+  <div class="register-form-overlay" 
+       :class="{ visible: isOpen }" 
+       @click.self="closeForm">
+    <div class="register-form-container">
+      <h2 class="register-form-title">Register</h2>
       <form @submit.prevent="handleRegister">
-        <div class="form-group">
-          <label for="username">Username:</label>
-          <input type="text" id="username" v-model="username" required>
+        <div class="register-form-group">
+          <label class="register-form-label" for="username">Username:</label>
+          <input class="register-form-input" type="text" id="username" v-model="username" required>
         </div>
-        <div class="form-group">
-          <label for="email">Email:</label>
-          <input type="email" id="email" v-model="email" required>
+        <div class="register-form-group">
+          <label class="register-form-label" for="email">Email:</label>
+          <input class="register-form-input" type="email" id="email" v-model="email" required>
         </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" id="password" v-model="password" required>
+        <div class="register-form-group">
+          <label class="register-form-label" for="password">Password:</label>
+          <input class="register-form-input" type="password" id="password" v-model="password" required>
         </div>
-        <div class="form-actions">
-          <button type="submit" :disabled="isLoading">
+        <div class="register-form-actions">
+          <button class="register-form-submit" type="submit" :disabled="isLoading">
             {{ isLoading ? 'Registering...' : 'Register' }}
           </button>
-          <button type="button" @click="closeForm" :disabled="isLoading">Close</button>
+          <button class="register-form-close" type="button" @click="closeForm" :disabled="isLoading">Close</button>
         </div>
       </form>
-      <p v-if="message" :class="{ 'error-message': isError, 'success-message': !isError }">
+      <p v-if="message" 
+         :class="{ 
+           'register-form-error': isError, 
+           'register-form-success': !isError 
+         }">
         {{ message }}
       </p>
     </div>
   </div>
 </template>
-
 <script>
+import '../assets/styles/RegisterForm.css';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/services/api'; 

@@ -1,29 +1,31 @@
 <!-- src/components/ContactForm.vue -->
 <template>
-    <div class="contact-form-overlay" v-if="isOpen" @click.self="closeForm">
-      <div class="contact-form">
-        <h2>Contact Us</h2>
-        <form @submit.prevent="submitForm">
-          <div class="form-group">
-            <label for="name">Name:</label>
-            <input type="text" id="name" v-model="name" required>
-          </div>
-          <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" v-model="email" required>
-          </div>
-          <div class="form-group">
-            <label for="message">Message:</label>
-            <textarea id="message" v-model="message" required></textarea>
-          </div>
-          <div class="form-actions">
-            <button type="submit">Send</button>
-            <button type="button" @click="closeForm">Close</button>
-          </div>
-        </form>
-      </div>
+  <div class="contact-form-overlay" 
+       :class="{ visible: isOpen }" 
+       @click.self="closeForm">
+    <div class="contact-form-container">
+      <h2 class="contact-form-title">Contact Us</h2>
+      <form @submit.prevent="submitForm">
+        <div class="contact-form-group">
+          <label class="contact-form-label" for="name">Name:</label>
+          <input class="contact-form-input" type="text" id="name" v-model="name" required>
+        </div>
+        <div class="contact-form-group">
+          <label class="contact-form-label" for="email">Email:</label>
+          <input class="contact-form-input" type="email" id="email" v-model="email" required>
+        </div>
+        <div class="contact-form-group">
+          <label class="contact-form-label" for="message">Message:</label>
+          <textarea class="contact-form-textarea" id="message" v-model="message" required></textarea>
+        </div>
+        <div class="contact-form-actions">
+          <button class="contact-form-submit" type="submit">Send</button>
+          <button class="contact-form-close" type="button" @click="closeForm">Close</button>
+        </div>
+      </form>
     </div>
-  </template>
+  </div>
+</template>
   
   <script>
   import '../assets/styles/ContactForm.css';
