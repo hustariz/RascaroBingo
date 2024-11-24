@@ -25,50 +25,17 @@ const UserSchema = new mongoose.Schema({
     default: Date.now
   },
   riskManagement: {
-    accountSize: {
-      type: Number,
-      default: 10000
-    },
-    baseTradeSize: {
-      type: Number,
-      default: 1000
-    },
-    adjustedTradeSize: {
-      type: Number,
-      default: 1000
-    },
-    tradeStreak: {
-      type: Number,
-      default: 0,
-      min: -2,
-      max: 2
-    },
-    slTaken: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 3
-    },
+    accountSize: { type: Number, default: 10000 },
+    baseTradeSize: { type: Number, default: 1000 },
+    adjustedTradeSize: { type: Number, default: 1000 },
+    currentPercentage: { type: Number, default: 10 }, 
+    tradeStreak: { type: Number, default: 0, min: -2, max: 2 },
+    slTaken: { type: Number, default: 0, min: 0, max: 3 },
     dailyStats: {
       lastTradeDate: Date,
-      dailyTradeCount: {
-        type: Number,
-        default: 0
-      },
-      dailyLoss: {
-        type: Number,
-        default: 0
-      }
-    },
-    settings: {
-      maxDailyLoss: {
-        type: Number,
-        default: 500
-      },
-      maxTradesPerDay: {
-        type: Number,
-        default: 3
-      }
+      dailyTradeCount: { type: Number, default: 0 },
+      dailyProfit: { type: Number, default: 0 }, 
+      dailyLoss: { type: Number, default: 0 }
     }
   }
 });

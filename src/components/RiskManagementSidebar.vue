@@ -57,7 +57,33 @@
           <label>Number of Stoploss Taken:</label>
           <div class="streak-slider-container">
             <div class="streak-info">
-              <span class="streak-value" :style="{ color: slColor }" v-html="slLabel"></span>
+              <div 
+                class="risk-tooltip-container" 
+                @mouseover="showTooltip = true"
+                @mouseleave="showTooltip = false"
+              >
+                <span 
+                  class="streak-value" 
+                  :class="{ 'session-ended': slTaken === 3 }"
+                  :style="{ color: slColor }" 
+                  v-html="slLabel"
+                ></span>
+                
+                <div v-if="showTooltip && slTaken === 3" class="risk-tooltip">
+                  <template v-if="!askingForGrass">
+                    Session ended, come back later
+                  </template>
+                  <template v-else>
+                    <div class="grass-question">
+                      Did you touch some grass?
+                      <div class="risk-tooltip-buttons">
+                        <button class="risk-tooltip-button" @click="handleGrassResponse(true)">Yes</button>
+                        <button class="risk-tooltip-button" @click="handleGrassResponse(false)">No</button>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
             </div>
             <input 
               type="range" 
@@ -103,7 +129,10 @@ export default {
       isCollapsed: false,
       localAccountSize: 10000,
       localTradeSize: 1000,
-      currentPercentage: 10
+      currentPercentage: 10,
+      showTooltip: false,
+      askingForGrass: false,
+      tooltipTimer: null
     }
   },
   computed: {
@@ -171,8 +200,50 @@ export default {
       return colors[this.slTaken] || colors['0'];
     }
   },
+
+  
   
   methods: {
+    async handleGrassResponse(touched) {
+      if (touched) {
+        try {
+          console.log('🌱 User touched grass, attempting to reset SL count');
+          const token = localStorage.getItem('token');
+          if (!token) throw new Error('No authentication token found');
+
+          // Update backend
+          const response = await fetch('http://localhost:3004/api/risk-management/reset', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (!response.ok) throw new Error('Failed to reset stoploss counter');
+          
+          const data = await response.json();
+          console.log('✅ SL count reset successful:', data);
+
+          // Update Vuex store
+          this.$store.commit('riskManagement/SET_RISK_MANAGEMENT', {
+            data: {
+              ...this.$store.state.riskManagement,
+              slTaken: 0
+            }
+          });
+
+          this.showTooltip = false;
+          this.askingForGrass = false;
+        } catch (error) {
+          console.error('❌ Error resetting SL count:', error);
+        }
+      } else {
+        console.log('❌ User did not touch grass, keeping SL count');
+        this.showTooltip = false;
+        this.askingForGrass = false;
+      }
+    },
     toggleSidebar() {
       this.isCollapsed = !this.isCollapsed;
       this.$emit('sidebar-toggle', this.isCollapsed);
@@ -234,6 +305,18 @@ export default {
         },
         immediate: true
       },
+      showTooltip(newVal) {  // Changed from showResetTooltip
+        if (newVal && this.slTaken === 3) {
+          clearTimeout(this.tooltipTimer);  // Changed from tooltipHoverTimer
+          this.askingForGrass = false;
+          this.tooltipTimer = setTimeout(() => {
+            this.askingForGrass = true;
+          }, 5000);
+        } else {
+          clearTimeout(this.tooltipTimer);  // Changed from tooltipHoverTimer
+          this.askingForGrass = false;
+        }
+      },
     },
   
   async created() {
@@ -245,47 +328,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.input-with-prefix {
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin-top: 5px;
-}
-
-.prefix {
-  position: absolute;
-  left: 10px;
-  color: rgba(238, 175, 17, 0.7);
-}
-
-.risk-input {
-  width: 100%;
-  padding: 8px 8px 8px 25px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(238, 175, 17, 0.3);
-  border-radius: 4px;
-  color: white;
-}
-
-.risk-input:focus {
-  border-color: rgb(238, 175, 17);
-  outline: none;
-}
-
-.percentage-display {
-  display: block;
-  margin-top: 5px;
-  color: rgba(238, 175, 17, 0.7);
-  font-size: 0.9em;
-}
-
-.profit-value.positive {
-  color: #4CAF50;
-}
-
-.loss-value.negative {
-  color: #f44336;
-}
-</style>
