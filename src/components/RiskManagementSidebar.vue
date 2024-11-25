@@ -38,19 +38,13 @@
         <h2>Risk's Management</h2>
         <div class="setting-item">
           <label>Trade's Streak:</label>
-          <div class="streak-slider-container">
-            <div class="streak-info">
-              <span class="streak-value" :style="{ color: streakColor }">{{ streakLabel }}</span>
+          <div class="streak-progress-container">
+            <div class="streak-tube">
+              <div class="streak-liquid" :style="{ width: fillWidth, background: streakColor }">
+                <div class="bubble-effect"></div>
+              </div>
             </div>
-            <input 
-              type="range" 
-              :value="tradeStreak"
-              min="-2" 
-              max="2" 
-              step="1"
-              class="streak-slider"
-              disabled
-            />
+            <span class="streak-value" :style="{ color: streakColor }">{{ streakLabel }}</span>
           </div>
         </div>
         <div class="setting-item">
@@ -156,29 +150,39 @@ export default {
   },
 
   streakLabel() {
-      // Use the current percentage directly without multiplying
-      const currentPercentage = Number(this.calculatePercentage);
-      
       const labels = {
-        '-2': `Cold streak (${currentPercentage}%)`,
-        '-1': `Malus streak (${currentPercentage}%)`,
-        '0': `Normal trade (${currentPercentage}%)`,
-        '1': `Bonus streak (${currentPercentage}%)`,
-        '2': `HOT streak (${currentPercentage}%)`
+        '-3': `Grass Streak (${this.currentPercentage}%)`,
+        '-2': `Cold streak (${this.currentPercentage}%)`,
+        '-1': `Malus streak (${this.currentPercentage}%)`,
+        '0': `Normal trade (${this.currentPercentage}%)`,
+        '1': `Bonus streak (${this.currentPercentage}%)`,
+        '2': `HOT streak (${this.currentPercentage}%)`,
+        '3': `COOKING (${this.currentPercentage}%)`
       };
       return labels[this.tradeStreak] || labels['0'];
     },
 
     streakColor() {
-      const colors = {
-        '-2': '#0066cc',
-        '-1': '#66b3ff',
-        '0': '#FFFFFF',
-        '1': '#ffb366',
-        '2': '#f57c00'
-      };
-      return colors[this.tradeStreak] || colors['0'];
-    },
+    const colors = {
+      '-3': '#0033cc', // Deep Blue
+      '-2': '#0066cc', // Blue
+      '-1': '#66b3ff', // Light Blue
+      '0': '#FFFFFF',  // White
+      '1': '#ffb366',  // Light Orange
+      '2': '#ff7f00',  // Orange
+      '3': '#ff3300'   // Red-Orange
+    };
+    return colors[this.tradeStreak] || colors['0'];
+  },
+
+  
+  fillWidth() {
+    // Calculate fill width based on streak level (-3 to +3)
+    const baseWidth = 50; // Center point (%)
+    const increment = 16.67; // Width increment per level
+    const level = this.tradeStreak;
+    return `${baseWidth + (level * increment)}%`;
+  },
 
     slLabel() {
       const labels = {
