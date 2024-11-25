@@ -158,7 +158,7 @@ export default {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-        const response = await fetch('http://localhost:3004/api/risk-management', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/risk-management`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -203,7 +203,7 @@ export default {
           ? Math.round(currentTradeSize * 1.2) 
           : Math.round(currentTradeSize * 0.8);
 
-        const response = await fetch('http://localhost:3004/api/risk-management/update', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/risk-management`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -235,7 +235,7 @@ export default {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-        const response = await fetch('http://localhost:3004/api/risk-management/settings', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/risk-management`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
