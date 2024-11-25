@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
     baseTradeSize: { type: Number, default: 1000 },
     adjustedTradeSize: { type: Number, default: 1000 },
     currentPercentage: { type: Number, default: 10 }, 
-    tradeStreak: { type: Number, default: 0, min: -2, max: 2 },
+    tradeStreak: { type: Number, default: 0, min: -3, max: 3 },
     slTaken: { type: Number, default: 0, min: 0, max: 3 },
     dailyStats: {
       lastTradeDate: Date,

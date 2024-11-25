@@ -270,3 +270,50 @@ h2 {
   color: #f44336;
   text-shadow: 0 0 10px rgba(244, 67, 54, 0.2);
 }
+
+.streak-progress-container {
+  position: relative;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.streak-tube {
+  position: relative;
+  height: 30px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+}
+
+.streak-liquid {
+  position: absolute;
+  left: 0;
+  height: 100%;
+  transition: all 0.5s ease;
+  border-radius: 15px;
+}
+
+.bubble-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+}
+
+
+.streak-value {
+  display: block;
+  text-align: center;
+  margin-top: 5px;
+  font-weight: bold;
+  transition: color 0.5s ease;
+}
