@@ -21,42 +21,24 @@ exports.updateRiskManagement = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const numericProfitLoss = Number(profitLoss);
-    if (isNaN(numericProfitLoss)) {
-      return res.status(400).json({ message: 'Invalid profit/loss value' });
-    }
+    // Update account size first
+    user.riskManagement.accountSize += numericProfitLoss;
 
-    // Update trade streak and account size
     if (status === 'TARGET_HIT') {
-      // Step up through percentage levels
-      let newPercentage;
-      if (user.riskManagement.currentPercentage <= 3.33) newPercentage = 6.67;
-      else if (user.riskManagement.currentPercentage <= 6.67) newPercentage = 10;
-      else if (user.riskManagement.currentPercentage <= 10) newPercentage = 15;
-      else if (user.riskManagement.currentPercentage <= 15) newPercentage = 20;
-      else newPercentage = 20;
-
-      user.riskManagement.currentPercentage = newPercentage;
+      // Simple 20% increase in trade size
+      user.riskManagement.baseTradeSize = Math.round(user.riskManagement.baseTradeSize * 1.2);
       user.riskManagement.tradeStreak = Math.min(user.riskManagement.tradeStreak + 1, 2);
-      user.riskManagement.accountSize += numericProfitLoss;
       user.riskManagement.dailyStats.dailyProfit += numericProfitLoss;
     } else if (status === 'STOPLOSS_HIT') {
-      // Step down through percentage levels
-      let newPercentage;
-      if (user.riskManagement.currentPercentage >= 20) newPercentage = 15;
-      else if (user.riskManagement.currentPercentage >= 15) newPercentage = 10;
-      else if (user.riskManagement.currentPercentage >= 10) newPercentage = 6.67;
-      else if (user.riskManagement.currentPercentage >= 6.67) newPercentage = 3.33;
-      else newPercentage = 3.33;
-
-      user.riskManagement.currentPercentage = newPercentage;
+      // Simple 20% decrease in trade size
+      user.riskManagement.baseTradeSize = Math.round(user.riskManagement.baseTradeSize * 0.8);
       user.riskManagement.tradeStreak = Math.max(user.riskManagement.tradeStreak - 1, -2);
       user.riskManagement.slTaken += 1;
-      user.riskManagement.accountSize += numericProfitLoss;
       user.riskManagement.dailyStats.dailyLoss += Math.abs(numericProfitLoss);
     }
 
-    // Calculate new trade size based on current percentage
-    user.riskManagement.baseTradeSize = Math.round((user.riskManagement.accountSize * user.riskManagement.currentPercentage) / 100);
+    // Calculate and store current percentage
+    user.riskManagement.currentPercentage = (user.riskManagement.baseTradeSize / user.riskManagement.accountSize) * 100;
     user.riskManagement.adjustedTradeSize = user.riskManagement.baseTradeSize;
 
     await user.save();
