@@ -6,10 +6,10 @@
         Rascarobingo is a <strong>trading application</strong> with a bingo-style scoring system and <strong>risk management</strong> features.
       </p>
       <p>
-        It is designed to help you to be a <strong>better trader</strong> by managing your <strong>emotions</strong> and providing a <strong>playful & stimulant frame</strong>.
+        It is designed to help you to be a <strong>better trader</strong>, by managing your <strong>emotions</strong> and most importantly teaching you <br><strong>PATIENCE!</strong>
       </p>
       <p>
-        While also providing <strong>analytics</strong> of your trading sessions.
+        All of this in a <strong>playful & stimulant frame</strong> while also providing <strong>analytics</strong> of your <strong>trading sessions</strong>.
       </p>
     </div>
     <div class="logo-container">
