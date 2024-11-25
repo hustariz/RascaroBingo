@@ -27,12 +27,12 @@ exports.updateRiskManagement = async (req, res) => {
     if (status === 'TARGET_HIT') {
       // Simple 20% increase in trade size
       user.riskManagement.baseTradeSize = Math.round(user.riskManagement.baseTradeSize * 1.2);
-      user.riskManagement.tradeStreak = Math.min(user.riskManagement.tradeStreak + 1, 2);
+      user.riskManagement.tradeStreak = Math.min(user.riskManagement.tradeStreak + 1, 3);
       user.riskManagement.dailyStats.dailyProfit += numericProfitLoss;
     } else if (status === 'STOPLOSS_HIT') {
       // Simple 20% decrease in trade size
       user.riskManagement.baseTradeSize = Math.round(user.riskManagement.baseTradeSize * 0.8);
-      user.riskManagement.tradeStreak = Math.max(user.riskManagement.tradeStreak - 1, -2);
+      user.riskManagement.tradeStreak = Math.max(user.riskManagement.tradeStreak - 1, -3);
       user.riskManagement.slTaken += 1;
       user.riskManagement.dailyStats.dailyLoss += Math.abs(numericProfitLoss);
     }

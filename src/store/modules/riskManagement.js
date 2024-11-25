@@ -107,7 +107,7 @@ export default {
       // Update streak and SL count
       if (status === 'TARGET_HIT') {
         const oldStreak = state.tradeStreak;
-        state.tradeStreak = Math.min(state.tradeStreak + 1, 2);
+        state.tradeStreak = Math.min(state.tradeStreak + 1, 3);
         state.baseTradeSize = Math.round(state.baseTradeSize * 1.2);
         state.adjustedTradeSize = state.baseTradeSize;
         state.dailyStats.dailyProfit += profitLoss;
@@ -119,7 +119,7 @@ export default {
         });
       } else if (status === 'STOPLOSS_HIT') {
         const oldStreak = state.tradeStreak;
-        state.tradeStreak = Math.max(state.tradeStreak - 1, -2);
+        state.tradeStreak = Math.max(state.tradeStreak - 1, -3);
         state.baseTradeSize = Math.round(state.baseTradeSize * 0.8);
         state.adjustedTradeSize = state.baseTradeSize;
         state.slTaken++;
