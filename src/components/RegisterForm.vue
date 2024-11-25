@@ -7,22 +7,39 @@
       <h2 class="register-form-title">Register</h2>
       <form @submit.prevent="handleRegister">
         <div class="register-form-group">
-          <label class="register-form-label" for="username">Username:</label>
-          <input class="register-form-input" type="text" id="username" v-model="username" required>
+          <label class="register-form-label" for="register-username">Username:</label>
+          <input class="register-form-input" 
+                 type="text" 
+                 id="register-username" 
+                 v-model="username" 
+                 required>
         </div>
         <div class="register-form-group">
-          <label class="register-form-label" for="email">Email:</label>
-          <input class="register-form-input" type="email" id="email" v-model="email" required>
+          <label class="register-form-label" for="register-email">Email:</label>
+          <input class="register-form-input" 
+                 type="email" 
+                 id="register-email" 
+                 v-model="email" 
+                 required>
         </div>
         <div class="register-form-group">
-          <label class="register-form-label" for="password">Password:</label>
-          <input class="register-form-input" type="password" id="password" v-model="password" required>
+          <label class="register-form-label" for="register-password">Password:</label>
+          <input class="register-form-input" 
+                 type="password" 
+                 id="register-password" 
+                 v-model="password" 
+                 required>
         </div>
         <div class="register-form-actions">
-          <button class="register-form-submit" type="submit" :disabled="isLoading">
+          <button class="register-form-submit" 
+                  type="submit" 
+                  :disabled="isLoading">
             {{ isLoading ? 'Registering...' : 'Register' }}
           </button>
-          <button class="register-form-close" type="button" @click="closeForm" :disabled="isLoading">Close</button>
+          <button class="register-form-close" 
+                  type="button" 
+                  @click="closeForm" 
+                  :disabled="isLoading">Close</button>
         </div>
       </form>
       <p v-if="message" 
