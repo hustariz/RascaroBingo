@@ -7,22 +7,38 @@
       <h2 class="login-form-title">Login</h2>
       <form @submit.prevent="handleLogin">
         <div class="login-form-group">
-          <label class="login-form-label" for="username">Username:</label>
-          <input class="login-form-input" type="text" id="username" v-model="username" required>
+          <label class="login-form-label" for="login-username">Username:</label>
+          <input class="login-form-input" 
+                 type="text" 
+                 id="login-username" 
+                 v-model="username" 
+                 required>
         </div>
         <div class="login-form-group">
-          <label class="login-form-label" for="password">Password:</label>
-          <input class="login-form-input" type="password" id="password" v-model="password" required>
+          <label class="login-form-label" for="login-password">Password:</label>
+          <input class="login-form-input" 
+                 type="password" 
+                 id="login-password" 
+                 v-model="password" 
+                 required>
         </div>
         <div class="login-form-actions">
-          <button class="login-form-submit" type="submit" :disabled="isLoading">
+          <button class="login-form-submit" 
+                  type="submit" 
+                  :disabled="isLoading">
             {{ isLoading ? 'Logging in...' : 'Login' }}
           </button>
-          <button class="login-form-close" type="button" @click="closeForm" :disabled="isLoading">Close</button>
+          <button class="login-form-close" 
+                  type="button" 
+                  @click="closeForm" 
+                  :disabled="isLoading">Close</button>
         </div>
       </form>
       <p v-if="errorMessage" class="login-form-error">{{ errorMessage }}</p>
-      <p class="login-form-signup">Don't have an account yet? <a href="#" @click.prevent="openRegisterForm">Sign up now!</a></p>
+      <p class="login-form-signup">
+        Don't have an account yet? 
+        <a href="#" @click.prevent="openRegisterForm">Sign up now!</a>
+      </p>
     </div>
   </div>
 </template>
