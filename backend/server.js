@@ -89,6 +89,7 @@ app.use('/api/bingo', bingoCardRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
+
 // Base API route
 app.get('/api', (req, res) => {
   res.json({
@@ -97,6 +98,7 @@ app.get('/api', (req, res) => {
     status: 'running'
   });
 });
+
 
 // API 404 handler - Place before static files
 app.use('/api/*', (req, res) => {
