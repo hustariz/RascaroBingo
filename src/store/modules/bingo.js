@@ -1,3 +1,5 @@
+const API_URL = process.env.VUE_APP_API_URL;
+console.log('🌍 Bingo using API URL:', API_URL);
 export default {
     namespaced: true,
     
@@ -105,7 +107,7 @@ export default {
             return;
           }
   
-          const response = await fetch('/api/bingo/card', {
+          const response = await fetch(`${API_URL}/api/bingo/card`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
