@@ -87,13 +87,14 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 2. API Routes
+
+// 1. API Routes first
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoCardRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
-// 3. Base API Info
+// 2. API Info Route
 app.get('/api', (req, res) => {
   res.json({
     message: 'RascaroBingo API',
@@ -102,33 +103,24 @@ app.get('/api', (req, res) => {
   });
 });
 
+// 3. API 404 Handler
+app.use('/api/*', (req, res) => {
+  console.log('API 404:', req.method, req.url);
+  res.status(404).json({
+    error: 'API Route Not Found',
+    message: `Route ${req.method} ${req.url} not found`
+  });
+});
+
+// 4. History middleware (after API routes, before static files)
 app.use(history());
 
-// 4. API 404 Handler
+// 5. Static files and SPA routes
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.resolve(__dirname, 'dist');  // Use absolute path resolution
+  const distPath = path.resolve(__dirname, 'dist');
   console.log('📂 Production dist path:', distPath);
   
-  // Serve static files
   app.use(express.static(distPath));
-  
-  // Handle SPA routes
-  app.get('*', (req, res, next) => {
-    if (req.url.startsWith('/api')) {
-      return next();
-    }
-    
-    console.log('🎯 Serving SPA for:', req.url);
-    res.sendFile(path.resolve(distPath, 'index.html'), (err) => {
-      if (err) {
-        console.error('❌ Error serving file:', err, {
-          requestedPath: req.url,
-          fullPath: path.resolve(distPath, 'index.html')
-        });
-        res.status(500).send('Error loading page');
-      }
-    });
-  });
 }
 
 // 6. Global Error Handlers
