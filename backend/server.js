@@ -4,13 +4,8 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-
-
 const app = express();
 const PORT = process.env.PORT || 3004;
-
-app.use(express.static(path.join(__dirname, '../dist')));
-
 
 // Import routes
 const userRoutes = require('./routes/userRoutes');
@@ -18,7 +13,7 @@ const bingoCardRoutes = require('./routes/bingoCardRoutes');
 const tradeRoutes = require('./routes/tradeRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
 
-// CORS Configuration
+// CORS Configuration with updated origins
 const corsOptions = {
   origin: [
     'http://localhost:8080',
@@ -53,7 +48,6 @@ app.use((req, res, next) => {
     });
   }
 
-  // Add response logging
   const oldSend = res.send;
   res.send = function(data) {
     const duration = Date.now() - start;
@@ -67,7 +61,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to MongoDB with enhanced options
+// MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -89,14 +83,14 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Mount routes with version prefix
+// API Routes - Mount before static files and catch-all
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoCardRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
-// Base route
-app.get('/', (req, res) => {
+// Base API route
+app.get('/api', (req, res) => {
   res.json({
     message: 'RascaroBingo API',
     version: '1.0',
@@ -104,22 +98,26 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
-});
-
-// 404 handler
-app.use((req, res) => {
+// API 404 handler - Place before static files
+app.use('/api/*', (req, res) => {
   res.status(404).json({
-    error: 'Not Found',
+    error: 'API Route Not Found',
     message: `Route ${req.method} ${req.url} not found`
   });
 });
 
-// Then 404 handler for API routes
-app.use('/api/*', (req, res) => {
+// Static files serving
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// SPA catch-all route - After API routes but before general 404
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
+// General 404 handler - Last resort
+app.use((req, res) => {
   res.status(404).json({
-    error: 'API Route Not Found',
+    error: 'Not Found',
     message: `Route ${req.method} ${req.url} not found`
   });
 });
@@ -133,7 +131,6 @@ app.use((err, req, res, next) => {
     method: req.method
   });
 
-  // Handle specific error types
   if (err.name === 'ValidationError') {
     return res.status(400).json({
       error: 'Validation Error',
@@ -154,7 +151,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server with enhanced error handling
+// Server startup and shutdown handling remain the same
 const startServer = async () => {
   try {
     await new Promise((resolve, reject) => {
@@ -164,7 +161,6 @@ const startServer = async () => {
         console.log(`🔒 CORS enabled for:`, corsOptions.origin);
         resolve(server);
       });
-
       server.on('error', reject);
     });
   } catch (error) {
@@ -173,7 +169,6 @@ const startServer = async () => {
   }
 };
 
-// Enhanced global error handlers
 process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Promise Rejection:', err);
   if (process.env.NODE_ENV === 'production') {
@@ -188,7 +183,6 @@ process.on('uncaughtException', (err) => {
   }
 });
 
-// Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('🛑 SIGTERM received. Shutting down gracefully...');
   mongoose.connection.close(false, () => {
@@ -197,7 +191,6 @@ process.on('SIGTERM', () => {
   });
 });
 
-// Start the server
 startServer();
 
 module.exports = app;
