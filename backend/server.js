@@ -4,8 +4,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const history = require('connect-history-api-fallback');
 
 // Initialize express app
+
+
 const app = express();
 const PORT = process.env.PORT || 3004;
 
@@ -99,28 +102,29 @@ app.get('/api', (req, res) => {
   });
 });
 
-// 4. API 404 Handler
-app.use('/api/*', (req, res) => {
-  console.log('🔍 API Request:', req.method, req.url);
-  res.status(404).json({
-    error: 'API Route Not Found',
-    message: `Route ${req.method} ${req.url} not found`
-  });
-});
+app.use(history());
 
-// 5. Static Files and SPA Routes (Production Only)
+// 4. API 404 Handler
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.resolve(process.cwd(), 'dist');  // Use absolute path
+  const distPath = path.resolve(__dirname, 'dist');  // Use absolute path resolution
   console.log('📂 Production dist path:', distPath);
   
+  // Serve static files
   app.use(express.static(distPath));
+  
+  // Handle SPA routes
   app.get('*', (req, res, next) => {
-    if (req.url.startsWith('/api')) return next();
+    if (req.url.startsWith('/api')) {
+      return next();
+    }
     
     console.log('🎯 Serving SPA for:', req.url);
-    res.sendFile(path.join(distPath, 'index.html'), (err) => {
+    res.sendFile(path.resolve(distPath, 'index.html'), (err) => {
       if (err) {
-        console.error('❌ Error serving file:', err);
+        console.error('❌ Error serving file:', err, {
+          requestedPath: req.url,
+          fullPath: path.resolve(distPath, 'index.html')
+        });
         res.status(500).send('Error loading page');
       }
     });
