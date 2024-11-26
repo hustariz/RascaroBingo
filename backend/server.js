@@ -111,6 +111,7 @@ app.use('/api/*', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, 'dist');
   console.log('📂 Production dist path:', distPath);
+  
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
     console.log('🎯 Serving SPA for:', req.url);
