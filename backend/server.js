@@ -109,13 +109,12 @@ app.use('/api/*', (req, res) => {
 
 // 4. Static files and SPA routes last
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../dist');
+  const distPath = path.join(process.cwd(), 'dist');
   console.log('📂 Production dist path:', distPath);
   
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
     console.log('🎯 Serving SPA for:', req.url);
-    console.log('📄 File path:', path.join(distPath, 'index.html'));
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
@@ -189,12 +188,16 @@ process.on('uncaughtException', (err) => {
   }
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('🛑 SIGTERM received. Shutting down gracefully...');
-  mongoose.connection.close(false, () => {
+  try {
+    await mongoose.connection.close();
     console.log('📚 MongoDB connection closed.');
     process.exit(0);
-  });
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
 });
 
 startServer();
