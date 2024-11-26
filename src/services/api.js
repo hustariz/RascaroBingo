@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:3004';
-console.log('Using API URL:', API_URL);
+const API_URL = process.env.VUE_APP_API_URL;
+console.log('🌍 Using API URL:', API_URL);
+
+if (!API_URL) {
+  console.error('❌ VUE_APP_API_URL is not defined in environment');
+}
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
@@ -183,7 +187,7 @@ export default {
         return JSON.parse(cachedCard);
       }
 
-      const response = await api.get('/bingo/card');
+      const response = await api.get('/api/bingo/card');
       console.log('✅ Card loaded from server');
       // Cache the server response
       localStorage.setItem('bingoState', JSON.stringify(response.data));
