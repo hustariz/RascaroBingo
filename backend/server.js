@@ -109,21 +109,14 @@ app.use('/api/*', (req, res) => {
 
 // 4. Static files and SPA routes last
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../dist');
+  const distPath = path.join(__dirname, 'dist');
   console.log('📂 Production dist path:', distPath);
-  
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
     console.log('🎯 Serving SPA for:', req.url);
-    res.sendFile(path.join(distPath, 'index.html'), (err) => {
-      if (err) {
-        console.error('❌ Error serving file:', err);
-        res.status(500).send('Error loading page');
-      }
-    });
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
-
 // General 404 handler - Last resort
 app.use((req, res) => {
   res.status(404).json({
@@ -133,7 +126,7 @@ app.use((req, res) => {
 });
 
 // Enhanced error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error('❌ Server error:', {
     message: err.message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
