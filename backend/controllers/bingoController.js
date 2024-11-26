@@ -2,6 +2,7 @@
 const BingoCard = require('../models/BingoCard');
 
 exports.getCard = async (req, res) => {
+  console.log('Fetching bingo card for user:', req.user.id);
   try {
     console.log('Getting card for user:', req.user.id);
     let card = await BingoCard.findOne({ userId: req.user.id });
