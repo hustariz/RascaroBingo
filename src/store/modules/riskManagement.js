@@ -1,5 +1,5 @@
 // store/modules/riskManagement.js
-const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:3004';
+const API_URL = process.env.VUE_APP_API_URL;
 console.log('🌍 Using API URL:', API_URL);
 
 if (!API_URL) {
