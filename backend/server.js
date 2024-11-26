@@ -112,9 +112,22 @@ app.use('/api/*', (req, res) => {
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // SPA catch-all route - After API routes but before general 404
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
-});
+if (process.env.NODE_ENV === 'production') {
+  // Use absolute path for production
+  app.use(express.static(path.join(__dirname, 'dist')));
+  
+  // Serve index.html for all routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  });
+} else {
+  // Development path
+  app.use(express.static(path.join(__dirname, '../dist')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
+}
 
 // General 404 handler - Last resort
 app.use((req, res) => {
