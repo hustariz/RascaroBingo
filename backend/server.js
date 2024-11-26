@@ -110,11 +110,10 @@ app.use('/api/*', (req, res) => {
 
 // 5. Static Files and SPA Routes (Production Only)
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, 'dist');
+  const distPath = path.resolve(process.cwd(), 'dist');  // Use absolute path
   console.log('📂 Production dist path:', distPath);
   
   app.use(express.static(distPath));
-  
   app.get('*', (req, res, next) => {
     if (req.url.startsWith('/api')) return next();
     
