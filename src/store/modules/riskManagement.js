@@ -209,7 +209,7 @@ export default {
           ? Math.round(currentTradeSize * 1.2) 
           : Math.round(currentTradeSize * 0.8);
 
-          const response = await fetch(`${API_URL}/api/risk-management/`, {
+          const response = await fetch(`${API_URL}/api/risk-management/update`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
