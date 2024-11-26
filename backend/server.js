@@ -82,15 +82,13 @@ app.get('/health', (req, res) => {
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
-
-// API Routes - Mount before static files and catch-all
+// 1. API Routes first
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoCardRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
-
-// Base API route
+// 2. Base API route second
 app.get('/api', (req, res) => {
   res.json({
     message: 'RascaroBingo API',
@@ -99,29 +97,26 @@ app.get('/api', (req, res) => {
   });
 });
 
-
-// API 404 handler - Place before static files
+// 3. API 404 handler third
 app.use('/api/*', (req, res) => {
+  console.log('API 404:', req.method, req.url);
+  console.log('🔍 API Request:', req.method, req.url);
   res.status(404).json({
     error: 'API Route Not Found',
     message: `Route ${req.method} ${req.url} not found`
   });
 });
 
-// Static files serving
-app.use(express.static(path.join(__dirname, '../dist')));
-
-// SPA catch-all route - After API routes but before general 404
+// 4. Static files and SPA routes last
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'dist')));
+  const distPath = path.join(__dirname, '../dist');
+  console.log('📂 Production dist path:', distPath);
+  
+  app.use(express.static(distPath));
   app.get('*', (req, res) => {
     console.log('🎯 Serving SPA for:', req.url);
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  });
-} else {
-  app.use(express.static(path.join(__dirname, '../dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
+    console.log('📄 File path:', path.join(distPath, 'index.html'));
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
