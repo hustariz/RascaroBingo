@@ -109,11 +109,19 @@ app.use('/api/*', (req, res) => {
 
 // 4. Static files and SPA routes last
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../dist');  // Change to look one level up
+  const distPath = path.join(__dirname, 'dist'); // Remove the '../' since files are copied to backend/dist
   console.log('📂 Production dist path:', distPath);
   
+  // Serve static files
   app.use(express.static(distPath));
-  app.get('*', (req, res) => {
+  
+  // Handle SPA routes
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.url.startsWith('/api')) {
+      return next();
+    }
+    
     console.log('🎯 Serving SPA for:', req.url);
     res.sendFile(path.join(distPath, 'index.html'), (err) => {
       if (err) {
