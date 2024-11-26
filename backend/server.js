@@ -1,9 +1,11 @@
+// Core imports
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
+// Initialize express app
 const app = express();
 const PORT = process.env.PORT || 3004;
 
@@ -13,7 +15,7 @@ const bingoCardRoutes = require('./routes/bingoCardRoutes');
 const tradeRoutes = require('./routes/tradeRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
 
-// CORS Configuration with updated origins
+// CORS Configuration
 const corsOptions = {
   origin: [
     'http://localhost:8080',
@@ -32,7 +34,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Enhanced logging middleware
+// Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   console.log(`🔄 ${new Date().toISOString()} - ${req.method} ${req.url}`);
@@ -61,10 +63,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// MongoDB Connection
+// Database Connection
 mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
 })
@@ -74,7 +74,8 @@ mongoose.connect(process.env.MONGODB_URI, {
   process.exit(1);
 });
 
-// Health check route
+// Routes Configuration (in order of priority)
+// 1. Health Check
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -82,13 +83,14 @@ app.get('/health', (req, res) => {
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
-// 1. API Routes first
+
+// 2. API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoCardRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
-// 2. Base API route second
+// 3. Base API Info
 app.get('/api', (req, res) => {
   res.json({
     message: 'RascaroBingo API',
@@ -97,9 +99,8 @@ app.get('/api', (req, res) => {
   });
 });
 
-// 3. API 404 handler third
+// 4. API 404 Handler
 app.use('/api/*', (req, res) => {
-  console.log('API 404:', req.method, req.url);
   console.log('🔍 API Request:', req.method, req.url);
   res.status(404).json({
     error: 'API Route Not Found',
@@ -107,20 +108,15 @@ app.use('/api/*', (req, res) => {
   });
 });
 
-// 4. Static files and SPA routes last
+// 5. Static Files and SPA Routes (Production Only)
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, 'dist'); // Remove the '../' since files are copied to backend/dist
+  const distPath = path.join(__dirname, 'dist');
   console.log('📂 Production dist path:', distPath);
   
-  // Serve static files
   app.use(express.static(distPath));
   
-  // Handle SPA routes
   app.get('*', (req, res, next) => {
-    // Skip API routes
-    if (req.url.startsWith('/api')) {
-      return next();
-    }
+    if (req.url.startsWith('/api')) return next();
     
     console.log('🎯 Serving SPA for:', req.url);
     res.sendFile(path.join(distPath, 'index.html'), (err) => {
@@ -131,7 +127,8 @@ if (process.env.NODE_ENV === 'production') {
     });
   });
 }
-// General 404 handler - Last resort
+
+// 6. Global Error Handlers
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
@@ -139,7 +136,6 @@ app.use((req, res) => {
   });
 });
 
-// Enhanced error handling middleware
 app.use((err, req, res) => {
   console.error('❌ Server error:', {
     message: err.message,
@@ -168,7 +164,29 @@ app.use((err, req, res) => {
   });
 });
 
-// Server startup and shutdown handling remain the same
+// Process Handlers
+process.on('unhandledRejection', (err) => {
+  console.error('❌ Unhandled Promise Rejection:', err);
+  if (process.env.NODE_ENV === 'production') process.exit(1);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  if (process.env.NODE_ENV === 'production') process.exit(1);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('🛑 SIGTERM received. Shutting down gracefully...');
+  try {
+    await mongoose.connection.close();
+    console.log('📚 MongoDB connection closed.');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+});
+
 const startServer = async () => {
   try {
     await new Promise((resolve, reject) => {
@@ -186,32 +204,7 @@ const startServer = async () => {
   }
 };
 
-process.on('unhandledRejection', (err) => {
-  console.error('❌ Unhandled Promise Rejection:', err);
-  if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
-  }
-});
-
-process.on('uncaughtException', (err) => {
-  console.error('❌ Uncaught Exception:', err);
-  if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
-  }
-});
-
-process.on('SIGTERM', async () => {
-  console.log('🛑 SIGTERM received. Shutting down gracefully...');
-  try {
-    await mongoose.connection.close();
-    console.log('📚 MongoDB connection closed.');
-    process.exit(0);
-  } catch (error) {
-    console.error('Error during shutdown:', error);
-    process.exit(1);
-  }
-});
-
+// Start Server
 startServer();
 
 module.exports = app;
