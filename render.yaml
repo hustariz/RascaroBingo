@@ -7,6 +7,11 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 18.17.0
+    headers:
+      - source: /*
+        headers:
+          - key: Cache-Control
+            value: no-cache
     routes:
       - type: rewrite
         source: /*
