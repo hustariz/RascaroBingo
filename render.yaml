@@ -3,12 +3,9 @@ services:
     name: rascarobingo
     buildCommand: npm run build
     staticPublishing: true
-    envVars:
-      - key: NODE_VERSION
-        value: 18.17.0
-    staticPublishing: true
     staticBuildLocation: dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    headers:
+      - source: /*
+        headers:
+          - key: Cache-Control
+            value: no-store
