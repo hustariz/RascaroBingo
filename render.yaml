@@ -4,8 +4,6 @@ services:
     buildCommand: npm run build
     staticPublishing: true
     staticBuildLocation: dist
-    headers:
-      - source: /*
-        headers:
-          - key: Cache-Control
-            value: no-store
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
