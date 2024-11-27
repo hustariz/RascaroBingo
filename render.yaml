@@ -2,16 +2,12 @@ services:
   - type: web
     name: rascarobingo
     buildCommand: npm run build
-    publishDir: dist
     staticPublishing: true
     envVars:
       - key: NODE_VERSION
         value: 18.17.0
-    headers:
-      - source: /*
-        headers:
-          - key: Cache-Control
-            value: no-cache
+    staticPublishing: true
+    staticBuildLocation: dist
     routes:
       - type: rewrite
         source: /*

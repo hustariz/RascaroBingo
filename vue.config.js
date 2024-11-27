@@ -11,6 +11,7 @@ module.exports = defineConfig({
     })
   },
   devServer: {
+    historyApiFallback: true,  // Add this line
     proxy: {
       '/api': {
         target: 'http://localhost:3004',

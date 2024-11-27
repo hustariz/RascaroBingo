@@ -14,31 +14,47 @@ const routes = [
   { 
     path: '/bingo', 
     name: 'Bingo',
-    component: BingoPage
-    // Remove meta: { requiresAuth: true }
+    component: BingoPage,
   },
   { 
     path: '/profile', 
     name: 'Profile',
     component: ProfilePage,
-    meta: { requiresAuth: true } // Keep auth for profile
+    meta: { requiresAuth: true }
   },
   { 
     path: '/analytics', 
     name: 'Analytics',
     component: AnalyticsPage,
-    meta: { requiresAuth: true } // Keep auth for analytics
+    meta: { requiresAuth: true }
   },
   {
     path: '/login',
     name: 'Login',
     component: LoginForm
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  console.log('🛣️ Route navigation:', { to: to.path, requiresAuth: to.meta.requiresAuth })
+  
+  if (to.meta.requiresAuth && !token) {
+    console.log('🔒 Auth required, redirecting to login')
+    next('/login')
+  } else {
+    console.log('✅ Navigation authorized')
+    next()
+  }
 })
 
 export default router
