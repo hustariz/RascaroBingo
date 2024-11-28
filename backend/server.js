@@ -17,6 +17,7 @@ const userRoutes = require('./routes/userRoutes');
 const bingoCardRoutes = require('./routes/bingoCardRoutes');
 const tradeRoutes = require('./routes/tradeRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
+const { initializeScheduler } = require('./services/schedulerService');
 
 // CORS Configuration
 const corsOptions = {
@@ -76,6 +77,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('❌ MongoDB connection error:', err);
   process.exit(1);
 });
+initializeScheduler();
 
 // Routes Configuration (in order of priority)
 // 1. Health Check

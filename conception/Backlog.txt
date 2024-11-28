@@ -1,2 +1,7 @@
 Screenshot Detector if the app is open and it register you take a screenshot, 
 Pop a windows saying, TAKE YOUR FUCKING PROFIT!
+
+Add a Shop Page 
+In the shop add you can buy your golden bingo case which will be setted number of points and based on a script I created.
+And a Leaderboard Page
+
