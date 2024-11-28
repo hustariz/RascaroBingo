@@ -92,6 +92,7 @@
         </div>
       </div>
 
+
       <div class="settings-group">
         <h2>Daily Stats</h2>
         <div class="setting-item">
@@ -107,6 +108,9 @@
           <label>Trades Today:</label>
           <span class="trades-count">{{ dailyStats?.dailyTradeCount || 0 }}</span>
         </div>
+        <button class="reset-button" @click="resetStats">
+          Reset Daily Stats
+        </button>
       </div>
     </div>
   </div>
@@ -281,14 +285,41 @@ export default {
 
 
     updateFromTradeResult(result) {
-      const { status, profitLoss } = result;
-      this.$store.dispatch('riskManagement/updateAfterTrade', { 
-        status, 
-        profitLoss,
-        currentPercentage: this.currentPercentage
-      });
-    }
-  },
+          const { status, profitLoss } = result;
+          this.$store.dispatch('riskManagement/updateAfterTrade', { 
+            status, 
+            profitLoss,
+            currentPercentage: this.currentPercentage
+          });
+        },
+        async resetStats() {
+          try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No authentication token found');
+
+            const response = await fetch(`${process.env.VUE_APP_API_URL}/api/risk-management/reset-stats`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            });
+
+            if (!response.ok) throw new Error('Failed to reset stats');
+            
+            const data = await response.json();
+
+            // Update local state
+            this.currentPercentage = 10;
+            this.localTradeSize = Math.round(this.localAccountSize * 0.1);
+
+            // Update Vuex store
+            this.$store.commit('riskManagement/SET_RISK_MANAGEMENT', { data });
+          } catch (error) {
+            console.error('Error resetting stats:', error);
+          }
+        }
+      },
   
     watch: {
       accountSize: {
