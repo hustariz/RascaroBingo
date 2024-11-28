@@ -20,9 +20,25 @@ exports.updateRiskManagement = async (req, res) => {
     
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    // Check if it's a new day
+    const today = new Date().toDateString();
+    const lastTradeDate = user.riskManagement.dailyStats.lastTradeDate;
+
     const numericProfitLoss = Number(profitLoss);
     // Update account size first
     user.riskManagement.accountSize += numericProfitLoss;
+    if (!lastTradeDate || new Date(lastTradeDate).toDateString() !== today) {
+      // Reset daily stats
+      user.riskManagement.dailyStats = {
+        lastTradeDate: new Date(),
+        dailyTradeCount: 0,
+        dailyProfit: 0,
+        dailyLoss: 0
+      };
+      user.riskManagement.slTaken = 0;
+      user.riskManagement.tradeStreak = 0;
+    }
+    
 
     if (status === 'TARGET_HIT') {
       // Simple 20% increase in trade size
@@ -40,6 +56,9 @@ exports.updateRiskManagement = async (req, res) => {
     // Calculate and store current percentage
     user.riskManagement.currentPercentage = (user.riskManagement.baseTradeSize / user.riskManagement.accountSize) * 100;
     user.riskManagement.adjustedTradeSize = user.riskManagement.baseTradeSize;
+    // Update trade count
+    user.riskManagement.dailyStats.dailyTradeCount += 1;
+    user.riskManagement.dailyStats.lastTradeDate = new Date();
 
     await user.save();
     res.json(user.riskManagement);
@@ -116,6 +135,37 @@ exports.resetStopLoss = async (req, res) => {
     res.json(updatedUser.riskManagement);
   } catch (error) {
     console.error('❌ Error resetting SL count:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.resetDailyStats = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Calculate 10% of account size
+    const defaultTradeSize = Math.round(user.riskManagement.accountSize * 0.1);
+
+    // Update all stats
+    user.riskManagement.dailyStats = {
+      lastTradeDate: new Date(),
+      dailyTradeCount: 0,
+      dailyLoss: 0,
+      dailyProfit: 0
+    };
+    user.riskManagement.slTaken = 0;
+    user.riskManagement.tradeStreak = 0;
+    user.riskManagement.baseTradeSize = defaultTradeSize;
+    user.riskManagement.adjustedTradeSize = defaultTradeSize;
+    user.riskManagement.currentPercentage = 10;
+
+    await user.save();
+    res.json(user.riskManagement);
+  } catch (error) {
+    console.error('Error resetting daily stats:', error);
     res.status(500).json({ message: error.message });
   }
 };
