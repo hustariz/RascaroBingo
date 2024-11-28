@@ -317,3 +317,16 @@ h2 {
   font-weight: bold;
   transition: color 0.5s ease;
 }
+.reset-button {
+  background-color: #ff4444;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.reset-button:hover {
+  background-color: #cc0000;
+}
