@@ -79,19 +79,21 @@
                 </div>
               </div>
             </div>
-            <input 
-              type="range" 
-              :value="slTaken"
-              min="0" 
-              max="3" 
-              step="1"
-              class="streak-slider"
-              disabled
-            />
+            <!-- Replace input with sl-tube -->
+            <div class="sl-tube">
+              <div 
+                class="sl-liquid" 
+                :style="{ 
+                  width: slFillWidth, 
+                  background: slColor 
+                }"
+              >
+                <div class="bubble-effect"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
 
       <div class="settings-group">
         <h2>Daily Stats</h2>
@@ -109,6 +111,7 @@
           <span class="trades-count">{{ dailyStats?.dailyTradeCount || 0 }}</span>
         </div>
         <button class="reset-button" @click="resetStats">
+          <i class="fas fa-redo-alt"></i>
           Reset Daily Stats
         </button>
       </div>
@@ -206,6 +209,11 @@ export default {
         '3': '#f44336'
       };
       return colors[this.slTaken] || colors['0'];
+    },
+    
+    // Add this computed property for the liquid width
+    slFillWidth() {
+      return `${(this.slTaken / 3) * 100}%`;
     }
   },
 
