@@ -4,6 +4,8 @@ import BingoPage from '../components/BingoPage.vue'
 import ProfilePage from '@/components/ProfilePage.vue'
 import AnalyticsPage from '@/components/AnalyticsPage.vue'
 import LoginForm from '@/components/LoginForm.vue'
+import LeaderboardPage from '@/components/LeaderboardPage.vue'
+import ShopPage from '@/components/ShopPage.vue'
 
 const routes = [
   { 
@@ -32,6 +34,16 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: LoginForm
+  },
+  {
+    path: '/leaderboard',
+    name: 'Leaderboard',
+    component: LeaderboardPage
+  },
+  {
+    path: '/shop',
+    name: 'Shop',
+    component: ShopPage
   },
   {
     path: '/:pathMatch(.*)*',
