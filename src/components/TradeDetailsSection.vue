@@ -205,7 +205,8 @@ export default {
         // For shorts: risk is stoploss - entry (stoploss is above entry)
         const risk = Number(this.stoploss) - Number(this.entry);
         const reward = risk * this.currentRR;
-        this.target = Number(this.entry) - reward;
+        // Ensure target doesn't go below 0
+        this.target = Math.max(Number(this.entry) - reward, 0);
       } 
       // For Long positions (isLong = true)
       else {
@@ -281,10 +282,14 @@ export default {
       this.isTargetEditable = false;
     },
     validateTrade() {
-      if (!this.stoploss || !this.entry || !this.target) {
+      // Check if values are null, undefined, or empty string
+      if (this.stoploss === null || this.entry === null || this.target === null || 
+          this.stoploss === undefined || this.entry === undefined || this.target === undefined || 
+          this.stoploss === '' || this.entry === '' || this.target === '') {
         console.error('All fields must be filled');
         return false;
       }
+
       if (this.isLong) {
         // Validate Long position
         if (Number(this.entry) <= Number(this.stoploss)) {
@@ -297,7 +302,7 @@ export default {
         }
       } else {
         // Validate Short position
-        if (Number(this.entry) >= Number(this.stoploss)) { // Changed this condition
+        if (Number(this.entry) >= Number(this.stoploss)) {
           console.error('For Short positions, Entry must be lower than Stoploss');
           return false;
         }
