@@ -1,220 +1,247 @@
+* {
+  transition: all 0.3s ease-in-out;
+}
+
 .home-page {
-    margin-top: 60px; /* This matches the navbar height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  min-height: 100vh;
+  margin-top: 60px;
 }
 
-.home-page h3 {
-    margin: 40px 0 0;
+.welcome-title {
+  font-family: 'Legendarie', sans-serif;
+  color: rgb(238, 175, 17);
+  font-size: 2.5rem;
+  text-shadow: 
+    2px 2px 0 rgba(0, 0, 0, 0.8),
+    -2px -2px 0 rgba(0, 0, 0, 0.8),
+    2px -2px 0 rgba(0, 0, 0, 0.8),
+    -2px 2px 0 rgba(0, 0, 0, 0.8),
+    0 0 15px rgba(238, 175, 17, 0.5);
+  padding: 1rem 2rem;
+  border-radius: 8px;
 }
 
-.home-page ul {
-    list-style-type: none;
-    padding: 0;
+.presentation-box {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgb(238, 175, 17);
+  border-radius: 10px;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 2rem auto;
+  box-shadow: 0 0 20px rgba(238, 175, 17, 0.2);
+  backdrop-filter: blur(5px);
 }
 
-.home-page li {
-    display: inline-block;
-    margin: 0 10px;
+.presentation-box p {
+  color: white;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
-.home-page a {
-    color: #ff0000;
+.presentation-box p:last-child {
+  margin-bottom: 0;
+}
+
+.presentation-box strong {
+  color: rgb(238, 175, 17);
+  font-weight: bold;
 }
 
 .logo-container {
-    position: relative;
-    display: inline-block;
+  margin-top: 3rem;
+  text-align: center;
+  position: relative;
+  display: inline-block;
 }
 
+.start-button {
+  display: inline-block;
+  position: relative;
+  padding: 1.2rem 2.4rem;
+  text-decoration: none;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.button-content {
+  position: relative;
+  display: inline-block;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 15px 30px;
+  border: 2px solid rgb(238, 175, 17);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.button-text {
+  position: relative;
+  color: rgb(238, 175, 17);
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.button-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgb(238, 175, 17);
+  transition: all 0.4s ease;
+  z-index: 0;
+}
+
+.start-button:hover .button-content::before {
+  left: 0;
+}
+
+.start-button:hover .button-text {
+  color: black;
+}
+
+.start-button:hover .button-content {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(238, 175, 17, 0.3);
+}
+
+.start-button::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(
+    circle,
+    rgba(238, 175, 17, 0.2) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.start-button:hover::after {
+  opacity: 1;
+}
+
+/* Tooltip styles */
 .logo-container .tooltip {
-    visibility: hidden;
-    width: 120px; /* Increased width to accommodate larger text */
-    background-color: #555 transparent transparent transparent;
-    color: red;
-    text-align: center;
-    border-radius: 6px;
-    padding: 14px 8px; /* Increased padding */
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    font-size: 24px; /* Increased font size */
-    font-weight: bold; /* Optional: makes the text bolder */
+  visibility: hidden;
+  width: 120px;
+  background-color: #555 transparent transparent transparent;
+  color: red;
+  text-align: center;
+  border-radius: 6px;
+  padding: 14px 8px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 24px;
+  font-weight: bold;
+  font-family: 'Legendarie', sans-serif;
 }
 
 .logo-container:hover .tooltip {
-    visibility: visible;
-    opacity: 1;
+  visibility: visible;
+  opacity: 1;
 }
 
 .logo-container .tooltip::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #555 transparent transparent transparent;
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
 }
 
-.brand {
-    font-family: 'Legendarie', sans-serif;
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: red;
-    text-decoration: none; /* Remove underline from link */
-    cursor: pointer; /* Change cursor to pointer on hover */
+/* Mobile devices (phones, 768px and down) */
+@media only screen and (max-width: 768px) {
+  .home-page {
+    margin-top: 120px;
+    padding: 1rem;
   }
 
-.kakul-img {
-    cursor: pointer;
-}
-.tooltip {
-    font-family: 'Legendarie', sans-serif;
-    font-size: 2rem;
-}
-
-.home-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-    min-height: 100vh;
-  }
-  
   .welcome-title {
-    font-family: 'Legendarie', sans-serif;
-    color: rgb(238, 175, 17);
-    font-size: 2.5rem;
-    text-shadow: 
-      2px 2px 0 rgba(0, 0, 0, 0.8),
-      -2px -2px 0 rgba(0, 0, 0, 0.8),
-      2px -2px 0 rgba(0, 0, 0, 0.8),
-      -2px 2px 0 rgba(0, 0, 0, 0.8),
-      0 0 15px rgba(238, 175, 17, 0.5);
-    padding: 1rem 2rem;
-    border-radius: 8px;
+    font-size: 2rem;
+    padding: 0.8rem 1.5rem;
+    text-align: center;
   }
-  
+
   .presentation-box {
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid rgb(238, 175, 17);
-    border-radius: 10px;
-    padding: 2rem;
-    max-width: 800px;
-    margin: 2rem auto;
-    box-shadow: 0 0 20px rgba(238, 175, 17, 0.2);
-    backdrop-filter: blur(5px);
+    padding: 1.5rem;
+    margin: 1rem;
+    width: 90%;
   }
-  
+
   .presentation-box p {
-    color: white;
-    font-size: 1.2rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    text-align: center;
+    font-size: 1rem;
+    line-height: 1.4;
   }
-  
-  .presentation-box p:last-child {
-    margin-bottom: 0;
+
+  .presentation-box br {
+    display: none;
   }
-  
-  .presentation-box strong {
-    color: rgb(238, 175, 17);
-    font-weight: bold;
-  }
-  
+
   .logo-container {
-    margin-top: 3rem;
-    text-align: center;
-  }
-  
-  .start-button {
-    display: inline-block;
-    position: relative;
-    padding: 1.2rem 2.4rem;
-    text-decoration: none;
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
-  
-  .button-content {
-    position: relative;
-    display: inline-block;
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 15px 30px;
-    border: 2px solid rgb(238, 175, 17);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
-  
-  .button-text {
-    position: relative;
-    color: rgb(238, 175, 17);
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    z-index: 1;
-    transition: all 0.3s ease;
-  }
-  
-  .button-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
+    margin-top: 2rem;
     width: 100%;
-    height: 100%;
-    background: rgb(238, 175, 17);
-    transition: all 0.4s ease;
-    z-index: 0;
   }
-  
-  .start-button:hover .button-content::before {
-    left: 0;
+
+  .start-button {
+    padding: 1rem 2rem;
+    width: 80%;
+    display: block;
+    margin: 0 auto;
   }
-  
-  .start-button:hover .button-text {
-    color: black;
+
+  .button-content {
+    padding: 12px 24px;
+    width: 100%;
+    display: block;
   }
-  
-  .start-button:hover .button-content {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(238, 175, 17, 0.3);
+
+  .button-text {
+    font-size: 1rem;
+    letter-spacing: 1px;
   }
-  
-  
-  .start-button::after {
-    content: '';
-    position: absolute;
-    top: -20%;
-    left: -20%;
-    width: 140%;
-    height: 140%;
-    background: radial-gradient(
-      circle,
-      rgba(238, 175, 17, 0.2) 0%,
-      transparent 70%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
+}
+
+/* Small phones (iPhone SE, Galaxy Fold, etc.) */
+@media only screen and (max-width: 380px) {
+  .welcome-title {
+    font-size: 1.8rem;
+    padding: 0.6rem 1rem;
   }
-  
-  .start-button:hover::after {
-    opacity: 1;
+
+  .presentation-box {
+    padding: 1rem;
   }
-  
-  .brand {
-    font-family: 'Legendarie', sans-serif;
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: red;
-      text-decoration: none;
-      cursor: pointer; 
+
+  .presentation-box p {
+    font-size: 0.9rem;
   }
+
+  .button-text {
+    font-size: 0.9rem;
+  }
+}

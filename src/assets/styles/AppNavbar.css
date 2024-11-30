@@ -1,3 +1,7 @@
+* {
+  transition: all 0.3s ease-in-out;
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -36,7 +40,6 @@
   overflow: hidden;
 }
 
-/* Remove the always visible bar */
 .navbar-item:not(.dropdown .navbar-item)::before {
   content: '';
   position: absolute;
@@ -98,4 +101,66 @@
 
 .icon {
   margin-right: 0.5rem;
+}
+
+/* Mobile devices (phones, 768px and down) */
+@media only screen and (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+
+  .navbar-brand {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .navbar-menu {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+  }
+
+  .navbar-item {
+    font-size: 1.2rem;
+    margin: 0.3rem 0;
+    padding: 0.5rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .dropdown {
+    width: 100%;
+  }
+
+  .dropdown-menu {
+    position: static;
+    width: 100%;
+    margin-top: 0.5rem;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+
+  .dropdown-item {
+    justify-content: center;
+    padding: 0.8rem 1rem;
+  }
+}
+
+/* Small phones (iPhone SE, Galaxy Fold, etc.) */
+@media only screen and (max-width: 380px) {
+  .navbar-brand {
+    font-size: 1.8rem;
+  }
+
+  .navbar-item {
+    font-size: 1.1rem;
+  }
+
+  .dropdown-item {
+    font-size: 1rem;
+    padding: 0.6rem 0.8rem;
+  }
 }
