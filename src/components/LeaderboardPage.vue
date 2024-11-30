@@ -1,25 +1,16 @@
 <template>
-  <div class="profile-page">
-    <h2 class="feature-title">Profile</h2>
+  <div class="leaderboard-page">
+    <h2 class="feature-title">Leaderboard</h2>
     <div class="feature-box">
-      <div class="profile-content">
-        <font-awesome-icon icon="user" class="feature-icon" />
+      <div class="coming-soon-content">
+        <font-awesome-icon icon="trophy" class="feature-icon" />
         <h3>Coming Soon!</h3>
         <p>
-          Customize your <strong>trader profile</strong> and track your <strong>achievements</strong>!
+          Track the <strong>best traders</strong> and compete for the <strong>top spot!</strong>
         </p>
         <p>
-          View your <strong>trading history</strong>, manage your <strong>settings</strong>, and monitor your <strong>progress</strong>.
+          Show off your <strong>trading skills</strong> and climb the ranks to become the <strong>ultimate trader</strong>.
         </p>
-        <div class="stats-preview">
-          <p>Future features will include:</p>
-          <ul>
-            <li><strong>Trading Statistics</strong></li>
-            <li><strong>Achievement Badges</strong></li>
-            <li><strong>Performance Metrics</strong></li>
-            <li><strong>Custom Settings</strong></li>
-          </ul>
-        </div>
       </div>
     </div>
   </div>
@@ -27,12 +18,12 @@
 
 <script>
 export default {
-  name: 'ProfilePage'
+  name: 'LeaderboardPage'
 }
 </script>
 
 <style scoped>
-.profile-page {
+.leaderboard-page {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -65,7 +56,7 @@ export default {
   backdrop-filter: blur(5px);
 }
 
-.profile-content {
+.coming-soon-content {
   text-align: center;
 }
 
@@ -92,30 +83,5 @@ p {
 strong {
   color: rgb(238, 175, 17);
   font-weight: bold;
-}
-
-.stats-preview {
-  margin-top: 2rem;
-  text-align: left;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  color: white;
-  font-size: 1.1rem;
-  margin: 0.8rem 0;
-  padding-left: 1.5rem;
-  position: relative;
-}
-
-li::before {
-  content: '▸';
-  color: rgb(238, 175, 17);
-  position: absolute;
-  left: 0;
 }
 </style>

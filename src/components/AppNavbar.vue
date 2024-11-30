@@ -6,6 +6,12 @@
       <router-link to="/bingo" class="navbar-item">
         <font-awesome-icon icon="dice" class="icon" /> Bingo
       </router-link>
+      <router-link to="/leaderboard" class="navbar-item">
+        <font-awesome-icon icon="trophy" class="icon" /> Leaderboard
+      </router-link>
+      <router-link to="/shop" class="navbar-item">
+        <font-awesome-icon icon="store" class="icon" /> Shop
+      </router-link>
       <a href="#" class="navbar-item" @click.prevent="showContactForm">
         <font-awesome-icon icon="envelope" class="icon" /> Contact
       </a>
