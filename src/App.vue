@@ -32,9 +32,7 @@ body {
   margin: 0;
   padding: 0;
   background-image: url('./assets/images/BingoBackgroundClassy.png');
-  background-size: cover;
-  background-size: 100%;
-  background-position: center 80%;
+  background-color: #000; /* Fallback color */
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -45,5 +43,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #ffffff;
+}
+
+/* Desktop styles */
+@media screen and (min-width: 769px) {
+  body {
+    background-size: 100%;
+    background-position: center 80%;
+  }
+}
+
+/* Mobile styles */
+@media screen and (max-width: 768px) {
+  body {
+    background-size: cover;
+    background-position: center center;
+    background-attachment: scroll;
+    background-repeat: no-repeat;
+  }
+}
+
+/* Small phones */
+@media screen and (max-width: 380px) {
+  body {
+    background-size: auto 100vh;
+  }
 }
 </style>
