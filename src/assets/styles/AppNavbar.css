@@ -2,7 +2,7 @@
   transition: all 0.3s ease-in-out;
 }
 
-.navbar {
+.rb-navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -13,9 +13,10 @@
   left: 0;
   right: 0;
   z-index: 1000;
+  width: 100%;
 }
 
-.navbar-brand {
+.rb-navbar-brand {
   font-family: 'Legendarie', sans-serif;
   font-size: 2.5rem;
   font-weight: bold;
@@ -24,23 +25,28 @@
   cursor: pointer;
 }
 
-.navbar-menu { 
+.rb-navbar-menu { 
   display: flex;
+  align-items: center;
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
-.navbar-item {
+.rb-navbar-item {
   font-family: 'Legendarie', sans-serif;
   font-size: 1.5rem;
-  margin-left: 1rem;
+  margin-left: 0;
   text-decoration: none;
   color: #ffffff;
+  padding: 0.3rem 0.6rem;
   border-radius: 4px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
 }
 
-.navbar-item:not(.dropdown .navbar-item)::before {
+.rb-navbar-item:not(.rb-dropdown .rb-navbar-item)::before {
   content: '';
   position: absolute;
   bottom: 0;
@@ -52,26 +58,26 @@
   transition: transform 0.3s ease;
 }
 
-.navbar-item:hover {
+.rb-navbar-item:hover {
   color: rgb(238, 175, 17);
   text-shadow: 0 0 8px rgba(238, 175, 17, 0.5);
   background: rgba(238, 175, 17, 0.1);
   transform: translateY(-2px);
 }
 
-.navbar-item:not(.dropdown .navbar-item):hover::before {
+.rb-navbar-item:not(.rb-dropdown .rb-navbar-item):hover::before {
   transform: translateX(0);
 }
 
-.navbar-item:active {
+.rb-navbar-item:active {
   transform: translateY(0);
 }
 
-.dropdown {
+.rb-dropdown {
   position: relative;
 }
 
-.dropdown-menu {
+.rb-dropdown-menu {
   position: absolute;
   top: 100%;
   right: 0;
@@ -82,7 +88,7 @@
   z-index: 1000;
 }
 
-.dropdown-item {
+.rb-dropdown-item {
   display: block;
   padding: 0.5rem 1rem;
   color: white;
@@ -91,75 +97,133 @@
   align-items: center;
 }
 
-.dropdown-item:hover {
+.rb-dropdown-item:hover {
   background-color: rgb(238, 175, 17);
 }
 
-.dropdown-item svg {
+.rb-dropdown-item svg {
   margin-right: 8px;
 }
 
-.icon {
+.rb-icon {
   margin-right: 0.5rem;
 }
 
-/* Mobile devices (phones, 768px and down) */
+/* Hamburger menu styles */
+.rb-hamburger-menu {
+  display: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 1001;
+}
+
+.rb-hamburger-menu span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background-color: rgb(238, 175, 17);
+  margin: 5px 0;
+  transition: all 0.3s ease;
+}
+
+/* Mobile styles */
 @media only screen and (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-    padding: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.9);
+  .rb-navbar {
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 0, 0, 0.95);
+    height: 60px;
   }
 
-  .navbar-brand {
+  .rb-navbar-brand {
     font-size: 2rem;
-    margin-bottom: 0.5rem;
   }
 
-  .navbar-menu {
+  .rb-hamburger-menu {
+    display: block;
+  }
+
+  .rb-navbar-menu {
+    position: fixed;
+    top: 60px;
+    right: -100%;
+    height: auto;
+    max-height: calc(100vh - 60px);
+    width: 70%;
     flex-direction: column;
-    width: 100%;
-    align-items: center;
+    background-color: rgba(0, 0, 0, 0.95);
+    padding: 1rem;
+    transition: right 0.3s ease;
+    align-items: flex-start;
+    margin-left: 0;
+    justify-content: flex-start;
+    overflow-y: auto;
+    z-index: 1000;
   }
 
-  .navbar-item {
-    font-size: 1.2rem;
+  .rb-navbar-menu.active {
+    right: 0;
+  }
+
+  .rb-navbar-item {
+    width: 100%;
     margin: 0.3rem 0;
-    padding: 0.5rem;
-    width: 100%;
-    text-align: center;
+    padding: 0.6rem;
+    border-bottom: 1px solid rgba(238, 175, 17, 0.2);
   }
 
-  .dropdown {
+  .rb-dropdown {
     width: 100%;
   }
 
-  .dropdown-menu {
+  .rb-dropdown-menu {
     position: static;
     width: 100%;
     margin-top: 0.5rem;
-    border-left: none;
-    border-right: none;
-    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0.5);
   }
 
-  .dropdown-item {
-    justify-content: center;
-    padding: 0.8rem 1rem;
+  /* Hamburger menu animation */
+  .rb-hamburger-menu.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+
+  .rb-hamburger-menu.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .rb-hamburger-menu.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+  }
+
+  /* Overlay */
+  .rb-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .rb-menu-overlay.active {
+    display: block;
   }
 }
 
-/* Small phones (iPhone SE, Galaxy Fold, etc.) */
+/* Small phones */
 @media only screen and (max-width: 380px) {
-  .navbar-brand {
+  .rb-navbar-brand {
     font-size: 1.8rem;
   }
 
-  .navbar-item {
+  .rb-navbar-item {
     font-size: 1.1rem;
   }
 
-  .dropdown-item {
+  .rb-dropdown-item {
     font-size: 1rem;
     padding: 0.6rem 0.8rem;
   }
