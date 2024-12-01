@@ -316,8 +316,28 @@ h2 {
   margin-bottom: 20px; /* Add some space between tooltip and cell */
 }
 
-.cell-info-zone:hover .tooltip {
-  display: block;
+/* Desktop hover */
+@media (hover: hover) {
+  .cell-info-zone:hover .tooltip {
+    display: block;
+  }
+}
+
+/* Mobile styles */
+@media (hover: none) {
+  .tooltip {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 300px;
+    white-space: normal;
+  }
+  
+  .cell-info-zone:active .tooltip {
+    display: block;
+  }
 }
 
 .tooltip strong {
@@ -440,3 +460,114 @@ h2 {
   }
 }
 
+/* Update your existing responsive section */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 20px 10px;
+    flex-direction: column;
+  }
+
+  .dashboard-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  /* Widget size adjustments */
+  .widget-container.small,
+  .widget-container.medium,
+  .widget-container.large,
+  .widget-container.extra-large {
+    width: 100%;
+    min-height: auto;
+    margin-bottom: 10px;
+  }
+
+  /* Adjust the bingo grid widget */
+  .widget-container:first-child {
+    order: -1; /* Makes bingo grid appear first */
+  }
+
+  .bingo-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .bingo-cell {
+    aspect-ratio: 1;
+    font-size: 0.8rem;
+  }
+
+  .cell-content {
+    font-size: 0.9rem;
+    padding: 2px;
+  }
+
+  /* Adjust other widgets */
+  .widget-title h2 {
+    font-size: 1.2rem;
+    padding: 8px;
+  }
+
+  /* Handle the risk management sidebar */
+  .main-content {
+    margin-left: 0;
+    padding: 10px;
+    width: 100%;
+  }
+
+  .main-content.expanded {
+    margin-left: 0;
+  }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .bingo-grid {
+    gap: 3px;
+    padding: 3px;
+  }
+
+  .cell-content {
+    font-size: 0.8rem;
+  }
+
+  .widget-title h2 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .widget-container {
+    grid-column: span 1 !important;
+    grid-row: span 1 !important;
+  }
+  
+  .widget-container.large {
+    min-height: 600px !important; /* Increase height significantly */
+    height: auto;
+  }
+
+  /* Adjust trade details layout */
+  .tradedetails-section-container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tradedetails-price-inputs {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tradedetails-input-group {
+    width: 100%;
+  }
+
+  .tradedetails-buttons {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+}
