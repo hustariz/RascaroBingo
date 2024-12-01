@@ -1,40 +1,53 @@
-<!-- src/components/AppNavbar.vue -->
+<!-- AppNavbar.vue -->
 <template>
-  <nav class="navbar">
-    <router-link to="/" class="navbar-brand">RascaroBingo</router-link>
-    <div class="navbar-menu">
-      <router-link to="/bingo" class="navbar-item">
-        <font-awesome-icon icon="dice" class="icon" /> Bingo
+  <nav class="rb-navbar">
+    <router-link to="/" class="rb-navbar-brand">RascaroBingo</router-link>
+    
+    <!-- Hamburger Menu Button -->
+    <div class="rb-hamburger-menu" :class="{ 'active': isMenuOpen }" @click="toggleMenu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="rb-navbar-menu" :class="{ 'active': isMenuOpen }">
+      <router-link to="/bingo" class="rb-navbar-item" @click="closeMenu">
+        <font-awesome-icon icon="dice" class="rb-icon" /> Bingo
       </router-link>
-      <router-link to="/leaderboard" class="navbar-item">
-        <font-awesome-icon icon="trophy" class="icon" /> Leaderboard
+      <router-link to="/leaderboard" class="rb-navbar-item" @click="closeMenu">
+        <font-awesome-icon icon="trophy" class="rb-icon" /> Leaderboard
       </router-link>
-      <router-link to="/shop" class="navbar-item">
-        <font-awesome-icon icon="store" class="icon" /> Shop
+      <router-link to="/shop" class="rb-navbar-item" @click="closeMenu">
+        <font-awesome-icon icon="store" class="rb-icon" /> Shop
       </router-link>
-      <a href="#" class="navbar-item" @click.prevent="showContactForm">
-        <font-awesome-icon icon="envelope" class="icon" /> Contact
+      <a href="#" class="rb-navbar-item" @click.prevent="showContactForm(); closeMenu()">
+        <font-awesome-icon icon="envelope" class="rb-icon" /> Contact
       </a>
-      <div v-if="isAuthenticated" class="dropdown">
-        <a href="#" class="navbar-item" @click.prevent="toggleDropdown">
-          <font-awesome-icon icon="user" class="icon" /> {{ username }}
+      <div v-if="isAuthenticated" class="rb-dropdown">
+        <a href="#" class="rb-navbar-item" @click.prevent="toggleDropdown">
+          <font-awesome-icon icon="user" class="rb-icon" /> {{ username }}
         </a>
-        <div v-if="isDropdownOpen" class="dropdown-menu">
-          <router-link to="/profile" class="dropdown-item">
-            <font-awesome-icon icon="user" class="icon" /> Profile
+        <div v-if="isDropdownOpen" class="rb-dropdown-menu">
+          <router-link to="/profile" class="rb-dropdown-item" @click="closeMenu">
+            <font-awesome-icon icon="user" class="rb-icon" /> Profile
           </router-link>
-          <router-link to="/analytics" class="dropdown-item">
-            <font-awesome-icon icon="chart-bar" class="icon" /> Analytics
+          <router-link to="/analytics" class="rb-dropdown-item" @click="closeMenu">
+            <font-awesome-icon icon="chart-bar" class="rb-icon" /> Analytics
           </router-link>
-          <a href="#" class="dropdown-item" @click.prevent="handleLogout">
-            <font-awesome-icon icon="sign-out-alt" class="icon" /> Logout
+          <a href="#" class="rb-dropdown-item" @click.prevent="handleLogout(); closeMenu()">
+            <font-awesome-icon icon="sign-out-alt" class="rb-icon" /> Logout
           </a>
         </div>
       </div>
-      <a v-else href="#" class="navbar-item" @click.prevent="showLoginForm">
-        <font-awesome-icon icon="user" class="icon" /> Login
+      <a v-else href="#" class="rb-navbar-item" @click.prevent="showLoginForm(); closeMenu()">
+        <font-awesome-icon icon="user" class="rb-icon" /> Login
       </a>
     </div>
+
+    <!-- Overlay -->
+    <div class="rb-menu-overlay" :class="{ 'active': isMenuOpen }" @click="closeMenu"></div>
+
+    <!-- Forms -->
     <ContactForm :isOpen="isContactFormOpen" @close="closeContactForm" />
     <LoginForm 
       :isOpen="isLoginFormOpen" 
@@ -64,7 +77,7 @@ export default {
   components: {
     ContactForm,
     LoginForm,
-    RegisterForm
+    RegisterForm,
   },
   setup() {
     const router = useRouter();
@@ -72,6 +85,7 @@ export default {
     const isLoginFormOpen = ref(false);
     const isRegisterFormOpen = ref(false);
     const isDropdownOpen = ref(false);
+    const isMenuOpen = ref(false);
     const username = ref('');
     const isAuthenticated = ref(false);
 
@@ -103,6 +117,16 @@ export default {
       router.push('/');
     };
 
+    const toggleMenu = () => {
+      isMenuOpen.value = !isMenuOpen.value;
+      document.body.style.overflow = isMenuOpen.value ? 'hidden' : '';
+    };
+
+    const closeMenu = () => {
+      isMenuOpen.value = false;
+      document.body.style.overflow = '';
+    };
+
     const showContactForm = () => isContactFormOpen.value = true;
     const closeContactForm = () => isContactFormOpen.value = false;
     const showLoginForm = () => isLoginFormOpen.value = true;
@@ -120,6 +144,7 @@ export default {
       isLoginFormOpen,
       isRegisterFormOpen,
       isDropdownOpen,
+      isMenuOpen,
       isAuthenticated,
       username,
       showContactForm,
@@ -129,6 +154,8 @@ export default {
       showRegisterForm,
       closeRegisterForm,
       toggleDropdown,
+      toggleMenu,
+      closeMenu,
       handleLogout,
       handleLoginSuccess
     };
