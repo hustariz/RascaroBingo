@@ -294,3 +294,105 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 768px) {
+  .tradedetails-section-container {
+    max-height: none;
+    height: auto;
+    min-height: 500px; /* Add minimum height to ensure content fits */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tradedetails-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Type toggle buttons */
+  .tradedetails-type-toggle {
+    gap: 0.5rem;
+  }
+
+  .tradedetails-toggle-button {
+    font-size: 1.1rem;
+    padding: 0.4rem 0.8rem;
+    min-width: 90px;
+  }
+
+  /* Price inputs */
+  .tradedetails-price-inputs {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .tradedetails-input-group {
+    gap: 0.3rem;
+  }
+
+  .tradedetails-input-group h4 {
+    font-size: 1.1rem;
+  }
+
+  .tradedetails-input {
+    font-size: 1.1rem;
+    padding: 0.4rem 0.4rem 0.4rem 1.5rem;
+  }
+
+  .tradedetails-buttons {
+    margin-top: auto; /* Push buttons to bottom */
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-bottom: 1rem;
+  }
+
+  .tradedetails-save-button,
+  .tradedetails-history-button {
+    font-size: 1.2rem;
+    padding: 0.6rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    min-height: 50px; /* Ensure minimum touch target size */
+  }
+
+  /* Tooltip adjustments */
+  .tradedetails-tooltip-content {
+    width: 200px;
+    font-size: 0.9rem;
+    padding: 10px 15px;
+  }
+
+  .tradedetails-tooltip-buttons {
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+  }
+
+  .tradedetails-tooltip-btn {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 380px) {
+  .tradedetails-section-container {
+    padding: 0.6rem;
+  }
+
+  .tradedetails-toggle-button {
+    font-size: 1rem;
+    min-width: 80px;
+  }
+
+  .tradedetails-input-group h4 {
+    font-size: 1rem;
+  }
+
+  .tradedetails-save-button,
+  .tradedetails-history-button {
+    font-size: 1.1rem;
+  }
+}
