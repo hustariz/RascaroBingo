@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 
 // Public Routes (No auth required)
 router.post('/login', userController.login);
+router.post('/register', userController.register);
 
 // Protected Routes (Auth required)
 router.get('/me', auth, userController.getCurrentUser);
