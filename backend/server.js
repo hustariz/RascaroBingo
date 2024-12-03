@@ -7,8 +7,6 @@ require('dotenv').config();
 const history = require('connect-history-api-fallback');
 
 // Initialize express app
-
-
 const app = express();
 const PORT = process.env.PORT || 3004;
 
@@ -34,8 +32,11 @@ const corsOptions = {
   exposedHeaders: ['Authorization']
 };
 
-// Global Middleware
+// Apply CORS first
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // enable pre-flight
+
+// Global Middleware
 app.use(express.json());
 
 // Logging middleware
@@ -89,7 +90,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-
 // 1. API Routes first
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoCardRoutes);
@@ -127,13 +127,18 @@ if (process.env.NODE_ENV === 'production') {
 
 // 6. Global Error Handlers
 app.use((req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Credentials', true);
   res.status(404).json({
     error: 'Not Found',
     message: `Route ${req.method} ${req.url} not found`
   });
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Credentials', true);
+  
   console.error('❌ Server error:', {
     message: err.message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
