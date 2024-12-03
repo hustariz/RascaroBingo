@@ -64,6 +64,74 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.register = async (req, res) => {
+  try {
+      const { username, email, password } = req.body;
+
+      // Check if user already exists
+      let user = await User.findOne({ username });
+      if (user) {
+          return res.status(400).json({ msg: 'User already exists' });
+      }
+
+      // Check if email is already in use
+      user = await User.findOne({ email });
+      if (user) {
+          return res.status(400).json({ msg: 'Email already in use' });
+      }
+
+      // Create new user
+      user = new User({
+          username,
+          email,
+          password
+      });
+
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+
+      // Save user
+      await user.save();
+
+      // Create JWT payload
+      const payload = {
+          user: {
+              id: user.id,
+              username: user.username,
+              email: user.email
+          }
+      };
+
+      // Generate token
+      const token = jwt.sign(
+          payload,
+          process.env.JWT_SECRET,
+          { expiresIn: '24h' }
+      );
+
+      // Initialize refresh tokens array
+      user.refreshTokens = [{
+          token,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          lastUsed: new Date()
+      }];
+
+      await user.save();
+
+      // Send response
+      res.status(201).json({
+          token,
+          username: user.username,
+          email: user.email
+      });
+
+  } catch (err) {
+      console.error('Registration Error:', err);
+      res.status(500).json({ msg: 'Server error during registration' });
+  }
+};
+
 exports.getCurrentUser = async (req, res) => {
   try {
     if (!req.user) {
