@@ -16,10 +16,13 @@
     </div>
     
     <!-- TradingView Chart Modal -->
-    <div v-if="showChart" class="tradeidea-chart-modal">
+    <div v-if="showChart" class="tradeidea-chart-modal" ref="chartModal">
       <div class="tradeidea-chart-container">
-        <button class="tradeidea-close-button" @click="closeChart">×</button>
+        <div class="drag-handle" @mousedown="startDragging">
+          <button class="tradeidea-close-button" @click="closeChart">×</button>
+        </div>
         <div id="tradingview_widget"></div>
+        <div class="resize-handle resize-handle-se" @mousedown="startResizing"></div>
       </div>
     </div>
   </div>
@@ -35,7 +38,12 @@ export default {
       tradeIdea: '',
       showChart: false,
       widget: null,
-      scriptLoaded: false
+      scriptLoaded: false,
+      isDragging: false,
+      isResizing: false,
+      dragOffset: { x: 0, y: 0 },
+      initialSize: { width: 0, height: 0 },
+      initialPos: { x: 0, y: 0 }
     }
   },
   mounted() {
@@ -54,6 +62,15 @@ export default {
       };
       document.body.appendChild(script);
     }
+
+    // Add event listeners for drag and resize
+    window.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mouseup', this.onMouseUp);
+  },
+  beforeUnmount() {
+    // Clean up event listeners
+    window.removeEventListener('mousemove', this.onMouseMove);
+    window.removeEventListener('mouseup', this.onMouseUp);
   },
   methods: {
     emitTradeIdea() {
@@ -72,12 +89,11 @@ export default {
       console.log('📉 Closing chart');
       this.showChart = false;
       if (this.widget) {
-        // Clean up widget if necessary
         this.widget = null;
       }
     },
     initTradingViewWidget() {
-      if (typeof TradingView !== 'undefined') {
+      if (typeof window.TradingView !== 'undefined') {
         console.log('🔄 Initializing TradingView widget');
         this.widget = new window.TradingView.widget({
           container_id: "tradingview_widget",
@@ -101,71 +117,53 @@ export default {
       } else {
         console.error('❌ TradingView script not loaded');
       }
+    },
+    startDragging(e) {
+      if (e.target.classList.contains('tradeidea-close-button')) return;
+      
+      this.isDragging = true;
+      const rect = this.$refs.chartModal.getBoundingClientRect();
+      
+      // Keep current position instead of resetting
+      const currentLeft = parseInt(this.$refs.chartModal.style.left) || rect.left;
+      const currentTop = parseInt(this.$refs.chartModal.style.top) || rect.top;
+      
+      this.dragOffset = {
+        x: e.clientX - currentLeft,
+        y: e.clientY - currentTop
+      };
+    },
+    startResizing(e) {
+      this.isResizing = true;
+      const rect = this.$refs.chartModal.getBoundingClientRect();
+      this.initialSize = {
+        width: rect.width,
+        height: rect.height
+      };
+      this.initialPos = {
+        x: e.clientX,
+        y: e.clientY
+      };
+    },
+    onMouseMove(e) {
+      if (this.isDragging) {
+        const x = e.clientX - this.dragOffset.x;
+        const y = e.clientY - this.dragOffset.y;
+        this.$refs.chartModal.style.left = `${x}px`;
+        this.$refs.chartModal.style.top = `${y}px`;
+      } else if (this.isResizing) {
+        const dx = e.clientX - this.initialPos.x;
+        const dy = e.clientY - this.initialPos.y;
+        const newWidth = this.initialSize.width + dx;
+        const newHeight = this.initialSize.height + dy;
+        this.$refs.chartModal.style.width = `${newWidth}px`;
+        this.$refs.chartModal.style.height = `${newHeight}px`;
+      }
+    },
+    onMouseUp() {
+      this.isDragging = false;
+      this.isResizing = false;
     }
   }
 }
 </script>
-
-<style scoped>
-.tradeidea-chart-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.tradeidea-chart-container {
-  position: relative;
-  width: 90%;
-  height: 80%;
-  background: #1e222d;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid rgba(238, 175, 17, 0.4);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-}
-
-.tradeidea-close-button {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  background: none;
-  border: none;
-  color: rgb(238, 175, 17);
-  font-size: 24px;
-  cursor: pointer;
-  z-index: 1001;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-
-.tradeidea-close-button:hover {
-  background: rgba(238, 175, 17, 0.1);
-  transform: scale(1.1);
-}
-
-#tradingview_widget {
-  width: 100%;
-  height: 100%;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-  .tradeidea-chart-container {
-    width: 95%;
-    height: 70%;
-    padding: 15px;
-  }
-}
-</style>

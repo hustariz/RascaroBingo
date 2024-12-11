@@ -11,7 +11,6 @@
   border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
-
 .tradeidea-section-content {
   display: flex;
   flex-direction: column;
@@ -70,7 +69,6 @@
   color: rgb(255, 215, 0);
   font-size: 1.6rem;
   font-family: 'Legendarie', sans-serif;
-  transition: all 0.3s ease;
   padding: 0.8rem 1.5rem;
   border-radius: 6px;
   cursor: pointer;
@@ -87,14 +85,97 @@
   box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
   border: 1px solid rgba(238, 175, 17, 1);
   transform: translateY(-1px);
-  border-color: rgb(255, 215, 0);
 }
 
 .tradeidea-chart-icon {
   font-size: 1.2rem;
 }
 
-/* Responsive Design */
+/* TradingView Modal */
+.tradeidea-chart-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 70%;
+  margin: auto;
+  inset: 0; /* This sets top, right, bottom, left all to 0 */
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  user-select: none;
+}
+
+.tradeidea-chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #1e222d;
+  border-radius: 8px;
+  border: 1px solid rgba(238, 175, 17, 0.4);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.drag-handle {
+  position: relative;
+  height: 30px;
+  background: #1e222d;
+  border-radius: 8px 8px 0 0;
+  cursor: move;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 10px;
+  border-bottom: 1px solid rgba(238, 175, 17, 0.4);
+}
+
+#tradingview_widget {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  padding: 10px;
+}
+
+.resize-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: rgba(238, 175, 17, 0.4);
+  border-radius: 50%;
+}
+
+.resize-handle-se {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+
+.tradeidea-close-button {
+  position: absolute;
+  right: 10px;
+  top: 0;
+  background: none;
+  border: none;
+  color: rgb(238, 175, 17);
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.tradeidea-close-button:hover {
+  background: rgba(238, 175, 17, 0.1);
+  transform: scale(1.1);
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .tradeidea-section-container {
     padding: 1rem;
@@ -102,5 +183,10 @@
   
   .tradeidea-chart-button {
     width: 100%;
+  }
+
+  .tradeidea-chart-modal {
+    width: 90%;
+    height: 60%;
   }
 }
