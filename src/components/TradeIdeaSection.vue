@@ -111,8 +111,11 @@ export default {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  height: 60%;
+  margin: auto;
   background: rgba(0, 0, 0, 0.85);
   display: flex;
   justify-content: center;
@@ -122,8 +125,8 @@ export default {
 
 .tradeidea-chart-container {
   position: relative;
-  width: 90%;
-  height: 80%;
+  width: 100%;
+  height: 100%;
   background: #1e222d;
   border-radius: 8px;
   padding: 20px;
