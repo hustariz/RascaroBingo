@@ -179,9 +179,9 @@
 }
 
 .tradedetails-tooltip-content {
-  position: fixed;
-  top: auto;
-  transform: translateX(-50%);
+  position: absolute; 
+  right: 30px; 
+  top: -10px; 
   background-color: rgba(0, 0, 0, 0.9);
   border: 2px solid rgb(238, 175, 17);
   border-radius: 8px;
@@ -192,6 +192,15 @@
   z-index: 1500;
   display: none;
   box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
+  &::before {
+    content: '';
+    position: absolute;
+    right: -20px; /* Width of the bridge */
+    top: 0;
+    width: 20px; /* Bridge width */
+    height: 100%;
+    background: transparent; /* Invisible bridge */
+  }
 }
 
 .tradedetails-tooltip-icon:hover .tradedetails-tooltip-content {
