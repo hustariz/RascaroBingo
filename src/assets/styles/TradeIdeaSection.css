@@ -2,7 +2,7 @@
 .tradeidea-section-container {
   width: 100%;
   height: 100%;
-  padding: 1.5rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 1rem;
+  gap: 0;
   position: relative;
   min-width: 0;
   overflow: hidden;
@@ -23,11 +23,10 @@
 
 /* Textarea Wrapper */
 .tradeidea-textarea-wrapper {
-  flex: 1;
+  height: 66%;
+  margin-bottom: 1rem;
   position: relative;
-  min-height: 0;
   width: 100%;
-  overflow: hidden;
 }
 
 /* Textarea Input */
@@ -43,9 +42,7 @@
   font-family: Arial, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
-  resize: vertical;
-  min-height: 140px;
-  max-height: calc(100% - 100px);
+  resize: none;
 }
 
 .tradeidea-section-input:focus {
@@ -54,12 +51,31 @@
   box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
-/* Custom resize handle */
-.tradeidea-section-input::-webkit-resizer {
-  border-width: 8px;
-  border-style: solid;
-  border-color: transparent rgb(255, 215, 0) rgb(255, 215, 0) transparent;
-  background-color: transparent;
+/* Controls Group */
+.tradeidea-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: auto;
+}
+
+/* Symbol Input */
+.tradeidea-symbol-input {
+  width: 100%;
+  height: 35px;
+  padding: 0 1rem;
+  background: rgba(25, 16, 5, 0.9);
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
+  color: rgb(255, 215, 0);
+  border-radius: 6px 6px 0px 0px;
+  font-size: 1rem;
+}
+
+.tradeidea-symbol-input:focus {
+  outline: none;
+  border-color: rgb(255, 215, 0);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
 /* Chart Button */
@@ -69,15 +85,17 @@
   color: rgb(255, 215, 0);
   font-size: 1.6rem;
   font-family: 'Legendarie', sans-serif;
-  padding: 0.8rem 1.5rem;
-  border-radius: 6px;
+  padding: 0 1.5rem;
+  border-radius: 0px 0px 6px 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.8rem;
   transition: all 0.3s ease;
-  min-width: 150px;
+  height: 55px;
+  width: 100%;
+  margin-top: -2px;
 }
 
 .tradeidea-chart-button:hover {
@@ -99,7 +117,7 @@
   width: 50%;
   height: 70%;
   margin: auto;
-  inset: 0; /* This sets top, right, bottom, left all to 0 */
+  inset: 0;
   background: rgba(0, 0, 0, 0.85);
   z-index: 1000;
   user-select: none;
@@ -180,9 +198,19 @@
   .tradeidea-section-container {
     padding: 1rem;
   }
-  
+
+  .tradeidea-controls {
+    gap: 0.5rem;
+  }
+
+  .tradeidea-symbol-input {
+    border-radius: 6px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.5);
+  }
+
   .tradeidea-chart-button {
-    width: 100%;
+    border-radius: 6px;
+    margin-top: 0;
   }
 
   .tradeidea-chart-modal {
