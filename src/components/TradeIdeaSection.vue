@@ -1,6 +1,7 @@
 <template>
   <div class="tradeidea-section-container">
     <div class="tradeidea-section-content">
+      <!-- Textarea takes 2/3 of space -->
       <div class="tradeidea-textarea-wrapper">
         <textarea
           v-model="tradeIdea"
@@ -9,10 +10,21 @@
           @input="emitTradeIdea"
         ></textarea>
       </div>
-      <button class="tradeidea-chart-button" @click="checkChart">
-        <span class="tradeidea-chart-icon">📈</span>
-        Check Chart
-      </button>
+
+      <!-- Controls at bottom with no gap -->
+      <div class="tradeidea-controls">
+        <input
+          v-model="currentSymbol"
+          placeholder="Enter trading pair (e.g BTCUSD)"
+          class="tradeidea-symbol-input"
+          type="text"
+          @input="updateSymbol"
+        >
+        <button class="tradeidea-chart-button" @click="checkChart">
+          <span class="tradeidea-chart-icon">📈</span>
+          Check Chart
+        </button>
+      </div>
     </div>
     
     <!-- TradingView Chart Modal -->
@@ -28,8 +40,11 @@
   </div>
 </template>
 
+
 <script>
 import '../assets/styles/TradeIdeaSection.css'
+import mitt from 'mitt';
+const emitter = mitt();
 
 export default {
   name: 'TradeIdeaSection',
@@ -43,36 +58,56 @@ export default {
       isResizing: false,
       dragOffset: { x: 0, y: 0 },
       initialSize: { width: 0, height: 0 },
-      initialPos: { x: 0, y: 0 }
+      initialPos: { x: 0, y: 0 },
+      currentSymbol: '',
+      widgetInstance: null
     }
   },
   mounted() {
-    // Load TradingView script
-    if (!document.getElementById('tradingview-script')) {
-      const script = document.createElement('script');
-      script.id = 'tradingview-script';
-      script.src = 'https://s3.tradingview.com/tv.js';
-      script.async = true;
-      script.onload = () => {
-        console.log('📊 TradingView script loaded');
-        this.scriptLoaded = true;
+    this.loadTradingViewScript();
+    window.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mouseup', this.onMouseUp);
+    const savedSymbol = localStorage.getItem('lastSymbol');
+    if (savedSymbol) {
+      this.currentSymbol = savedSymbol;
+    }
+  },
+  beforeUnmount() {
+    window.removeEventListener('mousemove', this.onMouseMove);
+    window.removeEventListener('mouseup', this.onMouseUp);
+    emitter.off('symbolChange');
+  },
+  methods: {
+    updateSymbol() {
+        // Store the new symbol
+        localStorage.setItem('lastSymbol', this.currentSymbol);
+        
+        // If widget exists, update it directly
+        if (this.widget) {
+          this.widget.setSymbol(this.currentSymbol);
+        }
+        
+        // If chart is already showing, reinitialize the widget
         if (this.showChart) {
           this.initTradingViewWidget();
         }
-      };
-      document.body.appendChild(script);
-    }
-
-    // Add event listeners for drag and resize
-    window.addEventListener('mousemove', this.onMouseMove);
-    window.addEventListener('mouseup', this.onMouseUp);
-  },
-  beforeUnmount() {
-    // Clean up event listeners
-    window.removeEventListener('mousemove', this.onMouseMove);
-    window.removeEventListener('mouseup', this.onMouseUp);
-  },
-  methods: {
+      },
+    loadTradingViewScript() {
+      if (!document.getElementById('tradingview-script')) {
+        const script = document.createElement('script');
+        script.id = 'tradingview-script';
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.async = true;
+        script.onload = () => {
+          console.log('📊 TradingView script loaded');
+          this.scriptLoaded = true;
+          if (this.showChart) {
+            this.initTradingViewWidget();
+          }
+        };
+        document.body.appendChild(script);
+      }
+    },
     emitTradeIdea() {
       this.$emit('trade-idea-update', this.tradeIdea);
     },
@@ -88,17 +123,19 @@ export default {
     closeChart() {
       console.log('📉 Closing chart');
       this.showChart = false;
-      if (this.widget) {
-        this.widget = null;
-      }
+      this.widget = null;
     },
     initTradingViewWidget() {
       if (typeof window.TradingView !== 'undefined') {
         console.log('🔄 Initializing TradingView widget');
+        
+        // Use BTCUSD as default if currentSymbol is empty
+        const defaultSymbol = this.currentSymbol.trim() === '' ? 'BTCUSD' : this.currentSymbol;
+        
         this.widget = new window.TradingView.widget({
           container_id: "tradingview_widget",
           autosize: true,
-          symbol: "BTCUSD",
+          symbol: defaultSymbol,
           interval: "D",
           timezone: "Etc/UTC",
           theme: "dark",
@@ -124,7 +161,6 @@ export default {
       this.isDragging = true;
       const rect = this.$refs.chartModal.getBoundingClientRect();
       
-      // Keep current position instead of resetting
       const currentLeft = parseInt(this.$refs.chartModal.style.left) || rect.left;
       const currentTop = parseInt(this.$refs.chartModal.style.top) || rect.top;
       
