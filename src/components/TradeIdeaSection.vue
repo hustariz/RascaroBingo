@@ -68,9 +68,8 @@ export default {
     window.addEventListener('mousemove', this.onMouseMove);
     window.addEventListener('mouseup', this.onMouseUp);
     const savedSymbol = localStorage.getItem('lastSymbol');
-    if (savedSymbol) {
-      this.currentSymbol = savedSymbol;
-    }
+    this.currentSymbol = savedSymbol || 'BTCUSD';
+    this.$emit('symbol-update', this.currentSymbol);
   },
   beforeUnmount() {
     window.removeEventListener('mousemove', this.onMouseMove);
@@ -81,7 +80,7 @@ export default {
     updateSymbol() {
         // Store the new symbol
         localStorage.setItem('lastSymbol', this.currentSymbol);
-        this.$emit('symbol-update', this.currentSymbol);
+            this.$emit('symbol-update', this.currentSymbol);
         
         // If widget exists, update it directly
         if (this.widget) {
