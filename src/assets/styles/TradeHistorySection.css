@@ -209,6 +209,11 @@
   gap: 0.5rem;
   color: rgb(238, 175, 17);
 }
+.trade-symbol {
+  font-weight: bold;
+  color: rgb(238, 175, 17);
+  margin: 0 0.5rem;
+}
 
 .trade-status span {
   padding: 2px 8px;
