@@ -81,6 +81,7 @@ export default {
     updateSymbol() {
         // Store the new symbol
         localStorage.setItem('lastSymbol', this.currentSymbol);
+        this.$emit('symbol-update', this.currentSymbol);
         
         // If widget exists, update it directly
         if (this.widget) {

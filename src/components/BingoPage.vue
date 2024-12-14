@@ -29,9 +29,11 @@
             :score="element.component === 'RiskRewardSection' ? activeScore : undefined"
             :rrChecks="element.component === 'TradeDetailsSection' ? rrChecks : undefined"
             :tradeIdea="element.component === 'TradeDetailsSection' ? currentTradeIdea : undefined"
+            :tradingSymbol="element.component === 'TradeDetailsSection' ? currentSymbol : undefined"
             :isSidebarCollapsed="isSidebarCollapsed"
             @trade-status-update="handleTradeStatusUpdate"
             @trade-idea-update="updateTradeIdea"
+            @symbol-update="updateTradingSymbol"
             @cell-click="toggleCell" 
             @cell-edit="editCell"
             @update:modelValue="updateWidgetData(element.id, $event)"
@@ -151,6 +153,7 @@ export default defineComponent({
         twentyPoints: false    // 5R/R (Hidden Bingo)
       },
       currentTradeIdea: '',
+      currentSymbol: ''
     };
   },
 
@@ -192,7 +195,10 @@ export default defineComponent({
           } else if (widget.component === 'RiskRewardSection') {
             widget.props = { ...widget.props, score: this.activeScore };
           } else if (widget.component === 'TradeDetailsSection') {
-            widget.props = { ...widget.props, tradeIdea: this.currentTradeIdea };
+            widget.props = { ...widget.props,
+               tradeIdea: this.currentTradeIdea,
+               tradingSymbol: this.currentSymbol
+               };
           }
         }
     },
@@ -203,6 +209,15 @@ export default defineComponent({
       const tradeDetailsWidget = this.widgets.find(w => w.component === 'TradeDetailsSection');
       if (tradeDetailsWidget) {
         this.updateWidgetData(tradeDetailsWidget.id, { tradeIdea: idea });
+      }
+    },
+    updateTradingSymbol(symbol) {
+      console.log('Updating trading symbol:', symbol);
+      this.currentSymbol = symbol;
+      // Update TradeDetailsSection widget
+      const tradeDetailsWidget = this.widgets.find(w => w.component === 'TradeDetailsSection');
+      if (tradeDetailsWidget) {
+        this.updateWidgetData(tradeDetailsWidget.id, { tradingSymbol: symbol });
       }
     },
 

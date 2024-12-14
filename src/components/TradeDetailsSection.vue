@@ -135,6 +135,10 @@ export default {
       type: String,
       default: ''
     },
+    tradingSymbol: {
+      type: String,
+      default: ''
+    },
     isSidebarCollapsed: {
     type: Boolean,
     default: false
@@ -260,6 +264,7 @@ export default {
           target: Number(this.target),
           riskReward: this.currentRR,
           tradeIdea: this.tradeIdea,
+          symbol: this.tradingSymbol,
           timestamp: new Date().toISOString(),
           tradeSize,
           potentialProfit,
