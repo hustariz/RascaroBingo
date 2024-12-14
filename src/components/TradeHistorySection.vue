@@ -27,6 +27,7 @@
             <div v-if="!editingTrade || editingTrade._id !== trade._id">
               <div class="trade-header" :class="trade.type.toLowerCase()">
                 <span class="trade-type">{{ trade.type }}</span>
+                <span class="trade-symbol">{{ trade.symbol }}</span>
                 <span class="trade-date">{{ formatDate(trade.timestamp) }}</span>
               </div>
               
@@ -98,6 +99,10 @@
                 <button class="close-button" @click="cancelEdit">×</button>
               </div>
               <div class="edit-content">
+                <div class="form-group">
+                  <label>Symbol:</label>
+                  <input type="text" v-model="editingTrade.symbol">
+                </div>
                 <div class="form-group">
                   <label>Stoploss ($):</label>
                   <input type="number" v-model="editingTrade.stoploss">
@@ -230,7 +235,10 @@ export default {
     const saveEdit = async () => {
       try {
         if (!editingTrade.value) return;
-        await store.dispatch('trades/updateTrade', editingTrade.value);
+        await store.dispatch('trades/updateTrade', {
+          ...editingTrade.value,
+          symbol: editingTrade.value.symbol
+        });
         editingTrade.value = null;
         await fetchTrades();
       } catch (error) {
