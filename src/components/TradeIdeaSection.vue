@@ -43,8 +43,6 @@
 
 <script>
 import '../assets/styles/TradeIdeaSection.css'
-import mitt from 'mitt';
-const emitter = mitt();
 
 export default {
   name: 'TradeIdeaSection',
@@ -74,7 +72,6 @@ export default {
   beforeUnmount() {
     window.removeEventListener('mousemove', this.onMouseMove);
     window.removeEventListener('mouseup', this.onMouseUp);
-    emitter.off('symbolChange');
   },
   methods: {
     updateSymbol() {
