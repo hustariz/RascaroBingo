@@ -23,6 +23,9 @@
       <a href="#" class="rb-navbar-item" @click.prevent="showContactForm(); closeMenu()">
         <font-awesome-icon icon="envelope" class="rb-icon" /> Contact
       </a>
+      <router-link to="/about" class="rb-navbar-item" @click="closeMenu">
+        <font-awesome-icon icon="info-circle" class="rb-icon" /> About
+      </router-link>
       <div v-if="isAuthenticated" class="rb-dropdown">
         <a href="#" class="rb-navbar-item" @click.prevent="toggleDropdown">
           <font-awesome-icon icon="user" class="rb-icon" /> {{ username }}
