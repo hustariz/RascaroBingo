@@ -6,6 +6,7 @@ import AnalyticsPage from '@/components/AnalyticsPage.vue'
 import LoginForm from '@/components/LoginForm.vue'
 import LeaderboardPage from '@/components/LeaderboardPage.vue'
 import ShopPage from '@/components/ShopPage.vue'
+import AboutPage from '@/components/AboutPage.vue'
 
 const routes = [
   { 
@@ -44,6 +45,11 @@ const routes = [
     path: '/shop',
     name: 'Shop',
     component: ShopPage
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: AboutPage
   },
   {
     path: '/:pathMatch(.*)*',

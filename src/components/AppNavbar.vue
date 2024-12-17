@@ -15,6 +15,9 @@
       <a href="#" class="navbar-item" @click.prevent="showContactForm">
         <font-awesome-icon icon="envelope" class="icon" /> Contact
       </a>
+      <router-link to="/about" class="navbar-item">
+        <font-awesome-icon icon="info-circle" class="icon" /> About
+      </router-link>
       <div v-if="isAuthenticated" class="dropdown">
         <a href="#" class="navbar-item" @click.prevent="toggleDropdown">
           <font-awesome-icon icon="user" class="icon" /> {{ username }}
