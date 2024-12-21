@@ -3,12 +3,11 @@
     <h2 class="feature-title">About RascaroBingo</h2>
     <div class="feature-box">
       <div class="about-content">
-        <font-awesome-icon icon="info-circle" class="feature-icon" />
         <h3>Keep your winners ditch the others</h3>
         
         <div class="workflow-section">
           <h4>How It Works</h4>
-          
+
           <div class="workflow-step">
             <strong>1. Bingo Section</strong>
             <p>Create and customize your trading strategy board:</p>
