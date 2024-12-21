@@ -45,7 +45,7 @@
       </a>
     </div>
     <router-link to="/about" class="rb-navbar-item" @click="closeMenu">
-      <font-awesome-icon icon="info-circle" class="rb-icon" />
+      <font-awesome-icon icon="circle-question" class="rb-icon" />
     </router-link>
 
     <!-- Overlay -->
