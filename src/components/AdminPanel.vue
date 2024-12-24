@@ -2,7 +2,15 @@
   <div class="admin-panel">
     <h2 class="feature-title">Admin Panel</h2>
     <div class="feature-box">
-      <div class="admin-content">
+      <div v-if="error" class="error-message">
+        {{ error }}
+      </div>
+      
+      <div v-else-if="!isAdmin" class="error-message">
+        Access denied. Admin privileges required.
+      </div>
+      
+      <div v-else class="admin-content">
         <div class="search-box">
           <input 
             v-model="searchQuery" 
@@ -14,10 +22,6 @@
         
         <div v-if="loading" class="loading-message">
           Loading users...
-        </div>
-        
-        <div v-else-if="error" class="error-message">
-          {{ error }}
         </div>
         
         <div v-else class="users-table">
@@ -67,7 +71,8 @@ export default {
       searchQuery: '',
       loading: true,
       error: null,
-      users: []
+      users: [],
+      isAdmin: false
     };
   },
 
@@ -114,7 +119,16 @@ export default {
   },
 
   async created() {
-    await this.loadUsers();
+    try {
+      const user = await api.getCurrentUser();
+      this.isAdmin = user.isAdmin;
+      if (this.isAdmin) {
+        await this.loadUsers();
+      }
+    } catch (error) {
+      this.error = 'Authentication error';
+      console.error('Error checking admin status:', error);
+    }
   }
 };
 </script>
@@ -257,6 +271,9 @@ export default {
 
 .error-message {
   color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: 8px;
+  margin: 1rem 0;
 }
 
 .loading-message {

@@ -5,6 +5,9 @@
       <div class="profile-content">
         <font-awesome-icon icon="user" class="feature-icon" />
         <h3>Coming Soon!</h3>
+        <div v-if="userInfo?.isAdmin" class="user-badge admin-badge">
+          Admin User 👑
+        </div>
         <div :class="['user-badge', userInfo?.isPaidUser ? 'premium-badge' : 'normal-badge']">
           {{ userInfo?.isPaidUser ? 'Premium User ⭐' : 'Normal User' }}
         </div>
@@ -147,8 +150,16 @@ li::before {
   padding: 0.5rem 1rem;
   border-radius: 20px;
   display: inline-block;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.admin-badge {
+  background: linear-gradient(45deg, #8e44ad, #9b59b6);
+  color: white;
+  box-shadow: 0 2px 10px rgba(142, 68, 173, 0.3);
+  margin-bottom: 0.5rem;
 }
 
 .premium-badge {
