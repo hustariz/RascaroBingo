@@ -5,8 +5,8 @@
       <div class="profile-content">
         <font-awesome-icon icon="user" class="feature-icon" />
         <h3>Coming Soon!</h3>
-        <div :class="['user-badge', isPaidUser ? 'premium-badge' : 'normal-badge']">
-          {{ isPaidUser ? 'Premium User ⭐' : 'Normal User' }}
+        <div :class="['user-badge', userInfo?.isPaidUser ? 'premium-badge' : 'normal-badge']">
+          {{ userInfo?.isPaidUser ? 'Premium User ⭐' : 'Normal User' }}
         </div>
         <p>
           Customize your <strong>trader profile</strong> and track your <strong>achievements</strong>!
@@ -29,12 +29,28 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import api from '@/services/api';
 
 export default {
   name: 'ProfilePage',
-  computed: {
-    ...mapGetters('user', ['isPaidUser'])
+  
+  data() {
+    return {
+      userInfo: null,
+      loading: true,
+      error: null
+    };
+  },
+
+  async created() {
+    try {
+      this.userInfo = await api.getCurrentUser();
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+      this.error = 'Failed to load user information';
+    } finally {
+      this.loading = false;
+    }
   }
 }
 </script>

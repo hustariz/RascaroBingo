@@ -176,6 +176,37 @@ export default {
     }
   },
 
+  async getCurrentUser() {
+    try {
+      const response = await api.get('/users/me');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      throw error;
+    }
+  },
+
+  // Admin methods
+  async getAllUsers() {
+    try {
+      const response = await api.get('/users/all');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  },
+  
+  async updateUserPremiumStatus(userId, isPaidUser) {
+    try {
+      const response = await api.put('/users/premium-status', { userId, isPaidUser });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user premium status:', error);
+      throw error;
+    }
+  },
+  
   // Bingo card methods
   async getBingoCard() {
     try {
@@ -217,7 +248,7 @@ export default {
       throw error;
     }
   },
-
+  
   async saveBingoCard(cardData) {
     try {
       console.log('💾 Saving card');
@@ -239,7 +270,7 @@ export default {
       throw error.response?.data || error.message;
     }
   },
-
+  
   async updateBingoCell(index, cellData) {
     try {
       console.log('📝 Updating cell:', index);
