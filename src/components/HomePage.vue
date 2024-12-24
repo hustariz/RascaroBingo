@@ -1,5 +1,9 @@
 <template>
   <div class="home-page">
+    <div v-if="$route.query.error" class="error-box">
+      <font-awesome-icon icon="exclamation-circle" class="error-icon" />
+      {{ $route.query.error }}
+    </div>
     <h2 class="welcome-title">{{ welcomeMessage }}</h2>
     <div class="presentation-box">
       <p>
@@ -30,8 +34,48 @@ export default {
   name: 'HomePage',
   data() {
     return {
-      welcomeMessage: 'Welcome to RascaroBingo'
+      welcomeMessage: 'Welcome to RascaroBingo',
+      error: this.$route.query.error || null
+    }
+  },
+  watch: {
+    '$route.query.error'(newError) {
+      this.error = newError;
     }
   }
 }
 </script>
+
+<style scoped>
+.error-box {
+  background: linear-gradient(45deg, #e31837, #ff1f1f);
+  color: white;
+  padding: 1rem;
+  border-radius: 15px;
+  margin: 1rem auto;
+  max-width: 600px;
+  text-align: center;
+  font-weight: 500;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-icon {
+  font-size: 1.2em;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+</style>
