@@ -15,6 +15,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  isPaidUser: {
+    type: Boolean,
+    default: false
+  },
   refreshTokens: [{
     token: String,
     expiresAt: Date,

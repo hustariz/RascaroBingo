@@ -5,6 +5,9 @@
       <div class="profile-content">
         <font-awesome-icon icon="user" class="feature-icon" />
         <h3>Coming Soon!</h3>
+        <div :class="['user-badge', isPaidUser ? 'premium-badge' : 'normal-badge']">
+          {{ isPaidUser ? 'Premium User ⭐' : 'Normal User' }}
+        </div>
         <p>
           Customize your <strong>trader profile</strong> and track your <strong>achievements</strong>!
         </p>
@@ -26,8 +29,13 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
-  name: 'ProfilePage'
+  name: 'ProfilePage',
+  computed: {
+    ...mapGetters('user', ['isPaidUser'])
+  }
 }
 </script>
 
@@ -117,5 +125,25 @@ li::before {
   color: rgb(238, 175, 17);
   position: absolute;
   left: 0;
+}
+
+.user-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+}
+
+.premium-badge {
+  background: linear-gradient(45deg, #ffd700, #ffa500);
+  color: black;
+  box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+}
+
+.normal-badge {
+  background: linear-gradient(45deg, #2c3e50, #34495e);
+  color: white;
+  box-shadow: 0 2px 10px rgba(52, 73, 94, 0.3);
 }
 </style>

@@ -24,7 +24,8 @@ exports.login = async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        isPaidUser: user.isPaidUser
       }
     };
 
@@ -56,7 +57,8 @@ exports.login = async (req, res) => {
     res.json({ 
       token, 
       username: user.username,
-      email: user.email
+      email: user.email,
+      isPaidUser: user.isPaidUser
     });
   } catch (err) {
     console.error('Login Error:', err);
@@ -99,7 +101,8 @@ exports.register = async (req, res) => {
           user: {
               id: user.id,
               username: user.username,
-              email: user.email
+              email: user.email,
+              isPaidUser: user.isPaidUser
           }
       };
 
@@ -123,7 +126,8 @@ exports.register = async (req, res) => {
       res.status(201).json({
           token,
           username: user.username,
-          email: user.email
+          email: user.email,
+          isPaidUser: user.isPaidUser
       });
 
   } catch (err) {
@@ -162,7 +166,10 @@ exports.getCurrentUser = async (req, res) => {
       await user.save();
     }
 
-    res.json(user);
+    res.json({
+      ...user._doc,
+      isPaidUser: user.isPaidUser
+    });
   } catch (err) {
     console.error('Error in /me route:', err);
     res.status(500).json({ msg: 'Server error' });
@@ -197,7 +204,8 @@ exports.refreshToken = async (req, res) => {
         user: {
           id: user.id,
           username: user.username,
-          email: user.email
+          email: user.email,
+          isPaidUser: user.isPaidUser
         }
       };
 
@@ -228,7 +236,8 @@ exports.refreshToken = async (req, res) => {
       res.json({
         token: newToken,
         username: user.username,
-        email: user.email
+        email: user.email,
+        isPaidUser: user.isPaidUser
       });
 
     } catch (err) {
