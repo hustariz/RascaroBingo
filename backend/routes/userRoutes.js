@@ -5,12 +5,16 @@ const userController = require('../controllers/userController');
 const auth = require('../middleware/auth');
 
 // Public Routes (No auth required)
-router.post('/login', userController.login);
 router.post('/register', userController.register);
+router.post('/login', userController.login);
 
 // Protected Routes (Auth required)
 router.get('/me', auth, userController.getCurrentUser);
 router.post('/refresh-token', userController.refreshToken);
+
+// Admin routes
+router.get('/all', auth, userController.getAllUsers);
+router.put('/premium-status', auth, userController.updateUserPremiumStatus);
 
 // Error handling middleware
 router.use((err, req, res, next) => {

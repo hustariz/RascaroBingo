@@ -52,6 +52,12 @@ const routes = [
     component: AboutPage
   },
   {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../components/AdminPanel.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }
