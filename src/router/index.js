@@ -8,6 +8,50 @@ import LeaderboardPage from '@/components/LeaderboardPage.vue'
 import ShopPage from '@/components/ShopPage.vue'
 import AboutPage from '@/components/AboutPage.vue';
 
+// Auth guard
+const authGuard = (to, from, next) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    next();
+  } else {
+    next({ 
+      name: 'Home',
+      query: { error: 'Please log in to access this page' }
+    });
+  }
+};
+
+// Admin route guard
+const adminGuard = async (to, from, next) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    next({ 
+      name: 'Home', 
+      query: { error: 'Please log in to access the admin panel' }
+    });
+    return;
+  }
+
+  try {
+    const api = require('@/services/api').default;
+    const user = await api.getCurrentUser();
+    if (user && user.isAdmin) {
+      next();
+    } else {
+      next({ 
+        name: 'Home', 
+        query: { error: 'Access denied. Only administrators can access this page.' }
+      });
+    }
+  } catch (error) {
+    console.error('Admin guard error:', error);
+    next({ 
+      name: 'Home', 
+      query: { error: 'Authentication error. Please try logging in again.' }
+    });
+  }
+};
+
 const routes = [
   { 
     path: '/', 
@@ -18,17 +62,21 @@ const routes = [
     path: '/bingo', 
     name: 'Bingo',
     component: BingoPage,
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true }
   },
   { 
     path: '/profile', 
     name: 'Profile',
     component: ProfilePage,
+    beforeEnter: authGuard,
     meta: { requiresAuth: true }
   },
   { 
     path: '/analytics', 
     name: 'Analytics',
     component: AnalyticsPage,
+    beforeEnter: authGuard,
     meta: { requiresAuth: true }
   },
   {
@@ -39,7 +87,9 @@ const routes = [
   {
     path: '/leaderboard',
     name: 'Leaderboard',
-    component: LeaderboardPage
+    component: LeaderboardPage,
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true }
   },
   {
     path: '/shop',
@@ -50,6 +100,13 @@ const routes = [
     path: '/about',
     name: 'About',
     component: AboutPage
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('@/components/AdminPanel.vue'),
+    beforeEnter: [authGuard, adminGuard],
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -64,13 +121,16 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
-  console.log('🛣️ Route navigation:', { to: to.path, requiresAuth: to.meta.requiresAuth })
+  console.log(' Route navigation:', { to: to.path, requiresAuth: to.meta.requiresAuth })
   
   if (to.meta.requiresAuth && !token) {
-    console.log('🔒 Auth required, redirecting to login')
-    next('/login')
+    console.log(' Auth required, redirecting to home')
+    next({ 
+      name: 'Home',
+      query: { error: 'Please log in to access this page' }
+    })
   } else {
-    console.log('✅ Navigation authorized')
+    console.log(' Navigation authorized')
     next()
   }
 })
