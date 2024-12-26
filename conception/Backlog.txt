@@ -1,7 +1,12 @@
 Screenshot Detector if the app is open and it register you take a screenshot, 
 Pop a windows saying, TAKE YOUR FUCKING PROFIT!
 
-Add a Shop Page 
-In the shop add you can buy your golden bingo case which will be setted number of points and based on a script I created.
-And a Leaderboard Page
+Add change Username / Mail functionnality in the admin pannel also ResetPassword. (Add the mail reset password)
+Correct the search user bug in admin Panel.
+Add the email authentification code when trying to create en account.
+Add the subscription page.
 
+Add the Bingo multiple pages layout and edit title if user is prenium
+Add a canevas to the option if user is normal user.
+
+Add a $ icon to all paid functionnality in the about pages.
