@@ -255,3 +255,33 @@ exports.refreshToken = async (req, res) => {
     res.status(500).json({ msg: 'Server error during token refresh' });
   }
 };
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, 'username email isPaidUser');
+    res.json(users);
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+exports.updateUserPremiumStatus = async (req, res) => {
+  try {
+    const { userId, isPaidUser } = req.body;
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isPaidUser },
+      { new: true, select: 'username email isPaidUser' }
+    );
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error('Error updating user premium status:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};

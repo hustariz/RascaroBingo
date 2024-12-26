@@ -19,6 +19,10 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  },
   refreshTokens: [{
     token: String,
     expiresAt: Date,

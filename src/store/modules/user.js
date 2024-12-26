@@ -1,20 +1,22 @@
-import axios from 'axios';
+import api from '@/services/api';
 
 const state = {
   user: null,
   token: localStorage.getItem('token') || null,
-  isPaidUser: false
+  isPaidUser: false,
+  allUsers: []
 };
 
 const getters = {
   isAuthenticated: state => !!state.token,
   currentUser: state => state.user,
-  isPaidUser: state => state.isPaidUser
+  isPaidUser: state => state.isPaidUser,
+  allUsers: state => state.allUsers
 };
 
 const actions = {
   async login({ commit }, credentials) {
-    const response = await axios.post('/api/users/login', credentials);
+    const response = await api.login(credentials);
     const { token, username, email, isPaidUser } = response.data;
     
     localStorage.setItem('token', token);
@@ -26,7 +28,7 @@ const actions = {
   },
 
   async getCurrentUser({ commit }) {
-    const response = await axios.get('/api/users/me');
+    const response = await api.get('/users/me');
     const { username, email, isPaidUser } = response.data;
     
     commit('setUser', { username, email });
@@ -40,6 +42,22 @@ const actions = {
     commit('setToken', null);
     commit('setUser', null);
     commit('setPaidUser', false);
+  },
+
+  // Admin actions
+  async fetchAllUsers({ commit }) {
+    const response = await api.get('/users/all');
+    commit('setAllUsers', response.data);
+    return response.data;
+  },
+
+  async updateUserPremiumStatus({ commit }, { userId, isPaidUser }) {
+    const response = await api.put('/users/premium-status', {
+      userId,
+      isPaidUser
+    });
+    commit('updateUserInList', response.data);
+    return response.data;
   }
 };
 
@@ -52,6 +70,15 @@ const mutations = {
   },
   setPaidUser(state, isPaid) {
     state.isPaidUser = isPaid;
+  },
+  setAllUsers(state, users) {
+    state.allUsers = users;
+  },
+  updateUserInList(state, updatedUser) {
+    const index = state.allUsers.findIndex(user => user._id === updatedUser._id);
+    if (index !== -1) {
+      state.allUsers.splice(index, 1, updatedUser);
+    }
   }
 };
 
