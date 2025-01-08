@@ -6,13 +6,13 @@
            :class="{ 'selected': cell.selected }">
         <!-- Info zone (top) -->
         <div class="cell-info-zone" 
-             @mouseenter="tooltipVisible = index"
-             @mouseleave="tooltipVisible = null"
-             @click="tooltipVisible = null">
-          <div class="tooltip" v-show="tooltipVisible === index">
+             @mouseenter="showTooltip($event, index)"
+             @mouseleave="hideTooltip"
+             @mousemove="updateTooltipPosition($event)">
+          <div class="tooltip" v-show="tooltipVisible === index" :style="tooltipStyle">
             <strong>{{ cell.title || 'Not set' }}</strong>
             <br>
-            Points: {{ cell.points || '0' }}
+            Points: <span class="points">{{ cell.points || '0' }}</span>
           </div>
         </div>
         
@@ -38,9 +38,33 @@
     },
     data() {
       return {
-        tooltipVisible: null
+        tooltipVisible: null,
+        tooltipX: 0,
+        tooltipY: 0
+      }
+    },
+    computed: {
+      tooltipStyle() {
+        return {
+          left: `${this.tooltipX}px`,
+          top: `${this.tooltipY}px`
+        }
+      }
+    },
+    methods: {
+      showTooltip(event, index) {
+        this.tooltipVisible = index;
+        this.updateTooltipPosition(event);
+      },
+      hideTooltip() {
+        this.tooltipVisible = null;
+      },
+      updateTooltipPosition(event) {
+        if (this.tooltipVisible !== null) {
+          this.tooltipX = event.clientX;
+          this.tooltipY = event.clientY;
+        }
       }
     }
   }
   </script>
-  
