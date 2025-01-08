@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import { ref, defineComponent, computed} from 'vue';
+import { ref, defineComponent, computed, watch } from 'vue';
 import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
 import draggable from 'vuedraggable';
 import BingoGrid from '@/components/BingoGrid.vue';
@@ -145,29 +145,56 @@ export default defineComponent({
     const auth = useAuth();
     const store = useStore();
     
-    // Get initial premium status from localStorage or user state
+    // Get premium status directly from store
     const isPremiumUser = computed(() => {
-      const userFromAuth = auth.user.value;
-      const isPaidFromStore = store.getters['user/isPaidUser'];
-      
-      console.log('Premium Check:', {
-        userFromAuth,
-        isPaidFromStore,
-        isAdmin: userFromAuth?.role === 'admin',
-        isPaidUser: userFromAuth?.isPaidUser || isPaidFromStore
+      const status = store.getters['user/isPaidUser'];
+      console.log(' Computing isPremiumUser:', { 
+        status,
+        storeState: store.state.user
       });
-      
-      // Check if user is admin
-      if (userFromAuth?.role === 'admin') return true;
-      
-      // Check if user is premium
-      return userFromAuth?.isPaidUser || isPaidFromStore || false;
+      return status;
     });
 
-    // Initialize user data if authenticated
-    if (auth.isAuthenticated.value) {
-      store.dispatch('user/getCurrentUser');
-    }
+    // Create computed property for isAuthenticated
+    const isAuthenticated = computed(() => {
+      const status = auth.isAuthenticated.value;
+      console.log(' Computing isAuthenticated:', status);
+      return status;
+    });
+
+    // Watch for authentication changes
+    watch(() => auth.isAuthenticated.value, async (newValue, oldValue) => {
+      console.log(' Auth status changed:', { 
+        newValue, 
+        oldValue,
+        token: localStorage.getItem('token')
+      });
+      
+      if (newValue) {
+        // Wait a bit to ensure token is set
+        console.log(' Waiting for token propagation...');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // User just logged in, get their data and load their card
+        try {
+          console.log(' Fetching user data...');
+          await store.dispatch('user/getCurrentUser');
+          console.log(' Loading bingo card...');
+          await store.dispatch('bingo/loadUserCard');
+          // Clear localStorage data as we're now using server data
+          localStorage.removeItem('bingoState');
+          
+          // Debug final state
+          console.log(' Final state after login:', {
+            isPremiumUser: store.getters['user/isPaidUser'],
+            user: store.state.user,
+            isAuthenticated: auth.isAuthenticated.value
+          });
+        } catch (error) {
+          console.error(' Error loading user data:', error);
+        }
+      }
+    }, { immediate: true });
 
     const widgets = ref([
       {
@@ -204,23 +231,10 @@ export default defineComponent({
 
     return {
       auth,
-      isAuthenticated: computed(() => auth.isAuthenticated.value),
       isPremiumUser,
+      isAuthenticated,
       widgets
     };
-  },
-
-  watch: {
-    isPremiumUser: {
-      immediate: true,
-      handler(newValue) {
-        console.log('Premium Status Changed:', {
-          isPremiumUser: newValue,
-          user: this.auth.user.value,
-          storeUser: this.$store.state.user
-        });
-      }
-    }
   },
 
   data() {
@@ -326,22 +340,18 @@ export default defineComponent({
     },
 
     checkPremiumAccess() {
-      const userFromAuth = this.auth.user.value;
-      const isPaidFromStore = this.isPaidUser;
+      const isPaidUser = this.$store.getters['user/isPaidUser'];
+      const authStatus = this.isAuthenticated;
       
-      console.log('Premium Access Check:', {
-        userFromAuth,
-        isPaidFromStore,
-        isAdmin: userFromAuth?.role === 'admin',
-        isPaidUser: userFromAuth?.isPaidUser || isPaidFromStore,
-        isAuthenticated: this.isAuthenticated
+      console.log(' Premium Access Check:', {
+        isPaidUser,
+        isAuthenticated: authStatus,
+        storeState: this.$store.state.user
       });
 
-      // Check if user is admin
-      if (userFromAuth?.role === 'admin') return;
-
       // Check if user has premium access
-      const hasPremiumAccess = this.isAuthenticated && (userFromAuth?.isPaidUser || isPaidFromStore);
+      const hasPremiumAccess = authStatus && isPaidUser;
+      console.log(' Premium access result:', hasPremiumAccess);
       
       if (!hasPremiumAccess) {
         this.showPremiumLock = true;
@@ -349,11 +359,19 @@ export default defineComponent({
     },
 
     async initialize() {
-      console.log('🔄 [INIT] Initializing BingoPage...');
+      console.log(' Initializing BingoPage...');
       if (!this.initialized) {
         try {
           if (this.isAuthenticated) {
             await this.loadUserCard();
+          } else {
+            // Load from localStorage for non-authenticated users
+            const savedState = localStorage.getItem('bingoState');
+            if (savedState) {
+              const parsedState = JSON.parse(savedState);
+              this.$store.commit('bingo/SET_PAGES', parsedState.pages || []);
+              this.$store.commit('bingo/SET_CURRENT_PAGE', parsedState.currentPageIndex || 0);
+            }
           }
           this.initialized = true;
         } catch (error) {
@@ -534,11 +552,11 @@ export default defineComponent({
     },
   },
   async created() {
-    console.log('🔄 [MOUNT] BingoPage component created');
+    console.log(' BingoPage component created');
     await this.initialize();
   },
   async mounted() {
-    console.log('🔄 [MOUNT] BingoPage component mounted');
+    console.log(' BingoPage component mounted');
     if (!this.initialized) {
       await this.initialize();
     }
