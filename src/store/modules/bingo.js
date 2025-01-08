@@ -88,108 +88,95 @@ export default {
   
     actions: {
       async loadUserCard({ commit }) {
-        console.log('📥 Loading user card');
-        commit('SET_LOADING', true);
-        
         try {
-          const token = localStorage.getItem('token');
-          console.log('🎟️ Token:', token ? 'present' : 'missing');
-  
-          // First try to load from cache
+          commit('SET_LOADING', true);
+          
+          // Try to load from cache first
           const cachedState = localStorage.getItem('bingoState');
           if (cachedState) {
-            console.log('📋 Loading from cache');
-            commit('RESTORE_STATE');
-          }
-  
-          if (!token) {
-            console.log('⚠️ No token, using cached state');
-            return;
-          }
-  
-          const response = await fetch(`${API_URL}/api/bingo/card`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
+            const parsedState = JSON.parse(cachedState);
+            if (parsedState && parsedState.bingoCells) {
+              console.log('📦 Loaded from cache:', parsedState);
+              commit('SET_CARD', parsedState);
+              return;
             }
-          });
-  
-          console.log('📊 Load response:', response.status);
-  
-          if (response.status === 401) {
-            console.log('⚠️ Auth error, using cached state');
-            return;
           }
-  
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-  
-          const data = await response.json();
-          console.log('✅ Card loaded:', data);
           
-          if (data && data.bingoCells?.length > 0) {
+          // If no cache or invalid cache, try to load from API
+          const token = localStorage.getItem('token');
+          if (token) {
+            const response = await fetch(`${API_URL}/bingo/card`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('🎲 Loaded from API:', data);
             commit('SET_CARD', data);
-          } else if (cachedState) {
-            console.log('⚠️ Server data empty, using cache');
-            commit('RESTORE_STATE');
           }
         } catch (error) {
-          console.error('❌ Load error:', error);
-          // Try to use cached data on error
-          const cachedState = localStorage.getItem('bingoState');
-          if (cachedState) {
-            console.log('⚠️ Using cached state');
-            commit('RESTORE_STATE');
-          }
+          console.error('❌ Error loading bingo card:', error);
+          // Initialize with default state if loading fails
+          commit('SET_CARD', {
+            bingoCells: Array.from({ length: 25 }, (_, i) => ({
+              id: i + 1,
+              title: '',
+              points: 0,
+              selected: false
+            })),
+            totalScore: 0
+          });
         } finally {
           commit('SET_LOADING', false);
         }
       },
-  
+      
       async saveCardState({ state }) {
-        console.log('💾 Saving card state...');
         try {
           const token = localStorage.getItem('token');
-          console.log('🎟️ Token present:', !!token);
+          if (token) {
+            const response = await fetch(`${API_URL}/bingo/card`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                bingoCells: state.bingoCells,
+                totalScore: state.totalScore
+              })
+            });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            console.log('💾 Saved to API');
+          }
           
-          // Always cache the current state
+          // Always save to local storage
           localStorage.setItem('bingoState', JSON.stringify({
             bingoCells: state.bingoCells,
             totalScore: state.totalScore,
             lastModified: new Date().toISOString(),
             version: '1.0'
           }));
-  
-          if (!token) {
-            console.log('⚠️ No token, saved to cache only');
-            return;
-          }
-  
-          const response = await fetch('/api/bingo/card', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              bingoCells: state.bingoCells,
-              totalScore: state.totalScore
-            })
-          });
-  
-          if (response.status === 401) {
-            console.log('🔑 Authentication error, state saved to cache');
-            return;
-          }
-  
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
+          console.log('💾 Saved to local storage');
           
-          console.log('✅ Card saved to server and cache');
         } catch (error) {
-          console.error('❌ Error saving to server, but state is cached:', error);
+          console.error('❌ Error saving bingo card:', error);
+          // Still save to local storage even if API fails
+          localStorage.setItem('bingoState', JSON.stringify({
+            bingoCells: state.bingoCells,
+            totalScore: state.totalScore,
+            lastModified: new Date().toISOString(),
+            version: '1.0'
+          }));
         }
       }
     },

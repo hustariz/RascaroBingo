@@ -61,9 +61,7 @@ const routes = [
   { 
     path: '/bingo', 
     name: 'Bingo',
-    component: BingoPage,
-    beforeEnter: authGuard,
-    meta: { requiresAuth: true }
+    component: BingoPage
   },
   { 
     path: '/profile', 
