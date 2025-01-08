@@ -162,7 +162,12 @@ export default {
     async fetchRiskManagement({ commit }) {
       try {
         const token = localStorage.getItem('token');
-        if (!token) throw new Error('No authentication token found');
+        if (!token) {
+          console.log('No authentication token found, using default values');
+          commit('SET_ACCOUNT_SIZE', 10000);
+          commit('UPDATE_TRADE_SIZE', 100);
+          return;
+        }
 
         const response = await fetch(`${API_URL}/api/risk-management/`, {
           headers: {
@@ -170,7 +175,15 @@ export default {
           }
         });
 
-        if (!response.ok) throw new Error('Failed to fetch risk management data');
+        if (!response.ok) {
+          if (response.status === 401) {
+            console.log('Not authenticated, using default values');
+            commit('SET_ACCOUNT_SIZE', 10000);
+            commit('UPDATE_TRADE_SIZE', 100);
+          } else {
+            throw new Error('Failed to fetch risk management data');
+          }
+        }
 
         const data = await response.json();
         console.log('Fetched risk management data:', data);

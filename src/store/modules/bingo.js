@@ -146,7 +146,7 @@ export default {
   getters: {
     getCurrentPage: state => {
       // Ensure we have at least one page
-      if (state.bingoPages.length === 0) {
+      if (!state.bingoPages || state.bingoPages.length === 0) {
         return {
           id: 1,
           name: 'Default Board',
@@ -158,26 +158,26 @@ export default {
           }))
         };
       }
-
-      // Return current page or first page as fallback
-      return state.bingoPages[state.currentPageIndex] || state.bingoPages[0];
+      
+      // Get current page with bounds checking
+      const index = Math.min(state.currentPageIndex, state.bingoPages.length - 1);
+      return state.bingoPages[index];
     },
 
     getCurrentPageCells: (state, getters) => {
       const currentPage = getters.getCurrentPage;
-      return currentPage.bingoCells || [];
+      return currentPage?.bingoCells || [];
     },
 
     getTotalScore: (state, getters) => {
-      const currentPage = getters.getCurrentPage;
-      if (!currentPage || !currentPage.bingoCells) return 0;
-
-      return currentPage.bingoCells.reduce((total, cell) => {
-        return total + (cell.selected ? (Number(cell.points) || 0) : 0);
+      const cells = getters.getCurrentPageCells;
+      return cells.reduce((total, cell) => {
+        return total + (cell.selected ? (cell.points || 0) : 0);
       }, 0);
     },
 
     getAllPages: state => state.bingoPages || [],
+    
     getCurrentPageIndex: state => Math.min(state.currentPageIndex, state.bingoPages.length - 1)
   },
 
@@ -282,7 +282,7 @@ export default {
       }
     },
 
-    async saveCardState({ state, commit }) {
+    async saveCardState({ state}) {
       console.log('📤 [SAVE] Starting saveCardState');
       try {
         // Format pages data
@@ -303,68 +303,58 @@ export default {
               selected: false
             });
           }
-          if (bingoCells.length > 25) {
-            bingoCells = bingoCells.slice(0, 25);
-          }
 
           return {
             id: page.id || Date.now() + index,
             name: page.name || `Board ${index + 1}`,
-            bingoCells: bingoCells.map((cell, cellIndex) => ({
-              id: cell?.id || cellIndex + 1,
-              title: cell?.title || '',
-              points: typeof cell?.points === 'number' ? cell.points : 0,
-              selected: !!cell?.selected
-            }))
+            bingoCells: bingoCells.slice(0, 25)
           };
         });
 
-        const token = localStorage.getItem('token');
+        // Prepare state to save
         const stateToSave = {
           bingoPages: formattedPages,
-          currentPageIndex: state.currentPageIndex || 0,
-          lastModified: new Date().toISOString()
+          currentPageIndex: state.currentPageIndex,
+          lastModified: new Date().toISOString(),
+          version: '2.0'
         };
 
-        // Save to server if authenticated
+        // Always save to localStorage first as backup
+        console.log('💾 [SAVE] Saving to localStorage:', stateToSave);
+        localStorage.setItem('bingoState', JSON.stringify(stateToSave));
+
+        // Try to save to server if authenticated
+        const token = localStorage.getItem('token');
         if (token) {
-          console.log('📤 [SAVE] Sending data to server:', JSON.stringify(stateToSave, null, 2));
+          try {
+            const response = await fetch(`${API_URL}/api/bingo/card`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(stateToSave)
+            });
 
-          const response = await fetch(`${API_URL}/api/bingo/card`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(stateToSave)
-          });
-
-          console.log('📤 [SAVE] Server response status:', response.status);
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('❌ [SAVE] Server error:', errorData);
-            throw new Error(errorData.message || 'Failed to save bingo card');
+            if (!response.ok) {
+              console.warn('⚠️ [SAVE] Failed to save to server, but saved to localStorage');
+              if (response.status === 401) {
+                // If unauthorized, clear token but keep localStorage
+                localStorage.removeItem('token');
+              }
+            } else {
+              console.log('✅ [SAVE] Saved to server successfully');
+            }
+          } catch (error) {
+            console.warn('⚠️ [SAVE] Error saving to server:', error);
+            // Don't throw here since we already saved to localStorage
           }
-
-          const result = await response.json();
-          console.log('✅ [SAVE] Card saved successfully:', JSON.stringify(result, null, 2));
-
-          if (result.success && result.data?.bingoPages) {
-            console.log('✅ [SAVE] Updating state with server response');
-            commit('SET_PAGES', result.data.bingoPages);
-            commit('SET_CURRENT_PAGE', result.data.currentPageIndex || 0);
-          }
-
-          return result;
-        } else {
-          // Save to localStorage for non-authenticated users
-          console.log('💾 [SAVE] Saving to localStorage:', stateToSave);
-          localStorage.setItem('bingoState', JSON.stringify(stateToSave));
-          return { success: true, message: 'Saved to localStorage' };
         }
+
+        return true;
       } catch (error) {
-        console.error('❌ [SAVE] Error saving card:', error);
-        throw error;
+        console.error('❌ [SAVE] Error saving card state:', error);
+        return false;
       }
     }
   }

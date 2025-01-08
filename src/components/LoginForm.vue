@@ -87,7 +87,11 @@ export default {
         // Emit login-success event with user data
         emit('login-success', response);
         closeForm();
-        router.push('/bingo');
+        
+        // Navigate to bingo page and refresh
+        await router.push('/bingo');
+        console.log('🔄 Refreshing page to ensure proper state...');
+        window.location.reload();
       } catch (error) {
         console.error('Login error:', error);
         errorMessage.value = error.msg || 'Login failed';

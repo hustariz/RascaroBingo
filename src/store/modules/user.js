@@ -3,44 +3,66 @@ import api from '@/services/api';
 const state = {
   user: null,
   token: localStorage.getItem('token') || null,
-  isPaidUser: false,
   allUsers: []
 };
 
 const getters = {
   isAuthenticated: state => !!state.token,
   currentUser: state => state.user,
-  isPaidUser: state => state.isPaidUser,
+  isPaidUser: state => state.user?.isPaidUser || false,
   allUsers: state => state.allUsers
 };
 
 const actions = {
-  async login({ commit }, credentials) {
+  async login({ commit, dispatch }, credentials) {
     const response = await api.login(credentials);
-    const { token, username, email, isPaidUser } = response.data;
+    console.log('🔐 Login response full:', response);
     
-    localStorage.setItem('token', token);
-    commit('setToken', token);
-    commit('setUser', { username, email });
-    commit('setPaidUser', isPaidUser);
+    // Set token first
+    localStorage.setItem('token', response.token);
+    commit('setToken', response.token);
+    
+    // Set initial user data from login
+    const userData = { 
+      username: response.username, 
+      email: response.email,
+      isPaidUser: response.isPaidUser 
+    };
+    console.log('📝 Setting initial user data:', userData);
+    commit('setUser', userData);
+    
+    // Get full user data after token is set
+    console.log('🔄 Getting full user data...');
+    await dispatch('getCurrentUser');
     
     return response;
   },
 
   async getCurrentUser({ commit }) {
     try {
+      const token = localStorage.getItem('token');
+      console.log('🎫 Getting current user with token:', token ? 'token-exists' : 'no-token');
+      
       const response = await api.getCurrentUser();
+      console.log('👥 GetCurrentUser full response:', response);
+      
       if (response && response.data) {
-        const {isPaidUser = false } = response.data;
+        console.log('✅ Setting user data from getCurrentUser:', response.data);
         commit('setUser', response.data);
-        commit('setPaidUser', isPaidUser);
+        
+        // Debug current state
+        console.log('🔍 Current store state after getCurrentUser:', {
+          user: response.data,
+          isPaidUser: response.data.isPaidUser
+        });
+        
         return response;
       }
     } catch (error) {
+      console.error('❌ Error in getCurrentUser:', error);
       if (error.response?.status === 401) {
-        // For non-authenticated users, set a default state
+        console.log('⚠️ Unauthorized, clearing user data');
         commit('setUser', null);
-        commit('setPaidUser', false);
         return null;
       }
       throw error;
@@ -52,7 +74,6 @@ const actions = {
     localStorage.removeItem('token');
     commit('setToken', null);
     commit('setUser', null);
-    commit('setPaidUser', false);
   },
 
   // Admin actions
@@ -74,13 +95,12 @@ const actions = {
 
 const mutations = {
   setToken(state, token) {
+    console.log('🔑 Setting token:', token ? 'token-exists' : 'no-token');
     state.token = token;
   },
   setUser(state, user) {
+    console.log('👤 Setting user:', user);
     state.user = user;
-  },
-  setPaidUser(state, isPaid) {
-    state.isPaidUser = isPaid;
   },
   setAllUsers(state, users) {
     state.allUsers = users;
