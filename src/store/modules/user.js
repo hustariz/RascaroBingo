@@ -28,12 +28,22 @@ const actions = {
   },
 
   async getCurrentUser({ commit }) {
-    const response = await api.getCurrentUser();
-    if (response && response.data) {
-      const {isPaidUser = false } = response.data;
-      commit('setUser', response.data);
-      commit('setPaidUser', isPaidUser);
-      return response;
+    try {
+      const response = await api.getCurrentUser();
+      if (response && response.data) {
+        const {isPaidUser = false } = response.data;
+        commit('setUser', response.data);
+        commit('setPaidUser', isPaidUser);
+        return response;
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        // For non-authenticated users, set a default state
+        commit('setUser', null);
+        commit('setPaidUser', false);
+        return null;
+      }
+      throw error;
     }
     return null;
   },
