@@ -18,25 +18,47 @@
       >
       <template #item="{ element }">
         <div class="widget-container" :class="element.size">
-          <div class="widget-handle">⋮⋮</div>
           <div class="section-container">
             <div class="section-header widget-title">
-              <h2>{{ element.title }}</h2>
+              <h2>
+                <template v-if="element.component === 'RiskRewardSection'">
+                  Points&nbsp;Bingo:<br/>Risk/Reward
+                </template>
+                <template v-else>
+                  {{ element.title }}
+                </template>
+              </h2>
               <div v-if="element.component === 'BingoGrid'" class="bingo-controls">
                 <div class="page-controls">
                   <input 
-                    v-model="currentBingoPage.name" 
+                    v-model="currentPageName" 
                     placeholder="Page Name" 
                     class="page-name-input"
                     @focus="checkPremiumAccess"
+                    @input="handlePageNameUpdate($event.target.value)"
                   >
                   <div class="page-navigation">
-                    <button @click="previousPage" class="nav-button">←</button>
-                    <span>Page {{ currentPageIndex + 1 }}</span>
-                    <button @click="nextPage" class="nav-button">→</button>
+                    <button 
+                      @click="previousPage" 
+                      class="nav-button"
+                    >←</button>
+                    <span>Page {{ getCurrentPageIndex + 1 }}</span>
+                    <button 
+                      @click="nextPage" 
+                      class="nav-button"
+                    >→</button>
+                    <button 
+                      v-if="getAllPages.length > 1" 
+                      @click="deletePage" 
+                      class="delete-button"
+                      title="Delete current board"
+                    >
+                      ×
+                    </button>
                   </div>
                 </div>
               </div>
+              <div class="widget-handle">⋮⋮</div>
             </div>
             <div class="component-wrapper" :class="{ 'has-premium-feature': element.component === 'BingoGrid' }">
               <component 
@@ -51,15 +73,17 @@
                 @trade-idea-update="updateTradeIdea"
                 @symbol-update="updateTradingSymbol"
                 @cell-click="toggleCell" 
-                @cell-edit="editCell"
+                @cell-edit="openEditModal"
                 @update:modelValue="updateWidgetData(element.id, $event)"
               />
               <PremiumLock 
                 v-if="element.component === 'BingoGrid'"
                 :show="showPremiumLock" 
-                :message="'Upgrade to Premium to access multiple Bingo pages and custom page names'"
+                :message="!isAuthenticated 
+                  ? 'Sign in to save your Bingo progress and access premium features' 
+                  : 'Upgrade to Premium to access multiple Bingo pages and custom page names'"
                 @upgradePremium="handleUpgradePremium"
-                @close="showPremiumLock = false"
+                @close="closePremiumLock"
               />
             </div>
           </div>
@@ -69,21 +93,21 @@
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="showEditModal" class="modal">
-      <div class="modal-content">
+    <div v-if="showEditModal" class="modal modal-edit">
+      <div class="modal-content modal-content-edit">
         <h3>Edit Bingo Cell</h3>
-        <div class="modal-form">
-          <div class="form-group">
+        <div class="modal-form modal-form-edit">
+          <div class="form-group form-group-edit">
             <label>Title:</label>
             <input v-model="editingCell.title" type="text" placeholder="Enter title">
           </div>
-          <div class="form-group">
+          <div class="form-group form-group-edit">
             <label>Points:</label>
             <input v-model.number="editingCell.points" type="number" min="0">
           </div>
-          <div class="modal-buttons">
-            <button @click="saveCell" class="save-button">Save</button>
-            <button @click="showEditModal = false" class="cancel-button">Cancel</button>
+          <div class="modal-buttons modal-buttons-edit">
+            <button @click="saveEditedCell" class="save-button save-button-edit">Save</button>
+            <button @click="closeEditModal" class="cancel-button cancel-button-edit">Cancel</button>
           </div>
         </div>
       </div>
@@ -92,36 +116,59 @@
 </template>
 
 <script>
-import { ref, defineComponent } from 'vue';
-import { mapState, mapActions } from 'vuex';
+import { ref, defineComponent, computed} from 'vue';
+import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
 import draggable from 'vuedraggable';
-import { useAuth } from '@/composables/useAuth';
-import { usePremiumCheck } from '@/composables/usePremiumCheck';
-import '../assets/styles/BingoPage.css';
-import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue';
 import BingoGrid from '@/components/BingoGrid.vue';
+import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue';
 import RiskRewardSection from '@/components/RiskRewardSection.vue';
 import TradeIdeaSection from '@/components/TradeIdeaSection.vue';
 import TradeDetailsSection from '@/components/TradeDetailsSection.vue';
 import PremiumLock from '@/components/PremiumLock.vue';
+import { useAuth } from '@/composables/useAuth';
+import { useStore } from 'vuex';
 
 export default defineComponent({
   name: 'BingoPage',
   
   components: {
-    RiskManagementSidebar,
-    BingoGrid,
-    RiskRewardSection,
-    TradeIdeaSection,    
-    TradeDetailsSection, 
     draggable,
+    BingoGrid,
+    RiskManagementSidebar,
+    RiskRewardSection,
+    TradeIdeaSection,
+    TradeDetailsSection,
     PremiumLock
   },
 
   setup() {
     const auth = useAuth();
-    const { checkPremiumFeature, handleUpgradePremium } = usePremiumCheck();
+    const store = useStore();
     
+    // Get initial premium status from localStorage or user state
+    const isPremiumUser = computed(() => {
+      const userFromAuth = auth.user.value;
+      const isPaidFromStore = store.getters['user/isPaidUser'];
+      
+      console.log('Premium Check:', {
+        userFromAuth,
+        isPaidFromStore,
+        isAdmin: userFromAuth?.role === 'admin',
+        isPaidUser: userFromAuth?.isPaidUser || isPaidFromStore
+      });
+      
+      // Check if user is admin
+      if (userFromAuth?.role === 'admin') return true;
+      
+      // Check if user is premium
+      return userFromAuth?.isPaidUser || isPaidFromStore || false;
+    });
+
+    // Initialize user data if authenticated
+    if (auth.isAuthenticated.value) {
+      store.dispatch('user/getCurrentUser');
+    }
+
     const widgets = ref([
       {
         id: 1,
@@ -156,20 +203,41 @@ export default defineComponent({
     ]);
 
     return {
-      widgets,
       auth,
-      checkPremiumFeature,
-      handleUpgradePremium
+      isAuthenticated: computed(() => auth.isAuthenticated.value),
+      isPremiumUser,
+      widgets
     };
+  },
+
+  watch: {
+    isPremiumUser: {
+      immediate: true,
+      handler(newValue) {
+        console.log('Premium Status Changed:', {
+          isPremiumUser: newValue,
+          user: this.auth.user.value,
+          storeUser: this.$store.state.user
+        });
+      }
+    }
   },
 
   data() {
     return {
-      isSidebarCollapsed: false,
-      tooltipVisible: false,
       showEditModal: false,
       editingCell: null,
-      editingIndex: null,
+      editingCellIndex: null,
+      showPremiumLock: false,
+      isSidebarCollapsed: false,
+      currentTradeIdea: null,
+      currentSymbol: 'XRPusd',
+      rrChecks: {
+        riskReward: 0,
+        stopLoss: false,
+        entryPrice: false,
+        takeProfit: false
+      },
       localBingoCells: Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
         title: '',
@@ -177,76 +245,205 @@ export default defineComponent({
         selected: false
       })),
       localTotalScore: 0,
-      rrChecks: {
-        sixPoints: false,
-        elevenPoints: false,
-        sixteenPoints: false,
-        twentyPoints: false
-      },
-      currentTradeIdea: '',
-      currentSymbol: '',
       currentPageIndex: 0,
-      currentBingoPage: {
-        name: '',
-        cells: []
-      },
-      showPremiumLock: false,
       localPages: [{
+        id: 1,
         name: 'Default Board',
-        cells: Array.from({ length: 25 }, (_, i) => ({
+        bingoCells: Array.from({ length: 25 }, (_, i) => ({
           id: i + 1,
           title: '',
           points: 0,
           selected: false
         }))
-      }]
+      }],
+      initialized: false,
     };
   },
 
   computed: {
-    ...mapState('bingo', ['bingoCells', 'totalScore']),
+    ...mapState('bingo', ['loading']),
+    ...mapGetters('bingo', [
+      'getCurrentPage',
+      'getCurrentPageIndex',
+      'getAllPages'
+    ]),
+    ...mapGetters('user', ['isPaidUser']),
+    
     activeCells() {
-      if (this.auth.isAuthenticated.value) {
-        return this.bingoCells;
-      } else {
-        return this.localPages[this.currentPageIndex]?.cells || this.localBingoCells;
-      }
+      return this.getCurrentPage?.bingoCells || [];
     },
-    activeScore() {
-      if (this.auth.isAuthenticated.value) {
-        return this.totalScore;
-      } else {
-        const currentPage = this.localPages[this.currentPageIndex];
-        if (currentPage) {
-          return currentPage.cells.reduce((total, cell) => {
-            return total + (cell.selected ? (cell.points || 0) : 0);
-          }, 0);
-        }
-        return this.localTotalScore;
-      }
-    }
-  },
 
-  watch: {
-    activeScore: {
-      handler(newScore) {
-        this.updateRRChecks(newScore);
-        this.updateWidgetData(2, { score: newScore });
-      },
-      immediate: true
+    activeScore() {
+      return this.activeCells.reduce((total, cell) => total + (cell.selected ? cell.points || 0 : 0), 0);
     },
-    activeCells: {
-      handler(newCells) {
-        this.updateWidgetData(1, { cells: newCells });
+
+    currentPageName: {
+      get() {
+        const page = this.getCurrentPage;
+        return page ? page.name : 'Default Board';
       },
-      deep: true,
-      immediate: true
+      set(newName) {
+        if (!this.isAuthenticated) {
+          this.showPremiumLock = true;
+          return;
+        }
+        if (!this.isPremiumUser) {
+          this.showPremiumLock = true;
+          return;
+        }
+        this.handlePageNameUpdate(newName);
+      }
     }
   },
 
   methods: {
-    ...mapActions('bingo', ['loadUserCard', 'saveCardState']),
+    ...mapMutations('bingo', [
+      'UPDATE_CELL',
+      'SET_PAGES',
+      'SET_CURRENT_PAGE',
+      'ADD_PAGE',
+      'DELETE_PAGE'
+    ]),
+    ...mapActions('bingo', [
+      'loadUserCard',
+      'saveCardState'
+    ]),
     
+    closePremiumLock() {
+      this.showPremiumLock = false;
+    },
+
+    handleUpgradePremium() {
+      if (!this.isAuthenticated) {
+        // Redirect to login page with return URL
+        const returnUrl = encodeURIComponent(window.location.pathname);
+        this.$router.push(`/login?returnUrl=${returnUrl}`);
+      } else {
+        // Redirect to premium upgrade page
+        this.$router.push('/premium');
+      }
+      this.showPremiumLock = false;
+    },
+
+    checkPremiumAccess() {
+      const userFromAuth = this.auth.user.value;
+      const isPaidFromStore = this.isPaidUser;
+      
+      console.log('Premium Access Check:', {
+        userFromAuth,
+        isPaidFromStore,
+        isAdmin: userFromAuth?.role === 'admin',
+        isPaidUser: userFromAuth?.isPaidUser || isPaidFromStore,
+        isAuthenticated: this.isAuthenticated
+      });
+
+      // Check if user is admin
+      if (userFromAuth?.role === 'admin') return;
+
+      // Check if user has premium access
+      const hasPremiumAccess = this.isAuthenticated && (userFromAuth?.isPaidUser || isPaidFromStore);
+      
+      if (!hasPremiumAccess) {
+        this.showPremiumLock = true;
+      }
+    },
+
+    async initialize() {
+      console.log('🔄 [INIT] Initializing BingoPage...');
+      if (!this.initialized) {
+        try {
+          if (this.isAuthenticated) {
+            await this.loadUserCard();
+          }
+          this.initialized = true;
+        } catch (error) {
+          console.error('Error initializing BingoPage:', error);
+        }
+      }
+    },
+
+    handleSidebarToggle() {
+      this.isSidebarCollapsed = !this.isSidebarCollapsed;
+    },
+
+    handleSaveSettings(settings) {
+      // Handle saving risk management settings
+      console.log('Saving settings:', settings);
+    },
+
+    handleTradeStatusUpdate(status) {
+      this.rrChecks = { ...status };
+    },
+
+    updateTradeIdea(idea) {
+      this.currentTradeIdea = idea;
+    },
+
+    updateTradingSymbol(symbol) {
+      this.currentSymbol = symbol;
+    },
+
+    async nextPage() {
+      if (!this.isAuthenticated || !this.isPremiumUser) {
+        this.showPremiumLock = true;
+        return;
+      }
+
+      if (this.getCurrentPageIndex < this.getAllPages.length - 1) {
+        this.SET_CURRENT_PAGE(this.getCurrentPageIndex + 1);
+      } else {
+        // Create new page
+        this.ADD_PAGE({
+          id: Date.now(),
+          name: `Board ${this.getAllPages.length + 1}`,
+          bingoCells: Array.from({ length: 25 }, (_, i) => ({
+            id: i + 1,
+            title: '',
+            points: 0,
+            selected: false
+          }))
+        });
+        this.SET_CURRENT_PAGE(this.getAllPages.length - 1);
+      }
+      await this.saveCardState();
+    },
+
+    async previousPage() {
+      if (!this.isAuthenticated || !this.isPremiumUser) {
+        this.showPremiumLock = true;
+        return;
+      }
+
+      if (this.getCurrentPageIndex > 0) {
+        this.SET_CURRENT_PAGE(this.getCurrentPageIndex - 1);
+        await this.saveCardState();
+      }
+    },
+
+    async deletePage() {
+      if (!this.isAuthenticated || !this.isPremiumUser) {
+        this.showPremiumLock = true;
+        return;
+      }
+
+      if (confirm('Are you sure you want to delete this board? This action cannot be undone.')) {
+        this.DELETE_PAGE(this.getCurrentPageIndex);
+        await this.saveCardState();
+      }
+    },
+
+    handlePageNameUpdate(newName) {
+      if (!this.isAuthenticated || !this.isPremiumUser) {
+        this.showPremiumLock = true;
+        return;
+      }
+      
+      this.$store.commit('bingo/UPDATE_PAGE_NAME', { 
+        pageIndex: this.getCurrentPageIndex, 
+        name: newName 
+      });
+      this.saveCardState();
+    },
     updateWidgetData(widgetId, ) {
       const widget = this.widgets.find(w => w.id === widgetId);
       if (widget) {
@@ -262,175 +459,92 @@ export default defineComponent({
         }
       }
     },
-    updateTradeIdea(idea) {
-      console.log('Updating trade idea:', idea); 
-      this.currentTradeIdea = idea;
-      const tradeDetailsWidget = this.widgets.find(w => w.component === 'TradeDetailsSection');
-      if (tradeDetailsWidget) {
-        this.updateWidgetData(tradeDetailsWidget.id, { tradeIdea: idea });
-      }
-    },
-    updateTradingSymbol(symbol) {
-      console.log('Updating trading symbol:', symbol);
-      this.currentSymbol = symbol;
-      const tradeDetailsWidget = this.widgets.find(w => w.component === 'TradeDetailsSection');
-      if (tradeDetailsWidget) {
-        this.updateWidgetData(tradeDetailsWidget.id, { tradingSymbol: symbol });
-      }
-    },
+    openEditModal(cellIndex) {
+      const currentPage = this.getCurrentPage;
+      if (!currentPage || !currentPage.bingoCells) return;
 
-    handleTradeStatusUpdate({ status, profitLoss }) {
-      console.log('Trade status update received:', { status, profitLoss });
-      const sidebar = this.$refs.riskSidebar;
-      if (sidebar) {
-        sidebar.updateFromTradeResult({ status, profitLoss });
-      }
-    },
-
-    handleSaveSettings(settings) {
-      console.log('Settings saved:', settings);
-    },
-
-    handleSidebarToggle(isCollapsed) {
-      this.isSidebarCollapsed = isCollapsed;
-    },
-
-    updateRRChecks(newScore) {
-      this.rrChecks = {
-        sixPoints: newScore >= 6 && newScore < 11,
-        elevenPoints: newScore >= 11 && newScore < 16,
-        sixteenPoints: newScore >= 16 && newScore < 20,
-        twentyPoints: newScore >= 20
-      };
-    },
-    
-
-    async toggleCell(index) {
-      try {
-        if (this.auth.isAuthenticated.value) {
-          const cell = { ...this.bingoCells[index] };
-          cell.selected = !cell.selected;
-          this.$store.commit('bingo/UPDATE_CELL', { 
-            index, 
-            cell: {
-              ...cell,
-              title: cell.title || '',
-              points: Number(cell.points) || 0,
-              selected: cell.selected
-            }
-          });
-          await this.$store.dispatch('bingo/saveCardState');
-        } else {
-          const currentPage = this.localPages[this.currentPageIndex];
-          if (currentPage) {
-            const cell = currentPage.cells[index];
-            cell.selected = !cell.selected;
-            this.localTotalScore = currentPage.cells.reduce((total, cell) => {
-              return total + (cell.selected ? (cell.points || 0) : 0);
-            }, 0);
-            this.updateRRChecks(this.localTotalScore);
-          }
-        }
-        this.updateWidgetData(1, { cells: this.activeCells });
-        this.updateWidgetData(2, { score: this.activeScore });
-      } catch (error) {
-        console.error('Error toggling cell:', error);
-      }
-    },
-
-    editCell(index) {
-      this.editingIndex = index;
-      this.editingCell = { ...this.activeCells[index] };
+      this.editingCellIndex = cellIndex;
+      this.editingCell = { ...currentPage.bingoCells[cellIndex] };
       this.showEditModal = true;
     },
 
-    async saveCell() {
+    closeEditModal() {
+      this.showEditModal = false;
+      this.editingCell = null;
+      this.editingCellIndex = null;
+    },
+
+    async saveEditedCell() {
+      if (!this.editingCell || this.editingCellIndex === null) return;
+
       try {
-        if (this.editingIndex !== null) {
-          if (this.auth.isAuthenticated.value) {
-            this.$store.commit('bingo/UPDATE_CELL', {
-              index: this.editingIndex,
-              cell: { ...this.editingCell }
-            });
-            await this.$store.dispatch('bingo/saveCardState');
-          } else {
-            const currentPage = this.localPages[this.currentPageIndex];
-            if (currentPage) {
-              const oldCell = currentPage.cells[this.editingIndex];
-              if (oldCell.selected) {
-                this.localTotalScore -= oldCell.points || 0;
-              }
-              currentPage.cells[this.editingIndex] = { ...this.editingCell };
-              if (this.editingCell.selected) {
-                this.localTotalScore += this.editingCell.points || 0;
-              }
-              this.updateRRChecks(this.localTotalScore);
-            }
-          }
+        await this.editCell(this.editingCellIndex, this.editingCell);
+        this.closeEditModal();
+      } catch (error) {
+        console.error('Error saving edited cell:', error);
+      }
+    },
+
+    async editCell(cellIndex, newData) {
+      if (!this.isAuthenticated) {
+        this.showPremiumLock = true;
+        return;
+      }
+
+      try {
+        const currentPage = this.getCurrentPage;
+        if (!currentPage || !currentPage.bingoCells) {
+          console.error('Invalid page structure:', currentPage);
+          return;
         }
-        this.showEditModal = false;
-        this.editingCell = null;
-        this.editingIndex = null;
+
+        const cell = { ...currentPage.bingoCells[cellIndex], ...newData };
+
+        this.UPDATE_CELL({
+          pageIndex: this.getCurrentPageIndex,
+          cellIndex,
+          cell
+        });
+
+        await this.saveCardState();
       } catch (error) {
-        console.error('Error saving cell:', error);
+        console.error('Error editing cell:', error);
       }
     },
-
-    previousPage() {
-      const { allowed } = this.checkPremiumFeature('multiple bingo pages');
-      if (!allowed) {
+    async toggleCell(cellIndex) {
+      if (!this.isAuthenticated) {
         this.showPremiumLock = true;
         return;
       }
-      if (this.currentPageIndex > 0) {
-        this.currentPageIndex--;
-      }
-    },
 
-    nextPage() {
-      const { allowed } = this.checkPremiumFeature('multiple bingo pages');
-      if (!allowed) {
-        this.showPremiumLock = true;
-        return;
-      }
-      this.currentPageIndex++;
-    },
+      const currentPage = this.getCurrentPage;
+      if (!currentPage || !currentPage.bingoCells) return;
 
-    checkPremiumAccess() {
-      const { allowed } = this.checkPremiumFeature('multiple bingo pages');
-      if (!allowed) {
-        this.showPremiumLock = true;
-      }
-    }
+      const cell = { ...currentPage.bingoCells[cellIndex] };
+      cell.selected = !cell.selected;
+
+      this.UPDATE_CELL({ 
+        pageIndex: this.getCurrentPageIndex, 
+        cellIndex, 
+        cell 
+      });
+
+      await this.saveCardState();
+    },
   },
-
   async created() {
-    if (this.auth.isAuthenticated.value) {
-      try {
-        await this.loadUserCard();
-      } catch (error) {
-        console.error('Error loading bingo card:', error);
-      }
-    } else {
-      // Initialize local storage if not authenticated
-      if (!localStorage.getItem('localBingoData')) {
-        localStorage.setItem('localBingoData', JSON.stringify(this.localPages));
-      } else {
-        this.localPages = JSON.parse(localStorage.getItem('localBingoData'));
-      }
+    console.log('🔄 [MOUNT] BingoPage component created');
+    await this.initialize();
+  },
+  async mounted() {
+    console.log('🔄 [MOUNT] BingoPage component mounted');
+    if (!this.initialized) {
+      await this.initialize();
     }
   }
 });
 </script>
 
-<style scoped>
-.component-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.component-wrapper.has-premium-feature {
-  min-height: 400px;
-}
+<style>
+@import '../assets/styles/BingoPage.css';
 </style>

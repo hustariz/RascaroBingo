@@ -178,10 +178,15 @@ export default {
 
   async getCurrentUser() {
     try {
+      console.log('🔄 Getting current user data');
       const response = await api.get('/users/me');
-      return response.data;
+      if (response && response.data) {
+        console.log('✅ User data retrieved:', response.data);
+        return response;
+      }
+      throw new Error('No user data received');
     } catch (error) {
-      console.error('Error getting current user:', error);
+      console.error('❌ Error getting current user:', error);
       throw error;
     }
   },
@@ -208,67 +213,34 @@ export default {
   },
   
   // Bingo card methods
-  async getBingoCard() {
-    try {
-      console.log('📥 Loading bingo card');
-      // Always try cache first
-      const cachedCard = localStorage.getItem('bingoState');
-      if (cachedCard) {
-        console.log('📋 Found cached card');
-        return JSON.parse(cachedCard);
-      }
-
-      const response = await api.get('/api/bingo/card');
-      console.log('✅ Card loaded from server');
-      // Cache the server response
-      localStorage.setItem('bingoState', JSON.stringify(response.data));
-      return response.data;
-    } catch (error) {
-      console.error('❌ Error loading card:', error);
-      // Try to use cached data on error
-      const cachedCard = localStorage.getItem('bingoState');
-      if (cachedCard) {
-        console.log('⚠️ Using cached card data');
-        return JSON.parse(cachedCard);
-      }
-      
-      if (error.response?.status === 404) {
-        const defaultCard = {
-          bingoCells: Array.from({ length: 25 }, (_, i) => ({
-            id: i + 1,
-            title: '',
-            points: 0,
-            selected: false
-          })),
-          totalScore: 0
-        };
-        console.log('⚠️ Using default card');
-        return defaultCard;
-      }
-      throw error;
-    }
+  getBingoCard() {
+    return api.get('/bingo/card')
+      .then(response => {
+        if (response.data.success) {
+          console.log('📋 Loaded bingo card:', response.data);
+          return response.data;
+        }
+        throw new Error(response.data.message || 'Failed to load bingo card');
+      })
+      .catch(error => {
+        console.error('❌ Error loading bingo card:', error);
+        throw error;
+      });
   },
-  
-  async saveBingoCard(cardData) {
-    try {
-      console.log('💾 Saving card');
-      // Always cache first
-      localStorage.setItem('bingoState', JSON.stringify({
-        ...cardData,
-        lastModified: new Date().toISOString()
-      }));
 
-      const response = await api.post('/bingo/card', cardData);
-      console.log('✅ Card saved to server');
-      return response.data;
-    } catch (error) {
-      console.error('❌ Error saving card, but state is cached:', error);
-      if (error.response?.status === 401) {
-        console.log('⚠️ Auth error, using cached state');
-        return cardData;
-      }
-      throw error.response?.data || error.message;
-    }
+  saveBingoCard(cardData) {
+    return api.post('/bingo/card', cardData)
+      .then(response => {
+        if (response.data.success) {
+          console.log('💾 Saved bingo card:', response.data);
+          return response.data;
+        }
+        throw new Error(response.data.message || 'Failed to save bingo card');
+      })
+      .catch(error => {
+        console.error('❌ Error saving bingo card:', error);
+        throw error;
+      });
   },
   
   async updateBingoCell(index, cellData) {

@@ -32,6 +32,10 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  bingoCard: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BingoCard'
+  },
   riskManagement: {
     accountSize: { type: Number, default: 10000 },
     baseTradeSize: { type: Number, default: 1000 },
@@ -47,5 +51,16 @@ const UserSchema = new mongoose.Schema({
     }
   }
 });
+
+// Add methods to handle bingo card
+UserSchema.methods.getBingoCard = async function() {
+  await this.populate('bingoCard');
+  return this.bingoCard;
+};
+
+UserSchema.methods.setBingoCard = async function(bingoCard) {
+  this.bingoCard = bingoCard._id;
+  await this.save();
+};
 
 module.exports = mongoose.model('User', UserSchema);

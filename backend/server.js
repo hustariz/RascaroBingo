@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3004;
 
 // Import routes
 const userRoutes = require('./routes/userRoutes');
-const bingoCardRoutes = require('./routes/bingoCardRoutes');
+const bingoRoutes = require('./routes/bingo');
 const tradeRoutes = require('./routes/tradeRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
 const { initializeScheduler } = require('./services/schedulerService');
@@ -92,7 +92,7 @@ app.get('/health', (req, res) => {
 
 // 1. API Routes first
 app.use('/api/users', userRoutes);
-app.use('/api/bingo', bingoCardRoutes);
+app.use('/api/bingo', bingoRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
