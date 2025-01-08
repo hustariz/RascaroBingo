@@ -1,53 +1,83 @@
 // models/BingoCard.js
 const mongoose = require('mongoose');
 
-const BingoCard = new mongoose.Schema({
+const BingoCellSchema = new mongoose.Schema({
+  id: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 25
+  },
+  title: {
+    type: String,
+    default: '',
+    trim: true,
+    maxlength: 100
+  },
+  points: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+  selected: {
+    type: Boolean,
+    default: false
+  }
+}, { _id: false });
+
+const BingoPageSchema = new mongoose.Schema({
+  id: {
+    type: Number,
+    required: true
+  },
+  name: {
+    type: String,
+    default: 'Default Board',
+    trim: true,
+    maxlength: 100
+  },
+  bingoCells: {
+    type: [BingoCellSchema],
+    validate: {
+      validator: function(cells) {
+        return !cells || cells.length === 0 || cells.length === 25;
+      },
+      message: 'Each bingo page must have exactly 25 cells'
+    },
+    default: () => Array.from({ length: 25 }, (_, i) => ({
+      id: i + 1,
+      title: '',
+      points: 0,
+      selected: false
+    }))
+  }
+}, { _id: false });
+
+const BingoCardSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true  // Each user can only have one card
+    unique: true // This ensures one card per user
   },
-  bingoCells: [{
-    id: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 25
-    },
-    title: {
-      type: String,
-      default: '',
-      trim: true
-    },
-    points: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    selected: {
-      type: Boolean,
-      default: false
-    }
-  }],
-  totalScore: {
+  bingoPages: {
+    type: [BingoPageSchema],
+    default: () => [{
+      id: 1,
+      name: 'Default Board',
+      bingoCells: Array.from({ length: 25 }, (_, i) => ({
+        id: i + 1,
+        title: '',
+        points: 0,
+        selected: false
+      }))
+    }]
+  },
+  currentPageIndex: {
     type: Number,
     default: 0,
     min: 0
-  },
-  rrChecks: {
-    sixPoints: {
-      type: Boolean,
-      default: false
-    },
-    twelvePoints: {
-      type: Boolean,
-      default: false
-    },
-    eighteenPoints: {
-      type: Boolean,
-      default: false
-    }
   },
   lastModified: {
     type: Date,
@@ -57,41 +87,14 @@ const BingoCard = new mongoose.Schema({
   timestamps: true // Adds createdAt and updatedAt fields
 });
 
-// Pre-save middleware to calculate totalScore
-BingoCard.pre('save', function(next) {
-  // Calculate total score from selected cells
-  this.totalScore = this.bingoCells.reduce((total, cell) => {
-    return total + (cell.selected ? (cell.points || 0) : 0);
-  }, 0);
+// Ensure index on userId
+BingoCardSchema.index({ userId: 1 }, { unique: true });
 
-  // Update RR checks based on total score
-  this.rrChecks = {
-    sixPoints: this.totalScore >= 6,
-    twelvePoints: this.totalScore >= 11,
-    eighteenPoints: this.totalScore >= 16
-  };
-
-  // Update lastModified
-  this.lastModified = new Date();
-  
-  next();
-});
-
-// Method to initialize bingo cells if they don't exist
-BingoCard.methods.initializeCells = function() {
-  if (!this.bingoCells || this.bingoCells.length === 0) {
-    this.bingoCells = Array.from({ length: 25 }, (_, i) => ({
-      id: i + 1,
-      title: '',
-      points: 0,
-      selected: false
-    }));
-  }
+// Methods
+BingoCardSchema.methods.toJSON = function() {
+  const obj = this.toObject();
+  delete obj.__v;
+  return obj;
 };
 
-// Ensure bingoCells array always has 25 cells
-BingoCard.path('bingoCells').validate(function(cells) {
-  return cells.length === 25;
-}, 'Bingo card must have exactly 25 cells');
-
-module.exports = mongoose.model('BingoCard', BingoCard);
+module.exports = mongoose.model('BingoCard', BingoCardSchema);
