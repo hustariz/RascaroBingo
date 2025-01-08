@@ -111,8 +111,7 @@
           <span class="trades-count">{{ dailyStats?.dailyTradeCount || 0 }}</span>
         </div>
         <button class="reset-button" @click="resetStats">
-          <i class="fas fa-redo-alt"></i>
-          Reset Daily Stats
+          <span>Reset Daily Stats</span>
         </button>
       </div>
     </div>
@@ -121,7 +120,7 @@
 
 <script>
 import '../assets/styles/RiskManagementSidebar.css';
-import { mapState } from 'vuex';
+import { mapState } from 'vuex'
 
 export default {
   name: 'RiskManagementSidebar',
@@ -217,7 +216,6 @@ export default {
     }
   },
 
-  
   
   methods: {
     async handleGrassResponse(touched) {
