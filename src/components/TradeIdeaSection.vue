@@ -85,12 +85,6 @@ export default {
   },
   methods: {
     updateSymbol() {
-      const { allowed, message } = this.checkPremiumFeature('chart viewing')
-      if (!allowed) {
-        this.showPremiumLock = true
-        this.premiumMessage = message
-        return
-      }
       this.currentSymbol = this.currentSymbol.toUpperCase()
       // Store the new symbol
       localStorage.setItem('lastSymbol', this.currentSymbol);
@@ -124,13 +118,6 @@ export default {
       this.$emit('trade-idea-update', this.tradeIdea);
     },
     checkChart() {
-      const { allowed, message } = this.checkPremiumFeature('chart viewing')
-      if (!allowed) {
-        this.showPremiumLock = true
-        this.premiumMessage = message
-        return
-      }
-      
       if (!this.currentSymbol) {
         alert('Please enter a trading pair first')
         return
