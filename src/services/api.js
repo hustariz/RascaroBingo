@@ -178,10 +178,15 @@ export default {
 
   async getCurrentUser() {
     try {
+      console.log('🔄 Getting current user data');
       const response = await api.get('/users/me');
-      return response.data;
+      if (response && response.data) {
+        console.log('✅ User data retrieved:', response.data);
+        return response;
+      }
+      throw new Error('No user data received');
     } catch (error) {
-      console.error('Error getting current user:', error);
+      console.error('❌ Error getting current user:', error);
       throw error;
     }
   },

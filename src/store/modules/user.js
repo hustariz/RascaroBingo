@@ -28,13 +28,14 @@ const actions = {
   },
 
   async getCurrentUser({ commit }) {
-    const response = await api.get('/users/me');
-    const { username, email, isPaidUser } = response.data;
-    
-    commit('setUser', { username, email });
-    commit('setPaidUser', isPaidUser);
-    
-    return response;
+    const response = await api.getCurrentUser();
+    if (response && response.data) {
+      const {isPaidUser = false } = response.data;
+      commit('setUser', response.data);
+      commit('setPaidUser', isPaidUser);
+      return response;
+    }
+    return null;
   },
 
   logout({ commit }) {

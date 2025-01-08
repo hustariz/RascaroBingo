@@ -18,10 +18,16 @@
       >
       <template #item="{ element }">
         <div class="widget-container" :class="element.size">
-          <div class="widget-handle">⋮⋮</div>
           <div class="section-container">
             <div class="section-header widget-title">
-              <h2>{{ element.title }}</h2>
+              <h2>
+                <template v-if="element.component === 'RiskRewardSection'">
+                  Points&nbsp;Bingo:<br/>Risk/Reward
+                </template>
+                <template v-else>
+                  {{ element.title }}
+                </template>
+              </h2>
               <div v-if="element.component === 'BingoGrid'" class="bingo-controls">
                 <div class="page-controls">
                   <input 
@@ -37,6 +43,7 @@
                   </div>
                 </div>
               </div>
+              <div class="widget-handle">⋮⋮</div>
             </div>
             <div class="component-wrapper" :class="{ 'has-premium-feature': element.component === 'BingoGrid' }">
               <component 
@@ -92,12 +99,12 @@
 </template>
 
 <script>
-import { ref, defineComponent } from 'vue';
+import { ref, defineComponent, onMounted } from 'vue';
 import { mapState, mapActions } from 'vuex';
 import draggable from 'vuedraggable';
 import { useAuth } from '@/composables/useAuth';
 import { usePremiumCheck } from '@/composables/usePremiumCheck';
-import '../assets/styles/BingoPage.css';
+import { useStore } from 'vuex';
 import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue';
 import BingoGrid from '@/components/BingoGrid.vue';
 import RiskRewardSection from '@/components/RiskRewardSection.vue';
@@ -121,7 +128,19 @@ export default defineComponent({
   setup() {
     const auth = useAuth();
     const { checkPremiumFeature, handleUpgradePremium } = usePremiumCheck();
-    
+    const store = useStore();
+
+    // Fetch user data on setup
+    onMounted(async () => {
+      try {
+        if (auth.isAuthenticated.value) {
+          await store.dispatch('user/getCurrentUser');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    });
+
     const widgets = ref([
       {
         id: 1,
@@ -205,6 +224,7 @@ export default defineComponent({
 
   computed: {
     ...mapState('bingo', ['bingoCells', 'totalScore']),
+    ...mapState('user', ['isPaidUser']),
     activeCells() {
       if (this.auth.isAuthenticated.value) {
         return this.bingoCells;
@@ -224,6 +244,9 @@ export default defineComponent({
         }
         return this.localTotalScore;
       }
+    },
+    isPremiumUser() {
+      return this.auth.isAuthenticated.value && this.auth.user.value.isPremium;
     }
   },
 
@@ -376,7 +399,23 @@ export default defineComponent({
       }
     },
 
+    checkPremiumAccess() {
+      if (this.isPaidUser) {
+        return; // Skip premium check if user is premium
+      }
+      const { allowed } = this.checkPremiumFeature('multiple bingo pages');
+      if (!allowed) {
+        this.showPremiumLock = true;
+      }
+    },
+
     previousPage() {
+      if (this.isPaidUser) {
+        if (this.currentPageIndex > 0) {
+          this.currentPageIndex--;
+        }
+        return;
+      }
       const { allowed } = this.checkPremiumFeature('multiple bingo pages');
       if (!allowed) {
         this.showPremiumLock = true;
@@ -388,18 +427,19 @@ export default defineComponent({
     },
 
     nextPage() {
+      if (this.isPaidUser) {
+        if (this.currentPageIndex < this.localPages.length - 1) {
+          this.currentPageIndex++;
+        }
+        return;
+      }
       const { allowed } = this.checkPremiumFeature('multiple bingo pages');
       if (!allowed) {
         this.showPremiumLock = true;
         return;
       }
-      this.currentPageIndex++;
-    },
-
-    checkPremiumAccess() {
-      const { allowed } = this.checkPremiumFeature('multiple bingo pages');
-      if (!allowed) {
-        this.showPremiumLock = true;
+      if (this.currentPageIndex < this.localPages.length - 1) {
+        this.currentPageIndex++;
       }
     }
   },
@@ -423,14 +463,6 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
-.component-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.component-wrapper.has-premium-feature {
-  min-height: 400px;
-}
+<style>
+@import '../assets/styles/BingoPage.css';
 </style>

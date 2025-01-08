@@ -4,7 +4,10 @@ import { useStore } from 'vuex'
 export function usePremiumCheck() {
   const store = useStore()
   
-  const isPremiumUser = computed(() => store.getters['user/isPaidUser'])
+  const isPremiumUser = computed(() => {
+    const user = store.state.user.user;
+    return user && (user.isPaidUser || user.isPremium);
+  })
   
   const checkPremiumFeature = (feature) => {
     if (!isPremiumUser.value) {
