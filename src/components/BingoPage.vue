@@ -506,23 +506,17 @@ export default defineComponent({
     },
 
     async handleCellClick(cellIndex) {
-      // Always allow cell interaction for non-authenticated users
-      if (!this.isAuthenticated || !this.isPremiumUser) {
-        const cells = this.getCurrentPageCells;
-        if (cells && cells[cellIndex]) {
-          const cell = cells[cellIndex];
-          this.$store.commit('bingo/UPDATE_CELL', {
-            pageIndex: this.currentPageIndex,
-            cellIndex,
-            cell: { ...cell, selected: !cell.selected }
-          });
-          await this.$store.dispatch('bingo/saveCardState');
-        } else {
-          console.warn('Invalid cell index or cells not loaded:', { cellIndex, cells });
-        }
+      const cells = this.getCurrentPageCells;
+      if (cells && cells[cellIndex]) {
+        const cell = cells[cellIndex];
+        this.$store.commit('bingo/UPDATE_CELL', {
+          pageIndex: this.currentPageIndex,
+          cellIndex,
+          cell: { ...cell, selected: !cell.selected }
+        });
+        await this.$store.dispatch('bingo/saveCardState');
       } else {
-        // Premium user flow...
-        this.checkPremiumAccess();
+        console.warn('Invalid cell index or cells not loaded:', { cellIndex, cells });
       }
     },
 
