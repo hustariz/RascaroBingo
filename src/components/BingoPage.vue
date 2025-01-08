@@ -72,7 +72,7 @@
                 @trade-status-update="handleTradeStatusUpdate"
                 @trade-idea-update="updateTradeIdea"
                 @symbol-update="updateTradingSymbol"
-                @cell-click="toggleCell" 
+                @cell-click="handleCellClick" 
                 @cell-edit="openEditModal"
                 @update:modelValue="updateWidgetData(element.id, $event)"
               />
@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import { ref, defineComponent, computed, watch } from 'vue';
+import { ref, defineComponent, computed, watch, onMounted } from 'vue';
 import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
 import draggable from 'vuedraggable';
 import BingoGrid from '@/components/BingoGrid.vue';
@@ -148,17 +148,12 @@ export default defineComponent({
     // Get premium status directly from store
     const isPremiumUser = computed(() => {
       const status = store.getters['user/isPaidUser'];
-      console.log(' Computing isPremiumUser:', { 
-        status,
-        storeState: store.state.user
-      });
       return status;
     });
 
     // Create computed property for isAuthenticated
     const isAuthenticated = computed(() => {
       const status = auth.isAuthenticated.value;
-      console.log(' Computing isAuthenticated:', status);
       return status;
     });
 
@@ -170,9 +165,8 @@ export default defineComponent({
         token: localStorage.getItem('token')
       });
       
-      if (newValue) {
+      if (newValue && localStorage.getItem('token')) {
         // Wait a bit to ensure token is set
-        console.log(' Waiting for token propagation...');
         await new Promise(resolve => setTimeout(resolve, 100));
         
         // User just logged in, get their data and load their card
@@ -181,20 +175,26 @@ export default defineComponent({
           await store.dispatch('user/getCurrentUser');
           console.log(' Loading bingo card...');
           await store.dispatch('bingo/loadUserCard');
-          // Clear localStorage data as we're now using server data
-          localStorage.removeItem('bingoState');
-          
-          // Debug final state
-          console.log(' Final state after login:', {
-            isPremiumUser: store.getters['user/isPaidUser'],
-            user: store.state.user,
-            isAuthenticated: auth.isAuthenticated.value
-          });
         } catch (error) {
-          console.error(' Error loading user data:', error);
+          if (error.response?.status === 401) {
+            console.log(' Not authenticated, using local state');
+          } else {
+            console.error(' Error loading user data:', error);
+          }
         }
+      } else {
+        // User logged out or token expired, load from localStorage
+        console.log(' Loading bingo card from localStorage...');
+        await store.dispatch('bingo/loadUserCard');
       }
     }, { immediate: true });
+
+    // Ensure bingo card is loaded on component mount
+    onMounted(async () => {
+      console.log(' BingoPage component mounted');
+      console.log(' Initializing BingoPage...');
+      await store.dispatch('bingo/loadUserCard');
+    });
 
     const widgets = ref([
       {
@@ -278,6 +278,7 @@ export default defineComponent({
     ...mapState('bingo', ['loading']),
     ...mapGetters('bingo', [
       'getCurrentPage',
+      'getCurrentPageCells',
       'getCurrentPageIndex',
       'getAllPages'
     ]),
@@ -343,15 +344,16 @@ export default defineComponent({
       const isPaidUser = this.$store.getters['user/isPaidUser'];
       const authStatus = this.isAuthenticated;
       
-      console.log(' Premium Access Check:', {
-        isPaidUser,
-        isAuthenticated: authStatus,
-        storeState: this.$store.state.user
-      });
+      if (authStatus) {
+        console.log(' Premium Access Check:', {
+          isPaidUser,
+          isAuthenticated: authStatus,
+          storeState: this.$store.state.user
+        });
+      }
 
       // Check if user has premium access
       const hasPremiumAccess = authStatus && isPaidUser;
-      console.log(' Premium access result:', hasPremiumAccess);
       
       if (!hasPremiumAccess) {
         this.showPremiumLock = true;
@@ -500,6 +502,27 @@ export default defineComponent({
         this.closeEditModal();
       } catch (error) {
         console.error('Error saving edited cell:', error);
+      }
+    },
+
+    async handleCellClick(cellIndex) {
+      // Always allow cell interaction for non-authenticated users
+      if (!this.isAuthenticated || !this.isPremiumUser) {
+        const cells = this.getCurrentPageCells;
+        if (cells && cells[cellIndex]) {
+          const cell = cells[cellIndex];
+          this.$store.commit('bingo/UPDATE_CELL', {
+            pageIndex: this.currentPageIndex,
+            cellIndex,
+            cell: { ...cell, selected: !cell.selected }
+          });
+          await this.$store.dispatch('bingo/saveCardState');
+        } else {
+          console.warn('Invalid cell index or cells not loaded:', { cellIndex, cells });
+        }
+      } else {
+        // Premium user flow...
+        this.checkPremiumAccess();
       }
     },
 
