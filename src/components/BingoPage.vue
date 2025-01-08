@@ -486,7 +486,14 @@ export default defineComponent({
     },
 
     async editCell(cellIndex, newData) {
-      if (!this.isAuthenticated) {
+      // Check if trying to edit cell content (title or points)
+      const isEditingContent = newData.title !== undefined || newData.points !== undefined;
+      
+      // Only require premium if:
+      // 1. User is editing content (title/points) AND
+      // 2. User is not on the first board (getCurrentPageIndex > 0) AND
+      // 3. User is not authenticated or not premium
+      if (isEditingContent && this.getCurrentPageIndex > 0 && (!this.isAuthenticated || !this.isPremiumUser)) {
         this.showPremiumLock = true;
         return;
       }
@@ -506,30 +513,24 @@ export default defineComponent({
           cell
         });
 
-        await this.saveCardState();
+        if (this.isAuthenticated) {
+          await this.saveCardState();
+        } else {
+          // Save to localStorage for non-authenticated users
+          const bingoState = JSON.stringify(this.$store.state.bingo);
+          localStorage.setItem('bingoState', bingoState);
+        }
       } catch (error) {
-        console.error('Error editing cell:', error);
+        console.error('Error updating cell:', error);
       }
     },
-    async toggleCell(cellIndex) {
-      if (!this.isAuthenticated) {
-        this.showPremiumLock = true;
-        return;
-      }
 
+    async toggleCell(cellIndex) {
       const currentPage = this.getCurrentPage;
       if (!currentPage || !currentPage.bingoCells) return;
 
-      const cell = { ...currentPage.bingoCells[cellIndex] };
-      cell.selected = !cell.selected;
-
-      this.UPDATE_CELL({ 
-        pageIndex: this.getCurrentPageIndex, 
-        cellIndex, 
-        cell 
-      });
-
-      await this.saveCardState();
+      const cell = currentPage.bingoCells[cellIndex];
+      await this.editCell(cellIndex, { selected: !cell.selected });
     },
   },
   async created() {
