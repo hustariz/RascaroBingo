@@ -90,6 +90,14 @@ export function useAuth() {
       localStorage.setItem('tokenExpires', expiresAt.toString());
       localStorage.setItem('loginTime', loginTime);
       localStorage.setItem('lastActive', new Date().toISOString());
+      
+      // Store complete user data
+      localStorage.setItem('user', JSON.stringify({
+        username: response.username,
+        email: response.email,
+        isPaidUser: response.isPaidUser,
+        role: response.role
+      }));
 
       // Update reactive refs
       token.value = response.token;
@@ -128,6 +136,7 @@ export function useAuth() {
     localStorage.removeItem('loginTime');
     localStorage.removeItem('lastActive');
     localStorage.removeItem('bingoState'); // Clear bingo state on logout
+    localStorage.removeItem('user'); // Clear user data on logout
     
     // Store last session
     localStorage.setItem('lastSession', JSON.stringify(lastSession));
