@@ -9,6 +9,11 @@
           class="tradeidea-section-input"
           @input="emitTradeIdea"
         ></textarea>
+        <PremiumLock 
+          :show="showPremiumLock" 
+          :message="premiumMessage"
+          @upgradePremium="handleUpgradePremium"
+        />
       </div>
 
       <!-- Controls at bottom with no gap -->
@@ -40,24 +45,29 @@
   </div>
 </template>
 
-
 <script>
 import '../assets/styles/TradeIdeaSection.css'
+import PremiumLock from './PremiumLock.vue'
+import { usePremiumCheck } from '@/composables/usePremiumCheck'
 
 export default {
   name: 'TradeIdeaSection',
+  components: {
+    PremiumLock
+  },
   data() {
     return {
       tradeIdea: '',
+      currentSymbol: '',
       showChart: false,
-      widget: null,
-      scriptLoaded: false,
+      chartPosition: { x: 100, y: 100 },
+      chartSize: { width: 800, height: 600 },
       isDragging: false,
       isResizing: false,
-      dragOffset: { x: 0, y: 0 },
-      initialSize: { width: 0, height: 0 },
-      initialPos: { x: 0, y: 0 },
-      currentSymbol: '',
+      showPremiumLock: false,
+      premiumMessage: '',
+      widget: null,
+      scriptLoaded: false,
       widgetInstance: null
     }
   },
@@ -75,20 +85,25 @@ export default {
   },
   methods: {
     updateSymbol() {
-        // Store the new symbol
-        localStorage.setItem('lastSymbol', this.currentSymbol);
-            this.$emit('symbol-update', this.currentSymbol);
-        
-        // If widget exists, update it directly
-        if (this.widget) {
-          this.widget.setSymbol(this.currentSymbol);
-        }
-        
-        // If chart is already showing, reinitialize the widget
-        if (this.showChart) {
-          this.initTradingViewWidget();
-        }
-      },
+      const { allowed, message } = this.checkPremiumFeature('chart viewing')
+      if (!allowed) {
+        this.showPremiumLock = true
+        this.premiumMessage = message
+        return
+      }
+      this.currentSymbol = this.currentSymbol.toUpperCase()
+      // Store the new symbol
+      localStorage.setItem('lastSymbol', this.currentSymbol);
+      this.$emit('symbol-update', this.currentSymbol);
+      // If widget exists, update it directly
+      if (this.widget) {
+        this.widget.setSymbol(this.currentSymbol);
+      }
+      // If chart is already showing, reinitialize the widget
+      if (this.showChart) {
+        this.initTradingViewWidget();
+      }
+    },
     loadTradingViewScript() {
       if (!document.getElementById('tradingview-script')) {
         const script = document.createElement('script');
@@ -109,6 +124,17 @@ export default {
       this.$emit('trade-idea-update', this.tradeIdea);
     },
     checkChart() {
+      const { allowed, message } = this.checkPremiumFeature('chart viewing')
+      if (!allowed) {
+        this.showPremiumLock = true
+        this.premiumMessage = message
+        return
+      }
+      
+      if (!this.currentSymbol) {
+        alert('Please enter a trading pair first')
+        return
+      }
       console.log('📈 Opening chart');
       this.showChart = true;
       this.$nextTick(() => {
@@ -196,6 +222,13 @@ export default {
     onMouseUp() {
       this.isDragging = false;
       this.isResizing = false;
+    }
+  },
+  setup() {
+    const { checkPremiumFeature, handleUpgradePremium } = usePremiumCheck()
+    return {
+      checkPremiumFeature,
+      handleUpgradePremium
     }
   }
 }
