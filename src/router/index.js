@@ -6,7 +6,8 @@ import AnalyticsPage from '@/components/AnalyticsPage.vue'
 import LoginForm from '@/components/LoginForm.vue'
 import LeaderboardPage from '@/components/LeaderboardPage.vue'
 import ShopPage from '@/components/ShopPage.vue'
-import AboutPage from '@/components/AboutPage.vue';
+import AboutPage from '@/components/AboutPage.vue'
+import PaymentPage from '@/components/PaymentPage.vue';
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -98,6 +99,11 @@ const routes = [
     path: '/about',
     name: 'About',
     component: AboutPage
+  },
+  {
+    path: '/payment',
+    name: 'Payment',
+    component: PaymentPage
   },
   {
     path: '/admin',

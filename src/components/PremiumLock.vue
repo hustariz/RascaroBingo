@@ -29,7 +29,7 @@
             <span>Export and Share your Board to Users</span>
           </div>
         </div>
-        <button @click="$emit('upgradePremium')" class="premium-lock-upgrade">
+        <button @click="handleUpgrade" class="premium-lock-upgrade">
           <i class="fas fa-star"></i>
           Upgrade to Premium
         </button>
@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router'
+
 export default {
   name: 'PremiumLock',
   props: {
@@ -49,6 +51,17 @@ export default {
     message: {
       type: String,
       default: ''
+    }
+  },
+  setup() {
+    const router = useRouter()
+    
+    const handleUpgrade = () => {
+      router.push('/payment')
+    }
+
+    return {
+      handleUpgrade
     }
   }
 }
