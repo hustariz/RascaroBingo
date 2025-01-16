@@ -212,6 +212,34 @@ export default {
     }
   },
   
+  // Email verification methods
+  checkEmail(email) {
+    return api.post('/auth/check-email', { email })
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error checking email:', error);
+        throw error;
+      });
+  },
+
+  verifyEmail(token) {
+    return api.get(`/auth/verify-email/${token}`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error verifying email:', error);
+        throw error;
+      });
+  },
+
+  resendVerification(email) {
+    return api.post('/auth/resend-verification', { email })
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error resending verification:', error);
+        throw error;
+      });
+  },
+
   // Bingo card methods
   getBingoCard() {
     return api.get('/bingo/card')

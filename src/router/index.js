@@ -7,7 +7,8 @@ import LoginForm from '@/components/LoginForm.vue'
 import LeaderboardPage from '@/components/LeaderboardPage.vue'
 import ShopPage from '@/components/ShopPage.vue'
 import AboutPage from '@/components/AboutPage.vue'
-import PaymentPage from '@/components/PaymentPage.vue';
+import PaymentPage from '@/components/PaymentPage.vue'
+import EmailVerification from '@/components/EmailVerification.vue';
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -104,6 +105,11 @@ const routes = [
     path: '/payment',
     name: 'Payment',
     component: PaymentPage
+  },
+  {
+    path: '/verify-email/:token',
+    name: 'EmailVerification',
+    component: EmailVerification
   },
   {
     path: '/admin',

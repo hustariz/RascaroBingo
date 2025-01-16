@@ -49,7 +49,13 @@ const UserSchema = new mongoose.Schema({
       dailyProfit: { type: Number, default: 0 }, 
       dailyLoss: { type: Number, default: 0 }
     }
-  }
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: String,
+  emailVerificationExpires: Date
 });
 
 // Add methods to handle bingo card
