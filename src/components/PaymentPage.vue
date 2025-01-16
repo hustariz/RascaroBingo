@@ -7,31 +7,52 @@
         <h3>Premium Features</h3>
         <div class="payment-options">
           <div class="payment-plan">
-            <h4>Monthly Premium</h4>
-            <div class="price">$9.99<span>/month</span></div>
+            <h4>Weekly Access</h4>
+            <div class="price">1.99$<span>/week</span></div>
             <ul class="features-list">
-              <li><strong>Unlimited</strong> Bingo Cases</li>
-              <li><strong>Advanced</strong> Analytics</li>
-              <li><strong>Priority</strong> Support</li>
-              <li><strong>Exclusive</strong> Trading Scripts</li>
+              <li v-for="(feature, index) in premiumFeatures.slice(0, 3)" :key="index">
+                <strong>{{ feature.split(' ')[0] }}</strong> {{ feature.split(' ').slice(1).join(' ') }}
+              </li>
             </ul>
-            <button class="payment-button">Subscribe Monthly</button>
+            <button class="payment-button" @click="selectPlan('weekly')">Subscribe Weekly</button>
+          </div>
+          
+          <div class="payment-plan">
+            <h4>Monthly Access</h4>
+            <div class="price">5.99$<span>/month</span></div>
+            <ul class="features-list">
+              <li v-for="(feature, index) in premiumFeatures.slice(0, 4)" :key="index">
+                <strong>{{ feature.split(' ')[0] }}</strong> {{ feature.split(' ').slice(1).join(' ') }}
+              </li>
+            </ul>
+            <button class="payment-button" @click="selectPlan('monthly')">Subscribe Monthly</button>
+          </div>
+
+          <div class="payment-plan">
+            <h4>Quarterly Access</h4>
+            <div class="price">15$<span>/3 months</span></div>
+            <ul class="features-list">
+              <li v-for="(feature, index) in premiumFeatures.slice(0, 5)" :key="index">
+                <strong>{{ feature.split(' ')[0] }}</strong> {{ feature.split(' ').slice(1).join(' ') }}
+              </li>
+            </ul>
+            <button class="payment-button" @click="selectPlan('quarterly')">Subscribe Quarterly</button>
           </div>
           
           <div class="payment-plan featured">
             <div class="best-value">Best Value</div>
-            <h4>Annual Premium</h4>
-            <div class="price">$99.99<span>/year</span></div>
-            <div class="savings">Save 16%</div>
+            <h4>Annual Access</h4>
+            <div class="price">55$<span>/year</span></div>
+            <div class="savings">Save over 30%</div>
             <ul class="features-list">
-              <li><strong>All Monthly</strong> Features</li>
-              <li><strong>2 Free</strong> Months</li>
-              <li><strong>Custom</strong> Bingo Templates</li>
-              <li><strong>VIP</strong> Discord Access</li>
+              <li v-for="(feature, index) in premiumFeatures" :key="index">
+                <strong>{{ feature.split(' ')[0] }}</strong> {{ feature.split(' ').slice(1).join(' ') }}
+              </li>
             </ul>
-            <button class="payment-button featured">Subscribe Yearly</button>
+            <button class="payment-button featured" @click="selectPlan('yearly')">Subscribe Yearly</button>
           </div>
         </div>
+
         <div class="payment-info">
           <p>
             <font-awesome-icon icon="lock" /> Secure Payment Processing
@@ -47,7 +68,26 @@
 
 <script>
 export default {
-  name: 'PaymentPage'
+  name: 'PaymentPage',
+  data() {
+    return {
+      premiumFeatures: [
+        'Unlimited Customisable Bingo Boards',
+        'Advanced Analytics',
+        'Priority Support',
+        'Export and Share Bingo Boards',
+        'Exclusive Trading Scripts linked to Bingo Boards',
+        'Detailed Success Analysis of your Bingo Strategy',
+        'VIP Discord Access'
+      ]
+    }
+  },
+  methods: {
+    selectPlan(plan) {
+      // TODO: Implement payment processing
+      console.log('Selected plan:', plan)
+    }
+  }
 }
 </script>
 
@@ -79,7 +119,7 @@ export default {
   border: 2px solid rgb(238, 175, 17);
   border-radius: 10px;
   padding: 2rem;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 2rem auto;
   box-shadow: 0 0 20px rgba(238, 175, 17, 0.2);
   backdrop-filter: blur(5px);
@@ -115,7 +155,7 @@ h3 {
   border: 1px solid rgba(238, 175, 17, 0.3);
   border-radius: 15px;
   padding: 2rem;
-  width: 300px;
+  width: 250px;
   position: relative;
   transition: transform 0.3s ease;
 }
