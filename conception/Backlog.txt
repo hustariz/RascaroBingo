@@ -4,9 +4,7 @@ Pop a windows saying, TAKE YOUR FUCKING PROFIT!
 Add change Username / Mail functionnality in the admin pannel also ResetPassword. (Add the mail reset password)
 Correct the search user bug in admin Panel.
 Add the email authentification code when trying to create en account.
-Add the subscription page.
+Add the subscription page. (Now do the right subscription and link it to paypal
 
-Add the Bingo multiple pages layout and edit title if user is prenium
-Add a canevas to the option if user is normal user.
 
 Add a $ icon to all paid functionnality in the about pages.
