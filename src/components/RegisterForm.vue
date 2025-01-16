@@ -17,10 +17,12 @@
         <div class="register-form-group">
           <label class="register-form-label" for="register-email">Email:</label>
           <input class="register-form-input" 
+                 :class="{ 'error': emailError }"
                  type="email" 
                  id="register-email" 
                  v-model="email" 
                  required>
+          <span class="register-form-error-text" v-if="emailError">{{ emailError }}</span>
         </div>
         <div class="register-form-group">
           <label class="register-form-label" for="register-password">Password:</label>
@@ -54,8 +56,7 @@
 </template>
 <script>
 import '../assets/styles/RegisterForm.css';
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed } from 'vue';
 import api from '@/services/api'; 
 
 export default {
@@ -67,32 +68,66 @@ export default {
     }
   },
   setup(props, { emit }) {
-    const router = useRouter();
     const username = ref('');
     const email = ref('');
     const password = ref('');
     const isLoading = ref(false);
     const message = ref('');
     const isError = ref(false);
+    const emailError = ref('');
+
+    const isValidEmail = computed(() => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email.value);
+    });
+
+    const validateEmail = async () => {
+      emailError.value = '';
+      
+      if (!isValidEmail.value) {
+        emailError.value = 'Please enter a valid email address';
+        return false;
+      }
+
+      try {
+        const { exists } = await api.checkEmail(email.value);
+        if (exists) {
+          emailError.value = 'This email is already registered';
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error('Email validation error:', error);
+        emailError.value = 'Error checking email availability';
+        return false;
+      }
+    };
 
     const handleRegister = async () => {
       isLoading.value = true;
       message.value = '';
       isError.value = false;
 
+      // Validate email before proceeding
+      if (!await validateEmail()) {
+        isLoading.value = false;
+        isError.value = true;
+        message.value = emailError.value;
+        return;
+      }
+
       try {
-        const response = await api.register({
+        await api.register({
           username: username.value,
           email: email.value,
           password: password.value
         });
         
-        console.log('Registration successful:', response);
-        message.value = 'Registration successful!';
+        message.value = 'Registration successful! Please check your email to verify your account.';
         
+        // Don't redirect immediately, wait for email verification
         setTimeout(() => {
           closeForm();
-          router.push('/');
         }, 2000);
       } catch (error) {
         console.error('Registration error:', error);
@@ -103,14 +138,14 @@ export default {
       }
     };
 
-
     const closeForm = () => {
-      emit('close');
       username.value = '';
       email.value = '';
       password.value = '';
       message.value = '';
       isError.value = false;
+      emailError.value = '';
+      emit('close');
     };
 
     return {
@@ -120,9 +155,21 @@ export default {
       isLoading,
       message,
       isError,
+      emailError,
       handleRegister,
       closeForm
     };
   }
 };
 </script>
+<style scoped>
+.register-form-input.error {
+  border-color: #ff4444;
+}
+
+.register-form-error-text {
+  color: #ff4444;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+</style>
