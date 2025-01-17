@@ -182,7 +182,7 @@ export default {
       const response = await api.get('/users/me');
       if (response && response.data) {
         console.log('✅ User data retrieved:', response.data);
-        return response;
+        return response.data;
       }
       throw new Error('No user data received');
     } catch (error) {
