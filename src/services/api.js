@@ -11,8 +11,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // Use the new api.rascarobingo.com domain in production
 const baseURL = isProduction
-  ? 'https://api.rascarobingo.com/api'
-  : 'http://localhost:3004/api';
+  ? 'https://api.rascarobingo.com'
+  : 'http://localhost:3004';
 
 console.log('🌍 API URL:', baseURL);
 
