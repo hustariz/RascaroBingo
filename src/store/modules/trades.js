@@ -69,7 +69,7 @@ export default {
           trade.potentialLoss = -tradeSize;
         }
 
-        const response = await fetch(`${API_URL}/trades`, {
+        const response = await fetch(`${API_URL}/api/trades`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${API_URL}/trades`, {
+        const response = await fetch(`${API_URL}/api/trades`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -133,7 +133,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/trades/${tradeId}/status`, {
+      const response = await fetch(`${API_URL}/api/trades/${tradeId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/trades/${trade._id}`, {
+      const response = await fetch(`${API_URL}/api/trades/${trade._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/trades/${tradeId}`, {
+      const response = await fetch(`${API_URL}/api/trades/${tradeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
