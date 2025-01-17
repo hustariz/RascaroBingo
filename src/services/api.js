@@ -7,34 +7,40 @@ if (!API_URL) {
   console.error('❌ VUE_APP_API_URL is not defined in environment');
 }
 
-const baseURL = process.env.NODE_ENV === 'production'
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Use the new api.rascarobingo.com domain in production
+const baseURL = isProduction
   ? 'https://api.rascarobingo.com'
   : 'http://localhost:3004';
 
 const api = axios.create({
-  baseURL: `${baseURL}/api`,
+  baseURL,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
   },
   withCredentials: true
 });
 
-// Add request interceptor
+// Add a request interceptor to include the auth token
 api.interceptors.request.use(
-  config => {
+  (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  error => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Add response interceptor with retry logic
+// Add a response interceptor to handle errors
 api.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
     const originalRequest = error.config;
 
     // Handle 401 errors with retry logic
@@ -58,6 +64,32 @@ api.interceptors.response.use(
           return Promise.resolve({ data: JSON.parse(cachedData) });
         }
       }
+    }
+
+    if (error.response) {
+      // Handle specific error cases
+      switch (error.response.status) {
+        case 401:
+          // Unauthorized - clear token and redirect to login
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+          break;
+        case 403:
+          // Forbidden
+          console.error('Access forbidden');
+          break;
+        case 404:
+          // Not found
+          console.error('Resource not found');
+          break;
+        default:
+          console.error('API Error:', error.response.data);
+      }
+    } else if (error.request) {
+      // Network error
+      console.error('Network Error:', error.request);
+    } else {
+      console.error('Error:', error.message);
     }
     return Promise.reject(error);
   }
@@ -113,7 +145,7 @@ export default {
       logoutTime: new Date().toISOString()
     };
     localStorage.setItem('lastSession', JSON.stringify(lastSession));
-    
+
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     localStorage.removeItem('tokenExpires');
@@ -141,11 +173,11 @@ export default {
       const token = localStorage.getItem('token');
       const username = localStorage.getItem('username');
       console.log('🎟️ Token:', token ? 'present' : 'missing');
-      
+
       if (!token) {
         return null;
       }
-  
+
       try {
         const response = await api.get('/users/me');
         console.log('✅ Auth check successful:', response.data);
@@ -205,7 +237,7 @@ export default {
       throw error;
     }
   },
-  
+
   async updateUserPremiumStatus(userId, isPaidUser) {
     try {
       const response = await api.put('/users/premium-status', { userId, isPaidUser });
@@ -215,7 +247,7 @@ export default {
       throw error;
     }
   },
-  
+
   // Email verification methods
   checkEmail(email) {
     return api.post('/auth/check-email', { email })
@@ -274,7 +306,7 @@ export default {
         throw error;
       });
   },
-  
+
   async updateBingoCell(index, cellData) {
     try {
       console.log('📝 Updating cell:', index);
