@@ -23,6 +23,10 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
   refreshTokens: [{
     token: String,
     expiresAt: Date,
@@ -49,10 +53,6 @@ const UserSchema = new mongoose.Schema({
       dailyProfit: { type: Number, default: 0 }, 
       dailyLoss: { type: Number, default: 0 }
     }
-  },
-  isEmailVerified: {
-    type: Boolean,
-    default: false
   },
   emailVerificationToken: String,
   emailVerificationExpires: Date

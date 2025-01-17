@@ -11,6 +11,9 @@
         <div :class="['user-badge', userInfo?.isPaidUser ? 'premium-badge' : 'normal-badge']">
           {{ userInfo?.isPaidUser ? 'Premium User ⭐' : 'Normal User' }}
         </div>
+        <div v-if="userInfo?.isEmailVerified" class="user-badge verified-badge">
+          Email Verified ✓
+        </div>
         <p>
           Customize your <strong>trader profile</strong> and track your <strong>achievements</strong>!
         </p>
@@ -172,5 +175,11 @@ li::before {
   background: linear-gradient(45deg, #2c3e50, #34495e);
   color: white;
   box-shadow: 0 2px 10px rgba(52, 73, 94, 0.3);
+}
+
+.verified-badge {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  color: white;
+  box-shadow: 0 2px 10px rgba(52, 152, 219, 0.3);
 }
 </style>
