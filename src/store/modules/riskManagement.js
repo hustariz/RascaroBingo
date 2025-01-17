@@ -173,7 +173,7 @@ export default {
           return;
         }
 
-        const response = await fetch(`${API_URL}/risk-management/`, {
+        const response = await fetch(`${API_URL}/api/risk-management/`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -226,7 +226,7 @@ export default {
           ? Math.round(currentTradeSize * 1.2) 
           : Math.round(currentTradeSize * 0.8);
 
-          const response = await fetch(`${API_URL}/risk-management/update`, {
+          const response = await fetch(`${API_URL}/api/risk-management/update`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -258,7 +258,7 @@ export default {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-          const response = await fetch(`${API_URL}/risk-management/settings`, {
+          const response = await fetch(`${API_URL}/api/risk-management/settings`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

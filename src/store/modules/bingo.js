@@ -199,7 +199,7 @@ export default {
         if (token) {
           try {
             console.log('🔄 [LOAD] Found token, loading from server...');
-            const response = await fetch(`${API_URL}/bingo/card`, {
+            const response = await fetch(`${API_URL}/api/bingo/card`, {
               headers: {
                 'Authorization': `Bearer ${token}`
               }
@@ -274,7 +274,8 @@ export default {
         const stateToSave = {
           bingoPages: [defaultState],
           currentPageIndex: 0,
-          lastModified: new Date().toISOString()
+          lastModified: new Date().toISOString(),
+          version: '2.0'
         };
 
         commit('SET_PAGES', [defaultState]);
@@ -290,7 +291,7 @@ export default {
       }
     },
 
-    async saveCardState({ state}) {
+    async saveCardState({ state }) {
       console.log('📤 [SAVE] Starting saveCardState');
       try {
         // Format pages data
@@ -335,7 +336,7 @@ export default {
         const token = localStorage.getItem('token');
         if (token) {
           try {
-            const response = await fetch(`${API_URL}/bingo/card`, {
+            const response = await fetch(`${API_URL}/api/bingo/card`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
