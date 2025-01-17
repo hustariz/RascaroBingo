@@ -1,20 +1,15 @@
 import axios from 'axios';
 
-const API_URL = process.env.VUE_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || process.env.VUE_APP_API_URL;
 console.log('🌍 Using API URL:', API_URL);
 
 if (!API_URL) {
-  console.error('❌ VUE_APP_API_URL is not defined in environment');
+  console.error('❌ No API URL defined in environment');
 }
 
-const isProduction = process.env.NODE_ENV === 'production';
-
-// Use the new api.rascarobingo.com domain in production
-const baseURL = isProduction
-  ? 'https://api.rascarobingo.com'
-  : 'http://localhost:3004';
-
-console.log('🌍 API URL:', baseURL);
+// Use the API URL with /api prefix
+const baseURL = `${API_URL}/api`;
+console.log('🌍 Base URL:', baseURL);
 
 const api = axios.create({
   baseURL,
