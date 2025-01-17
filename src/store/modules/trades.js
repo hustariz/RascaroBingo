@@ -1,6 +1,10 @@
 // store/modules/trades.js
-const API_URL = process.env.VUE_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || process.env.VUE_APP_API_URL;
 console.log('🌍 Trades using API URL:', API_URL);
+
+if (!API_URL) {
+  console.error('❌ No API URL defined in environment');
+}
 
 export default {
   namespaced: true,
@@ -62,7 +66,7 @@ export default {
           trade.potentialLoss = -tradeSize;
         }
 
-        const response = await fetch(`${API_URL}/api/trades`, {
+        const response = await fetch(`${API_URL}/trades`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -98,7 +102,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${API_URL}/api/trades`, {
+        const response = await fetch(`${API_URL}/trades`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -126,7 +130,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/api/trades/${tradeId}/status`, {
+      const response = await fetch(`${API_URL}/trades/${tradeId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +157,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/api/trades/${trade._id}`, {
+      const response = await fetch(`${API_URL}/trades/${trade._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +184,7 @@ export default {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/api/trades/${tradeId}`, {
+      const response = await fetch(`${API_URL}/trades/${tradeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

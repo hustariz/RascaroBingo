@@ -1,10 +1,11 @@
 // store/modules/riskManagement.js
-const API_URL = process.env.VUE_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || process.env.VUE_APP_API_URL;
 console.log('🌍 Using API URL:', API_URL);
 
 if (!API_URL) {
-  console.error('❌ VITE_API_URL is not defined in environment');
+  console.error('❌ No API URL defined in environment');
 }
+
 export default {
   namespaced: true,
   state: {
@@ -169,7 +170,7 @@ export default {
           return;
         }
 
-        const response = await fetch(`${API_URL}/api/risk-management/`, {
+        const response = await fetch(`${API_URL}/risk-management/`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -222,7 +223,7 @@ export default {
           ? Math.round(currentTradeSize * 1.2) 
           : Math.round(currentTradeSize * 0.8);
 
-          const response = await fetch(`${API_URL}/api/risk-management/update`, {
+          const response = await fetch(`${API_URL}/risk-management/update`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -254,7 +255,7 @@ export default {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-          const response = await fetch(`${API_URL}/api/risk-management/settings`, {
+          const response = await fetch(`${API_URL}/risk-management/settings`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
