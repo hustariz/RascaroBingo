@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || process.env.VUE_APP_API_URL;
+const API_URL = process.env.VUE_APP_API_URL || 
+  (typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_URL : undefined) || 
+  'https://api.rascarobingo.com';
+
 console.log('🌍 Bingo using API URL:', API_URL);
 
 if (!API_URL) {

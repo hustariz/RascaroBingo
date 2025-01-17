@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || process.env.VUE_APP_API_URL;
-console.log('🌍 Using API URL:', API_URL);
+// Try to get API URL from different environment variable formats
+const API_URL = process.env.VUE_APP_API_URL || 
+  (typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_URL : undefined) || 
+  'https://api.rascarobingo.com';
 
-if (!API_URL) {
-  console.error('❌ No API URL defined in environment');
-}
+console.log('🌍 Using API URL:', API_URL);
 
 // Use the API URL with /api prefix
 const baseURL = `${API_URL}/api`;
