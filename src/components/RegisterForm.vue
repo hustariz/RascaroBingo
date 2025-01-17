@@ -27,10 +27,21 @@
         <div class="register-form-group">
           <label class="register-form-label" for="register-password">Password:</label>
           <input class="register-form-input" 
+                 :class="{ 'error': passwordError }"
                  type="password" 
                  id="register-password" 
                  v-model="password" 
                  required>
+        </div>
+        <div class="register-form-group">
+          <label class="register-form-label" for="register-confirm-password">Confirm Password:</label>
+          <input class="register-form-input" 
+                 :class="{ 'error': passwordError }"
+                 type="password" 
+                 id="register-confirm-password" 
+                 v-model="confirmPassword" 
+                 required>
+          <span class="register-form-error-text" v-if="passwordError">{{ passwordError }}</span>
         </div>
         <div class="register-form-actions">
           <button class="register-form-submit" 
@@ -71,10 +82,12 @@ export default {
     const username = ref('');
     const email = ref('');
     const password = ref('');
+    const confirmPassword = ref('');
     const isLoading = ref(false);
     const message = ref('');
     const isError = ref(false);
     const emailError = ref('');
+    const passwordError = ref('');
 
     const isValidEmail = computed(() => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -103,18 +116,31 @@ export default {
       }
     };
 
+    const validatePasswords = () => {
+      passwordError.value = '';
+      
+      if (password.value.length < 6) {
+        passwordError.value = 'Password must be at least 6 characters long';
+        return false;
+      }
+
+      if (password.value !== confirmPassword.value) {
+        passwordError.value = 'Passwords do not match';
+        return false;
+      }
+
+      return true;
+    };
+
     const handleRegister = async () => {
-      isLoading.value = true;
       message.value = '';
       isError.value = false;
-
-      // Validate email before proceeding
-      if (!await validateEmail()) {
-        isLoading.value = false;
-        isError.value = true;
-        message.value = emailError.value;
+      
+      if (!await validateEmail() || !validatePasswords()) {
         return;
       }
+
+      isLoading.value = true;
 
       try {
         await api.register({
@@ -124,27 +150,39 @@ export default {
         });
         
         message.value = 'Registration successful! Please check your email to verify your account.';
+        isError.value = false;
         
-        // Don't redirect immediately, wait for email verification
+        // Reset form
+        username.value = '';
+        email.value = '';
+        password.value = '';
+        confirmPassword.value = '';
+        
+        // Close form after a delay
         setTimeout(() => {
           closeForm();
         }, 2000);
+        
       } catch (error) {
         console.error('Registration error:', error);
+        message.value = error.message || 'Registration failed. Please try again.';
         isError.value = true;
-        message.value = error.response?.data?.msg || 'Registration failed';
       } finally {
         isLoading.value = false;
       }
     };
 
     const closeForm = () => {
+      // Reset form
       username.value = '';
       email.value = '';
       password.value = '';
+      confirmPassword.value = '';
       message.value = '';
       isError.value = false;
       emailError.value = '';
+      passwordError.value = '';
+      
       emit('close');
     };
 
@@ -152,10 +190,12 @@ export default {
       username,
       email,
       password,
+      confirmPassword,
       isLoading,
       message,
       isError,
       emailError,
+      passwordError,
       handleRegister,
       closeForm
     };
