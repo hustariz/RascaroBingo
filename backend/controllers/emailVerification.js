@@ -68,33 +68,50 @@ const sendVerificationEmail = async (user, token) => {
       address: process.env.EMAIL_USER
     },
     to: user.email,
-    subject: 'Verify your RascaroBingo account',
+    subject: '✨ Welcome to RascaroBingo - Please Verify Your Email',
+    headers: {
+      'X-Entity-Ref-ID': token,
+      'List-Unsubscribe': `<mailto:${process.env.EMAIL_USER}?subject=unsubscribe>`,
+      'Precedence': 'bulk'
+    },
     html: `
-      <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-        <h2 style="color: #eeb111; text-align: center;">Welcome to RascaroBingo!</h2>
-        <p>Hello ${user.username},</p>
-        <p>Thank you for registering with RascaroBingo. Please verify your email address by clicking the button below:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${verificationUrl}" 
-             style="background-color: #eeb111; 
-                    color: black; 
-                    padding: 12px 24px; 
-                    text-decoration: none; 
-                    border-radius: 25px;
-                    font-weight: bold;">
-            Verify Email Address
-          </a>
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; background-color: #1a1a1a; color: #ffffff;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #eeb111; font-size: 32px; margin: 0;">RascaroBingo</h1>
+          <p style="color: #888888; margin-top: 5px;">Transform Your Trading Journey</p>
         </div>
-        <p>If the button doesn't work, you can also click on this link:</p>
-        <p><a href="${verificationUrl}">${verificationUrl}</a></p>
-        <p>This verification link will expire in 24 hours.</p>
-        <p>If you didn't create an account with RascaroBingo, please ignore this email.</p>
+        <div style="background-color: #2a2a2a; border-radius: 10px; padding: 30px; margin-bottom: 30px;">
+          <h2 style="color: #eeb111; text-align: center; margin-top: 0;">Welcome to RascaroBingo!</h2>
+          <p>Hello ${user.username},</p>
+          <p>Thank you for joining RascaroBingo! To get started and ensure the security of your account, please verify your email address by clicking the button below:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationUrl}" 
+               style="background-color: #eeb111; 
+                      color: black; 
+                      padding: 15px 30px; 
+                      text-decoration: none; 
+                      border-radius: 25px;
+                      font-weight: bold;
+                      display: inline-block;">
+              Verify Email Address
+            </a>
+          </div>
+          <p style="margin-bottom: 5px;">If the button doesn't work, you can copy and paste this link into your browser:</p>
+          <p style="background-color: #1a1a1a; padding: 10px; border-radius: 5px; word-break: break-all;">
+            <a href="${verificationUrl}" style="color: #eeb111; text-decoration: none;">${verificationUrl}</a>
+          </p>
+          <p style="color: #888888; font-size: 14px; margin-top: 20px;">This verification link will expire in 24 hours for security reasons.</p>
+        </div>
+        <div style="text-align: center; color: #888888; font-size: 12px;">
+          <p>If you didn't create an account with RascaroBingo, please ignore this email.</p>
+          <p> 2025 RascaroBingo. All rights reserved.</p>
+        </div>
       </div>
     `
   };
 
   try {
-    console.log('📧 Attempting to send email:', {
+    console.log(' Attempting to send email:', {
       to: user.email,
       from: process.env.EMAIL_USER,
       frontendUrl: process.env.FRONTEND_URL,
@@ -108,7 +125,7 @@ const sendVerificationEmail = async (user, token) => {
     });
     
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', {
+    console.log(' Email sent successfully:', {
       messageId: info.messageId,
       response: info.response,
       accepted: info.accepted,
@@ -116,7 +133,7 @@ const sendVerificationEmail = async (user, token) => {
     });
     return true;
   } catch (error) {
-    console.error('❌ Detailed email error:', {
+    console.error(' Detailed email error:', {
       code: error.code,
       command: error.command,
       response: error.response,

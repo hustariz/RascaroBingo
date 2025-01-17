@@ -32,7 +32,9 @@ const corsOptions = {
     'http://localhost:8080',
     'http://localhost:3004',
     'https://rascarobingo.onrender.com',
-    'https://rascarobingo-wley.onrender.com'
+    'https://rascarobingo-wley.onrender.com',
+    'https://rascarobingo.com',
+    'https://www.rascarobingo.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
