@@ -14,7 +14,7 @@ router.post('/card', auth, bingoController.updateCard);
 router.patch('/card/cell/:index', auth, bingoController.updateCell);
 
 // Add error handling middleware
-router.use((err, req, res, next) => {
+router.use((err, req, res) => {
   console.error('🚨 Bingo route error:', {
     path: req.path,
     method: req.method,
