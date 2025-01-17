@@ -9,9 +9,9 @@
       <div v-else-if="verified" class="verification-status success">
         <i class="fas fa-check-circle"></i>
         <h2>Email Verified!</h2>
-        <p>Your email has been successfully verified. You can now access all features of your account.</p>
-        <button @click="goToHome" class="verification-button">
-          Go to Homepage
+        <p>Your email has been successfully verified. Please log in to access your account.</p>
+        <button @click="openLoginForm" class="btn-primary">
+          Log In
         </button>
       </div>
       
@@ -19,11 +19,19 @@
         <i class="fas fa-exclamation-circle"></i>
         <h2>Verification Failed</h2>
         <p>{{ errorMessage }}</p>
-        <button v-if="canResend" @click="handleResend" class="verification-button">
+        <button v-if="canResend" @click="handleResend" class="btn-primary">
           Resend Verification Email
         </button>
       </div>
     </div>
+
+    <!-- Login Form -->
+    <LoginForm 
+      :isOpen="isLoginFormOpen" 
+      @close="closeLoginForm"
+      @openRegister="showRegisterForm"
+      @login-success="handleLoginSuccess"
+    />
   </div>
 </template>
 
@@ -31,9 +39,13 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
+import LoginForm from './LoginForm.vue';
 
 export default {
   name: 'EmailVerification',
+  components: {
+    LoginForm
+  },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -41,6 +53,7 @@ export default {
     const verified = ref(false);
     const errorMessage = ref('');
     const canResend = ref(false);
+    const isLoginFormOpen = ref(false);
 
     const verifyEmail = async (token) => {
       try {
@@ -66,7 +79,15 @@ export default {
       }
     };
 
-    const goToHome = () => {
+    const openLoginForm = () => {
+      isLoginFormOpen.value = true;
+    };
+
+    const closeLoginForm = () => {
+      isLoginFormOpen.value = false;
+    };
+
+    const handleLoginSuccess = () => {
       router.push('/');
     };
 
@@ -86,7 +107,10 @@ export default {
       errorMessage,
       canResend,
       handleResend,
-      goToHome
+      isLoginFormOpen,
+      openLoginForm,
+      closeLoginForm,
+      handleLoginSuccess
     };
   }
 };
@@ -94,65 +118,75 @@ export default {
 
 <style scoped>
 .email-verification {
-  min-height: 100vh;
+  min-height: calc(100vh - 60px); /* Adjust for navbar */
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.8);
+  padding: 20px;
 }
 
 .verification-container {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgb(238, 175, 17);
+  background: rgba(0, 0, 0, 0.85);
   border-radius: 15px;
-  padding: 2rem;
+  padding: 30px;
   max-width: 500px;
   width: 90%;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(238, 175, 17, 0.2);
+  box-shadow: 0 0 20px rgba(238, 177, 17, 0.2);
+  border: 2px solid #eeb111;
 }
 
 .verification-status {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  color: white;
+  text-align: center;
 }
 
 .verification-status i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.verification-status.success i {
-  color: #4CAF50;
-}
-
-.verification-status.error i {
-  color: #ff4444;
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: #eeb111;
 }
 
 .verification-status h2 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: rgb(238, 175, 17);
+  color: #eeb111;
+  margin-bottom: 15px;
+  font-size: 24px;
 }
 
-.verification-button {
-  background: rgba(238, 175, 17, 0.8);
+.verification-status p {
+  color: #ffffff;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.btn-primary {
+  background-color: #eeb111;
   color: black;
   border: none;
-  padding: 0.8rem 1.5rem;
+  padding: 12px 24px;
   border-radius: 25px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 1rem;
+  font-size: 16px;
+  margin-top: 10px;
 }
 
-.verification-button:hover {
-  background: rgb(238, 175, 17);
+.btn-primary:hover {
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(238, 177, 17, 0.3);
+}
+
+.success i {
+  color: #eeb111;
+}
+
+.error i {
+  color: #ff4444;
+}
+
+@media (max-width: 768px) {
+  .verification-container {
+    width: 95%;
+    padding: 20px;
+  }
 }
 </style>
