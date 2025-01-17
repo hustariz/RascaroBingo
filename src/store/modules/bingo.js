@@ -1,5 +1,10 @@
-const API_URL = process.env.VUE_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || process.env.VUE_APP_API_URL;
 console.log('🌍 Bingo using API URL:', API_URL);
+
+if (!API_URL) {
+  console.error('❌ No API URL defined in environment');
+}
+
 export default {
   namespaced: true,
 
@@ -191,7 +196,7 @@ export default {
         if (token) {
           try {
             console.log('🔄 [LOAD] Found token, loading from server...');
-            const response = await fetch(`${API_URL}/api/bingo/card`, {
+            const response = await fetch(`${API_URL}/bingo/card`, {
               headers: {
                 'Authorization': `Bearer ${token}`
               }
@@ -327,7 +332,7 @@ export default {
         const token = localStorage.getItem('token');
         if (token) {
           try {
-            const response = await fetch(`${API_URL}/api/bingo/card`, {
+            const response = await fetch(`${API_URL}/bingo/card`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
