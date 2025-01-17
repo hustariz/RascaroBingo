@@ -3,8 +3,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const history = require('connect-history-api-fallback');
+
+// Log environment status (without sensitive info)
+console.log('Environment Variables Status:', {
+  hasEmailUser: !!process.env.EMAIL_USER,
+  hasEmailPassword: !!process.env.EMAIL_PASSWORD,
+  frontendUrl: process.env.FRONTEND_URL,
+  nodeEnv: process.env.NODE_ENV
+});
 
 // Initialize express app
 const app = express();
@@ -15,6 +23,7 @@ const userRoutes = require('./routes/userRoutes');
 const bingoRoutes = require('./routes/bingo');
 const tradeRoutes = require('./routes/tradeRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
+const emailVerificationRoutes = require('./routes/emailVerification');
 const { initializeScheduler } = require('./services/schedulerService');
 
 // CORS Configuration
@@ -95,6 +104,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
+app.use('/api/auth', emailVerificationRoutes);
 
 // 2. API Info Route
 app.get('/api', (req, res) => {
