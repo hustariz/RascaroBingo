@@ -7,8 +7,12 @@ if (!API_URL) {
   console.error('❌ VUE_APP_API_URL is not defined in environment');
 }
 
+const baseURL = process.env.NODE_ENV === 'production'
+  ? 'https://api.rascarobingo.com'
+  : 'http://localhost:3004';
+
 const api = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: `${baseURL}/api`,
   headers: {
     'Content-Type': 'application/json'
   },
