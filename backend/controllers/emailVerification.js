@@ -8,24 +8,38 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
   console.error('Required variables:', {
     EMAIL_USER: !!process.env.EMAIL_USER,
     EMAIL_PASSWORD: !!process.env.EMAIL_PASSWORD,
-    FRONTEND_URL: !!process.env.FRONTEND_URL
+    FRONTEND_URL: process.env.FRONTEND_URL || 'not set'
   });
 }
 
 // Create email transporter
+console.log('📧 Creating email transporter with config:', {
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    hasPassword: !!process.env.EMAIL_PASSWORD
+  }
+});
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
   },
-  debug: true // Enable debug logs
+  debug: true,
+  logger: true // Enable built-in logger
 });
 
 // Verify transporter configuration
 transporter.verify(function(error) {
   if (error) {
-    console.error('❌ Email transporter verification failed:', error);
+    console.error('❌ Email transporter verification failed:', {
+      error: error.message,
+      code: error.code,
+      command: error.command,
+      stack: error.stack
+    });
   } else {
     console.log('✅ Email transporter verified successfully');
   }
@@ -46,6 +60,7 @@ const generateVerificationToken = () => {
 // Send verification email
 const sendVerificationEmail = async (user, token) => {
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+  console.log('🔗 Generated verification URL:', verificationUrl);
 
   const mailOptions = {
     from: {
@@ -79,22 +94,35 @@ const sendVerificationEmail = async (user, token) => {
   };
 
   try {
-    console.log('Attempting to send email to:', user.email);
-    console.log('Using SMTP configuration:', {
-      service: transporter.options.service,
-      user: process.env.EMAIL_USER
+    console.log('📧 Attempting to send email:', {
+      to: user.email,
+      from: process.env.EMAIL_USER,
+      frontendUrl: process.env.FRONTEND_URL,
+      smtpConfig: {
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          hasPassword: !!process.env.EMAIL_PASSWORD
+        }
+      }
     });
     
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.response);
+    console.log('✅ Email sent successfully:', {
+      messageId: info.messageId,
+      response: info.response,
+      accepted: info.accepted,
+      rejected: info.rejected
+    });
     return true;
   } catch (error) {
-    console.error('Detailed email error:', {
+    console.error('❌ Detailed email error:', {
       code: error.code,
       command: error.command,
       response: error.response,
       responseCode: error.responseCode,
-      stack: error.stack
+      stack: error.stack,
+      smtpError: error.message
     });
     throw error;
   }
