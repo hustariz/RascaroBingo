@@ -13,7 +13,7 @@ router.post('/card', auth, bingoController.updateCard);
 router.put('/cell', auth, bingoController.updateCell);
 
 // Error handling middleware
-router.use((err, req, res, next) => {
+router.use((err, req, res) => {
   console.error(' Bingo route error:', err);
   res.status(500).json({
     success: false,

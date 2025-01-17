@@ -20,6 +20,7 @@ import {
   faBrain,
   faCheckCircle
 } from '@fortawesome/free-solid-svg-icons'
+
 import router from './router'
 import api from '@/services/api'
 import '@fortawesome/fontawesome-free/css/all.css'
@@ -42,6 +43,8 @@ library.add(
   faBrain,
   faCheckCircle
 )
+library.add(faUser, faSignOutAlt, faCog, faDice, faEnvelope, faChartBar, faTrophy, faStore, faCircleQuestion, faExclamationCircle, faCreditCard, faLock)
+
 
 const app = createApp(App)
 app.component('font-awesome-icon', FontAwesomeIcon)

@@ -13,23 +13,31 @@
         <p>{{ message || 'This feature is only available to premium users' }}</p>
         <div class="premium-lock-features">
           <div class="premium-lock-feature">
-            <i class="fas fa-layer-group"></i>
-            <span>Multiple Bingo Pages</span>
+            <i class="fas fa-th"></i>
+            <span>Unlimited Customisable Bingo Boards</span>
           </div>
           <div class="premium-lock-feature">
-            <i class="fas fa-edit"></i>
-            <span>Custom Page Names</span>
+            <i class="fas fa-chart-line"></i>
+            <span>Advanced Analytics</span>
           </div>
           <div class="premium-lock-feature">
-            <i class="fas fa-sync-alt"></i>
-            <span>Sync Across Devices</span>
+            <i class="fas fa-comments"></i>
+            <span>Access to Live Chatbox</span>
           </div>
           <div class="premium-lock-feature">
-            <i class="fas fa-share-alt"></i>
-            <span>Export and Share your Board to Users</span>
+            <i class="fas fa-headset"></i>
+            <span>Priority Support</span>
+          </div>
+          <div class="premium-lock-feature">
+            <i class="fas fa-file-export"></i>
+            <span>Export and Share Bingo Boards</span>
+          </div>
+          <div class="premium-lock-feature">
+            <i class="fas fa-chart-pie"></i>
+            <span>Success Analysis of your Bingo Strategy</span>
           </div>
         </div>
-        <button @click="$emit('upgradePremium')" class="premium-lock-upgrade">
+        <button @click="handleUpgrade" class="premium-lock-upgrade">
           <i class="fas fa-star"></i>
           Upgrade to Premium
         </button>
@@ -39,6 +47,8 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router'
+
 export default {
   name: 'PremiumLock',
   props: {
@@ -49,6 +59,17 @@ export default {
     message: {
       type: String,
       default: ''
+    }
+  },
+  setup() {
+    const router = useRouter()
+    
+    const handleUpgrade = () => {
+      router.push('/payment')
+    }
+
+    return {
+      handleUpgrade
     }
   }
 }

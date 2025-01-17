@@ -2,6 +2,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const emailVerificationController = require('./emailVerification');
 
 exports.login = async (req, res) => {
   const { username, password } = req.body;
@@ -68,71 +69,55 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
   try {
-      const { username, email, password } = req.body;
+    const { username, email, password } = req.body;
 
-      // Check if user already exists
-      let user = await User.findOne({ username });
-      if (user) {
-          return res.status(400).json({ msg: 'User already exists' });
-      }
+    // Check if user already exists
+    const existingUser = await User.findOne({ 
+      $or: [
+        { username: username },
+        { email: email }
+      ]
+    });
 
-      // Check if email is already in use
-      user = await User.findOne({ email });
-      if (user) {
-          return res.status(400).json({ msg: 'Email already in use' });
-      }
-
-      // Create new user
-      user = new User({
-          username,
-          email,
-          password
+    if (existingUser) {
+      return res.status(400).json({
+        msg: existingUser.username === username ? 
+          'Username already exists' : 
+          'Email already registered'
       });
+    }
 
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Save user
-      await user.save();
+    // Create new user
+    const user = new User({
+      username,
+      email,
+      password: hashedPassword
+    });
 
-      // Create JWT payload
-      const payload = {
-          user: {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              isPaidUser: user.isPaidUser
-          }
-      };
+    // Save user
+    await user.save();
 
-      // Generate token
-      const token = jwt.sign(
-          payload,
-          process.env.JWT_SECRET,
-          { expiresIn: '24h' }
-      );
+    // Send verification email
+    const emailSent = await emailVerificationController.sendVerification(user);
 
-      // Initialize refresh tokens array
-      user.refreshTokens = [{
-          token,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          lastUsed: new Date()
-      }];
-
-      await user.save();
-
-      // Send response
-      res.status(201).json({
-          token,
-          username: user.username,
-          email: user.email,
-          isPaidUser: user.isPaidUser
+    if (!emailSent) {
+      // If email fails, still create account but inform user
+      console.error('Failed to send verification email to:', email);
+      return res.status(201).json({
+        msg: 'Account created but verification email failed to send. Please try resending the verification email later.'
       });
+    }
 
-  } catch (err) {
-      console.error('Registration Error:', err);
-      res.status(500).json({ msg: 'Server error during registration' });
+    res.status(201).json({
+      msg: 'Registration successful! Please check your email to verify your account.'
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ msg: 'Server error during registration' });
   }
 };
 
