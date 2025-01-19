@@ -16,6 +16,11 @@ router.post('/refresh-token', userController.refreshToken);
 // Admin routes (Auth + Admin required)
 router.get('/all', auth, adminAuth, userController.getAllUsers);
 router.put('/premium-status', auth, adminAuth, userController.updateUserPremiumStatus);
+router.put('/admin-status', auth, adminAuth, userController.updateUserAdminStatus);
+router.put('/email', auth, adminAuth, userController.updateUserEmail);
+router.post('/send-verification', auth, adminAuth, userController.sendVerificationEmail);
+router.put('/username', auth, adminAuth, userController.updateUsername);
+router.delete('/:userId', auth, adminAuth, userController.deleteUser);
 
 // Error handling middleware
 router.use((err, req, res, next) => {
