@@ -55,7 +55,9 @@ const UserSchema = new mongoose.Schema({
       lastTradeDate: Date,
       trades: { type: Number, default: 0 },
       wins: { type: Number, default: 0 },
-      losses: { type: Number, default: 0 }
+      losses: { type: Number, default: 0 },
+      dailyProfit: { type: Number, default: 0 },
+      dailyLoss: { type: Number, default: 0 }
     },
     totalStats: {
       trades: { type: Number, default: 0 },

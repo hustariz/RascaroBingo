@@ -23,13 +23,19 @@ exports.createTrade = async (req, res) => {
 
 exports.getTrades = async (req, res) => {
   try {
-    console.log('🔍 [TRADE] Getting trades for user:', req.user.id);
-    const trades = await Trade.find({ user: req.user.id }).sort({ createdAt: -1 });
-    console.log('✅ [TRADE] Found trades:', trades.length);
+    const userId = req.user.id;
+    const trades = await Trade.find({ user: userId })
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .exec();
+    
     res.json(trades);
   } catch (error) {
-    console.error('❌ [TRADE] Error getting trades:', error);
-    res.status(500).json({ msg: error.message });
+    console.error('Error fetching trades:', error);
+    res.status(500).json({ 
+      success: false, 
+      msg: 'Error fetching trades',
+      error: error.message 
+    });
   }
 };
 
@@ -48,7 +54,7 @@ exports.saveTrade = async (req, res) => {
       riskRewardRatio
     } = req.body;
 
-    console.log('📝 [TRADE] Saving new trade:', { 
+    console.log(' [TRADE] Saving new trade:', { 
       userId: req.user.id,
       pair,
       isLong
@@ -76,7 +82,7 @@ exports.saveTrade = async (req, res) => {
 
     // Save the trade
     const savedTrade = await trade.save();
-    console.log('✅ [TRADE] Trade saved:', savedTrade._id);
+    console.log(' [TRADE] Trade saved:', savedTrade._id);
 
     // Find the user and update their trade history
     const user = await User.findById(req.user.id);
@@ -123,7 +129,7 @@ exports.saveTrade = async (req, res) => {
       stats
     });
   } catch (error) {
-    console.error('❌ [TRADE] Error saving trade:', error);
+    console.error(' [TRADE] Error saving trade:', error);
     res.status(500).json({ msg: error.message });
   }
 };
@@ -134,20 +140,31 @@ exports.updateTradeStatus = async (req, res) => {
     const { status } = req.body;
     const userId = req.user.id;
 
-    console.log('🔄 [TRADE] Update request:', { 
+    console.log(' [TRADE] Update request:', { 
       tradeId,
       status,
-      userId,
-      headers: req.headers
+      userId
     });
 
-    // First verify the trade exists
-    const trade = await Trade.findById(tradeId);
+    // First verify the trade exists and get user data
+    const [trade, user] = await Promise.all([
+      Trade.findById(tradeId),
+      User.findById(userId)
+    ]);
+
     if (!trade) {
-      console.error('❌ [TRADE] Trade not found:', tradeId);
+      console.error(' [TRADE] Trade not found:', tradeId);
       return res.status(404).json({ 
         success: false,
         msg: 'Trade not found' 
+      });
+    }
+
+    if (!user) {
+      console.error(' [TRADE] User not found:', userId);
+      return res.status(404).json({
+        success: false,
+        msg: 'User not found'
       });
     }
 
@@ -155,87 +172,207 @@ exports.updateTradeStatus = async (req, res) => {
     const tradeUserId = trade.user.toString();
     const requestUserId = userId.toString();
 
-    console.log('🔍 [TRADE] Ownership check:', {
-      tradeId,
-      tradeUserId,
-      requestUserId,
-      isMatch: tradeUserId === requestUserId,
-      tradeStatus: trade.status
-    });
-
     // Verify user owns this trade
     if (tradeUserId !== requestUserId) {
-      console.error('🚫 [TRADE] Unauthorized:', { 
+      console.error(' [TRADE] Unauthorized:', { 
         tradeId,
         tradeUserId,
         requestUserId
       });
       return res.status(403).json({ 
         success: false,
-        msg: 'Not authorized',
-        error: 'You do not own this trade'
+        msg: 'Not authorized'
       });
     }
 
     // Verify valid status transition
     if (trade.status !== 'OPEN') {
-      console.error('❌ [TRADE] Invalid status transition:', {
+      console.error(' [TRADE] Invalid status transition:', {
         tradeId,
         currentStatus: trade.status,
         requestedStatus: status
       });
       return res.status(400).json({
         success: false,
-        msg: 'Cannot update status of a closed trade',
-        error: 'Trade is already closed'
+        msg: 'Cannot update status of a closed trade'
       });
     }
 
-    // Update the trade
-    trade.status = status;
-    await trade.save();
-    console.log('✅ [TRADE] Status updated:', {
-      tradeId,
-      newStatus: status
-    });
-
-    // Calculate profit/loss
-    const profitLoss = status === 'TARGET_HIT' ? trade.potentialProfit : 
-                      status === 'STOPLOSS_HIT' ? -trade.potentialLoss : 0;
-
-    // Update user stats
-    const stats = await calculateUserStats(requestUserId);
-    console.log('📊 [TRADE] Stats updated:', stats);
-
-    // Update risk management
-    const user = await User.findById(requestUserId);
-    if (user?.riskManagement) {
-      if (status === 'TARGET_HIT') {
-        user.riskManagement.tradeStreak = (user.riskManagement.tradeStreak || 0) + 1;
-        user.riskManagement.totalStats.wins = (user.riskManagement.totalStats.wins || 0) + 1;
-      } else if (status === 'STOPLOSS_HIT') {
-        user.riskManagement.tradeStreak = 0;
-        user.riskManagement.slTaken = (user.riskManagement.slTaken || 0) + 1;
-        user.riskManagement.totalStats.losses = (user.riskManagement.totalStats.losses || 0) + 1;
-      }
-      user.riskManagement.totalStats.trades = (user.riskManagement.totalStats.trades || 0) + 1;
-      await user.save();
-      console.log('📈 [TRADE] Risk management updated:', user.riskManagement);
+    // Calculate profit/loss based on trade details
+    let profitLoss = 0;
+    const tradeSize = user.riskManagement.baseTradeSize;
+    
+    if (status === 'TARGET_HIT') {
+      // For longs: (target - entry) * trade size
+      // For shorts: (entry - target) * trade size
+      const priceDiff = trade.isLong 
+        ? trade.takeProfit - trade.entryPrice
+        : trade.entryPrice - trade.takeProfit;
+      profitLoss = Math.abs(priceDiff * tradeSize);
+    } else if (status === 'STOPLOSS_HIT') {
+      // For longs: (stoploss - entry) * trade size
+      // For shorts: (entry - stoploss) * trade size
+      const priceDiff = trade.isLong
+        ? trade.stopLoss - trade.entryPrice
+        : trade.entryPrice - trade.stopLoss;
+      profitLoss = -Math.abs(priceDiff * tradeSize);
     }
 
-    // Send response
+    console.log(' [TRADE] Calculated P/L:', {
+      status,
+      profitLoss,
+      details: {
+        isLong: trade.isLong,
+        entry: trade.entryPrice,
+        target: trade.takeProfit,
+        stoploss: trade.stopLoss,
+        tradeSize
+      }
+    });
+
+    // Update the trade
+    trade.status = status;
+    trade.realizedPnL = profitLoss;
+    await trade.save();
+
+    // Update user stats
+    const stats = await calculateUserStats(userId);
+    console.log(' [TRADE] Updated stats:', stats);
+
+    // Check stoploss limit before updating
+    if (status === 'STOPLOSS_HIT' && user.riskManagement.slTaken >= 3) {
+      return res.status(400).json({
+        success: false,
+        msg: 'Daily stoploss limit reached (3/3)',
+        error: 'Cannot take more than 3 stoplosses per day'
+      });
+    }
+
+    // Update total stats
+    user.riskManagement.totalStats = {
+      ...user.riskManagement.totalStats,
+      trades: stats.trades,
+      wins: stats.wins,
+      losses: stats.losses,
+      totalGain: stats.totalGain,
+      totalRisk: stats.totalRisk,
+      totalReward: stats.totalReward,
+      averageRR: stats.averageRR
+    };
+
+    // Update daily stats
+    const today = new Date();
+    const lastTradeDate = user.riskManagement.dailyStats?.lastTradeDate ? new Date(user.riskManagement.dailyStats.lastTradeDate) : null;
+
+    // Reset daily stats if it's a new day
+    if (!lastTradeDate || lastTradeDate.getDate() !== today.getDate()) {
+      user.riskManagement.dailyStats = {
+        lastTradeDate: today,
+        trades: 1,
+        wins: status === 'TARGET_HIT' ? 1 : 0,
+        losses: status === 'STOPLOSS_HIT' ? 1 : 0,
+        dailyProfit: profitLoss > 0 ? profitLoss : 0,
+        dailyLoss: profitLoss < 0 ? Math.abs(profitLoss) : 0
+      };
+    } else {
+      // Update existing daily stats
+      const currentStats = user.riskManagement.dailyStats || {};
+      user.riskManagement.dailyStats = {
+        lastTradeDate: today,
+        trades: (currentStats.trades || 0) + 1,
+        wins: status === 'TARGET_HIT' 
+          ? (currentStats.wins || 0) + 1 
+          : (currentStats.wins || 0),
+        losses: status === 'STOPLOSS_HIT'
+          ? (currentStats.losses || 0) + 1
+          : (currentStats.losses || 0),
+        dailyProfit: profitLoss > 0 
+          ? (currentStats.dailyProfit || 0) + profitLoss
+          : (currentStats.dailyProfit || 0),
+        dailyLoss: profitLoss < 0
+          ? (currentStats.dailyLoss || 0) + Math.abs(profitLoss)
+          : (currentStats.dailyLoss || 0)
+      };
+    }
+
+    const netPL = (user.riskManagement.dailyStats.dailyProfit || 0) - (user.riskManagement.dailyStats.dailyLoss || 0);
+    console.log(' [TRADE] Daily stats updated:', {
+      ...user.riskManagement.dailyStats,
+      profitLoss,
+      netPL
+    });
+
+    // Update trade streak and trade size
+    if (status === 'TARGET_HIT') {
+      const currentStreak = parseInt(user.riskManagement.tradeStreak || 0);
+      if (currentStreak < 0) {
+        // When winning from negative streak, go to 0 first
+        user.riskManagement.tradeStreak = 0;
+      } else {
+        // When at 0 or in positive streak, increment
+        user.riskManagement.tradeStreak = Math.min(currentStreak + 1, 3);
+      }
+      user.riskManagement.baseTradeSize = Math.round(user.riskManagement.baseTradeSize * 1.2);
+    } else if (status === 'STOPLOSS_HIT') {
+      const currentStreak = parseInt(user.riskManagement.tradeStreak || 0);
+      if (currentStreak >= 0) {
+        // If in positive or neutral streak, move down one level
+        user.riskManagement.tradeStreak = currentStreak - 1;
+      } else {
+        // If in negative streak, move down one level (min -3)
+        user.riskManagement.tradeStreak = Math.max(-3, currentStreak - 1);
+      }
+      user.riskManagement.slTaken = Math.min((user.riskManagement.slTaken || 0) + 1, 3);
+      user.riskManagement.baseTradeSize = Math.round(user.riskManagement.baseTradeSize * 0.8);
+    }
+
+    // Update account size and recalculate percentage
+    user.riskManagement.accountSize = Math.round(user.riskManagement.accountSize + profitLoss);
+    user.riskManagement.currentPercentage = (user.riskManagement.baseTradeSize / user.riskManagement.accountSize) * 100;
+
+    // Save changes
+    await Promise.all([
+      trade.save(),
+      user.save()
+    ]);
+
+    console.log(' [TRADE] Risk management updated:', {
+      dailyStats: {
+        ...user.riskManagement.dailyStats,
+        netPL
+      },
+      totalStats: user.riskManagement.totalStats,
+      accountSize: user.riskManagement.accountSize,
+      settings: user.riskManagement.settings,
+      slTaken: user.riskManagement.slTaken,
+      tradeStreak: user.riskManagement.tradeStreak,
+      baseTradeSize: user.riskManagement.baseTradeSize,
+      currentPercentage: user.riskManagement.currentPercentage
+    });
+
     res.json({ 
       success: true,
-      trade: trade.toJSON(),
-      stats,
+      trade,
+      stats: {
+        ...stats,
+        tradeStreak: user.riskManagement.tradeStreak,
+        slTaken: user.riskManagement.slTaken,
+        accountSize: user.riskManagement.accountSize,
+        baseTradeSize: user.riskManagement.baseTradeSize,
+        currentPercentage: user.riskManagement.currentPercentage,
+        dailyStats: {
+          ...user.riskManagement.dailyStats,
+          netPL
+        }
+      },
       profitLoss
     });
   } catch (error) {
-    console.error('❌ [TRADE] Error:', error);
+    console.error(' [TRADE] Error updating trade status:', error);
     res.status(500).json({ 
       success: false,
-      msg: 'Server error while updating trade',
-      error: error.message 
+      msg: 'Server error',
+      error: error.message
     });
   }
 };
@@ -245,16 +382,15 @@ exports.deleteTrade = async (req, res) => {
     const { tradeId } = req.params;
     const userId = req.user.id;
 
-    console.log('🗑️ [TRADE] Delete request:', { 
+    console.log(' [TRADE] Delete request:', { 
       tradeId,
-      userId,
-      headers: req.headers
+      userId
     });
 
     // First verify the trade exists
     const trade = await Trade.findById(tradeId);
     if (!trade) {
-      console.error('❌ [TRADE] Trade not found:', tradeId);
+      console.error(' [TRADE] Trade not found:', tradeId);
       return res.status(404).json({ 
         success: false,
         msg: 'Trade not found' 
@@ -265,7 +401,7 @@ exports.deleteTrade = async (req, res) => {
     const tradeUserId = trade.user.toString();
     const requestUserId = userId.toString();
 
-    console.log('🔍 [TRADE] Ownership check:', {
+    console.log(' [TRADE] Ownership check:', {
       tradeId,
       tradeUserId,
       requestUserId,
@@ -274,7 +410,7 @@ exports.deleteTrade = async (req, res) => {
 
     // Verify user owns this trade
     if (tradeUserId !== requestUserId) {
-      console.error('🚫 [TRADE] Unauthorized:', { 
+      console.error(' [TRADE] Unauthorized:', { 
         tradeId,
         tradeUserId,
         requestUserId
@@ -288,11 +424,11 @@ exports.deleteTrade = async (req, res) => {
 
     // Delete the trade
     await Trade.findByIdAndDelete(tradeId);
-    console.log('✅ [TRADE] Deleted:', tradeId);
+    console.log(' [TRADE] Deleted:', tradeId);
 
     // Update user stats
     const stats = await calculateUserStats(requestUserId);
-    console.log('📊 [TRADE] Stats updated:', stats);
+    console.log(' [TRADE] Stats updated:', stats);
 
     // Send response
     res.json({ 
@@ -301,7 +437,7 @@ exports.deleteTrade = async (req, res) => {
       stats
     });
   } catch (error) {
-    console.error('❌ [TRADE] Error:', error);
+    console.error(' [TRADE] Error:', error);
     res.status(500).json({ 
       success: false,
       msg: 'Server error while deleting trade',

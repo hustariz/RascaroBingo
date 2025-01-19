@@ -20,11 +20,13 @@ export default {
   },
   mutations: {
     SET_TRADES(state, trades) {
-      // Map MongoDB _id to id for frontend consistency
-      state.trades = trades.map(trade => ({
-        ...trade,
-        id: trade._id
-      }));
+      // Map MongoDB _id to id for frontend consistency and sort by newest first
+      state.trades = trades
+        .map(trade => ({
+          ...trade,
+          id: trade._id
+        }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     },
     ADD_TRADE(state, trade) {
       // Map MongoDB _id to id for frontend consistency
@@ -77,12 +79,14 @@ export default {
     async saveTrade({ commit }, trade) {
       try {
         commit('SET_LOADING', true);
+        console.log('Saving trade:', trade);
+        
         const response = await api.post('/trades', trade);
         const { trade: savedTrade, stats } = response.data;
         
         commit('ADD_TRADE', savedTrade);
         if (stats) {
-          commit('riskManagement/SET_TOTAL_STATS', stats, { root: true });
+          commit('riskManagement/SET_RISK_MANAGEMENT', { data: stats }, { root: true });
         }
         
         commit('SET_LOADING', false);
@@ -94,38 +98,35 @@ export default {
       }
     },
 
-    async updateTradeStatus({ commit }, { tradeId, status }) {
+    async updateTradeStatus({ commit, dispatch }, { tradeId, status }) {
       try {
         commit('SET_LOADING', true);
         console.log('🔄 Updating trade status:', { tradeId, status });
         
         const response = await api.put(`/trades/${tradeId}/status`, { status });
-        console.log('✅ Trade status update response:', response.data);
+        const { trade, stats } = response.data;
         
-        const { trade: updatedTrade, stats } = response.data;
+        if (!trade) {
+          throw new Error('No trade data received from server');
+        }
         
-        commit('UPDATE_TRADE', updatedTrade);
+        // First update trade in store
+        commit('UPDATE_TRADE', {
+          ...trade,
+          id: trade._id || trade.id
+        });
+        
+        // Then ensure risk management is updated
         if (stats) {
-          commit('riskManagement/SET_TOTAL_STATS', stats, { root: true });
+          await dispatch('riskManagement/fetchRiskManagement', null, { root: true });
         }
         
         commit('SET_LOADING', false);
-        return response.data;
+        return { trade, stats };
       } catch (error) {
         commit('SET_ERROR', error.message);
         commit('SET_LOADING', false);
-        
-        // Check if it's an auth error
-        if (error.response?.status === 401) {
-          console.error('🔒 Authentication error:', error.response.data);
-          throw new Error('Please log in again');
-        } else if (error.response?.status === 403) {
-          console.error('🚫 Authorization error:', error.response.data);
-          throw new Error('Not authorized to update this trade');
-        } else {
-          console.error('❌ Error updating trade status:', error);
-          throw new Error('Failed to update trade status');
-        }
+        throw error;
       }
     },
 
@@ -137,7 +138,7 @@ export default {
         
         commit('UPDATE_TRADE', updatedTrade);
         if (stats) {
-          commit('riskManagement/SET_TOTAL_STATS', stats, { root: true });
+          commit('riskManagement/SET_RISK_MANAGEMENT', { data: stats }, { root: true });
         }
         
         commit('SET_LOADING', false);

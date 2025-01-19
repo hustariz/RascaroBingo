@@ -1,7 +1,7 @@
 // store/modules/riskManagement.js
 const API_URL = process.env.VUE_APP_API_URL || 
   (typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_URL : undefined) || 
-  'https://api.rascarobingo.com';
+  'http://localhost:3004';
 
 console.log('🌍 Using API URL:', API_URL);
 
@@ -14,174 +14,102 @@ export default {
   state: {
     accountSize: 10000,
     baseTradeSize: 1000,
-    adjustedTradeSize: 1000,
+    currentPercentage: 10,
     tradeStreak: 0,
     slTaken: 0,
-    currentPercentage: 10,
+    lastUpdate: null,
     dailyStats: {
       lastTradeDate: null,
-      dailyTradeCount: 0,
-      dailyLoss: 0,
-      dailyProfit: 0
+      trades: 0,
+      wins: 0,
+      losses: 0,
+      dailyProfit: 0,
+      dailyLoss: 0
+    },
+    totalStats: {
+      trades: 0,
+      wins: 0,
+      losses: 0,
+      totalGain: 0,
+      totalRisk: 0,
+      totalReward: 0,
+      averageRR: 0
     },
     settings: {
       maxDailyLoss: 500,
       maxTradesPerDay: 3
     }
   },
+
   mutations: {
-    SET_RISK_MANAGEMENT(state, { data, status, profitLoss }) {
+    SET_RISK_MANAGEMENT(state, { data }) {
       if (!data) return;
       
-      // Update account size
-      state.accountSize = data.accountSize;
+      console.log('Setting risk management with data:', data);
       
-      // For initial load
-      if (!status) {
-        Object.assign(state, {
-          ...data,
-          baseTradeSize: data.baseTradeSize || state.baseTradeSize,
-          adjustedTradeSize: data.baseTradeSize || state.baseTradeSize,
-          currentPercentage: ((data.baseTradeSize || state.baseTradeSize) / data.accountSize) * 100
-        });
-      } else if (status === 'TARGET_HIT') {
-        // Increase trade size by 20%
-        const newTradeSize = Math.round(state.baseTradeSize * 1.2);
-        
-        Object.assign(state, {
-          ...data,
-          slTaken: state.slTaken,
-          baseTradeSize: newTradeSize,
-          adjustedTradeSize: newTradeSize,
-          currentPercentage: (newTradeSize / data.accountSize) * 100,
-          dailyStats: {
-            ...state.dailyStats,
-            lastTradeDate: data.dailyStats?.lastTradeDate || state.dailyStats.lastTradeDate,
-            dailyTradeCount: (state.dailyStats.dailyTradeCount || 0) + 1,
-            dailyLoss: data.dailyStats?.dailyLoss || state.dailyStats.dailyLoss,
-            dailyProfit: (state.dailyStats.dailyProfit || 0) + profitLoss
-          }
-        });
-      } else if (status === 'STOPLOSS_HIT') {
-        // Decrease trade size by 20%
-        const newTradeSize = Math.round(state.baseTradeSize * 0.8);
-        
-        Object.assign(state, {
-          ...data,
-          baseTradeSize: newTradeSize,
-          adjustedTradeSize: newTradeSize,
-          currentPercentage: (newTradeSize / data.accountSize) * 100,
-          dailyStats: {
-            ...state.dailyStats,
-            lastTradeDate: data.dailyStats?.lastTradeDate || state.dailyStats.lastTradeDate,
-            dailyTradeCount: (state.dailyStats.dailyTradeCount || 0) + 1,
-            dailyLoss: (state.dailyStats.dailyLoss || 0) + Math.abs(profitLoss),
-            dailyProfit: state.dailyStats?.dailyProfit || 0
-          }
+      state.accountSize = data.accountSize;
+      state.baseTradeSize = data.baseTradeSize;
+      state.currentPercentage = data.currentPercentage;
+      state.tradeStreak = data.tradeStreak;
+      state.slTaken = data.slTaken;
+      
+      // Update daily stats with all fields
+      if (data.dailyStats) {
+        state.dailyStats = {
+          lastTradeDate: data.dailyStats.lastTradeDate,
+          trades: data.dailyStats.trades || 0,
+          wins: data.dailyStats.wins || 0,
+          losses: data.dailyStats.losses || 0,
+          dailyProfit: data.dailyStats.dailyProfit || 0,
+          dailyLoss: data.dailyStats.dailyLoss || 0
+        };
+        console.log('Daily stats updated:', state.dailyStats);
+      }
+
+      // Update total stats
+      if (data.totalStats) {
+        state.totalStats = {
+          trades: data.totalStats.trades || 0,
+          wins: data.totalStats.wins || 0,
+          losses: data.totalStats.losses || 0,
+          totalGain: data.totalStats.totalGain || 0,
+          totalRisk: data.totalStats.totalRisk || 0,
+          totalReward: data.totalStats.totalReward || 0,
+          averageRR: data.totalStats.averageRR || 0
+        };
+      }
+
+      // Log streak transitions for debugging
+      if (state.tradeStreak !== data.tradeStreak) {
+        console.log('Streak transition:', {
+          old: state.tradeStreak,
+          new: data.tradeStreak,
+          change: data.tradeStreak - state.tradeStreak,
+          timestamp: new Date().toISOString()
         });
       }
       
-      console.log('Trade size adjusted:', {
-        accountSize: state.accountSize,
-        currentPercentage: state.currentPercentage,
-        baseTradeSize: state.baseTradeSize,
-        adjustedTradeSize: state.adjustedTradeSize,
-        status
-      });
+      if (data.settings) {
+        state.settings = {
+          ...state.settings,
+          ...data.settings
+        };
+      }
+      
+      console.log('Risk management updated:', state);
     },
 
     UPDATE_TRADE_SIZE(state, newSize) {
       state.baseTradeSize = newSize;
-      state.adjustedTradeSize = newSize;
       state.currentPercentage = (newSize / state.accountSize) * 100;
-      console.log('Manual trade size update:', {
-        newSize,
-        newPercentage: state.currentPercentage
-      });
-    },
-
-    SET_TOTAL_STATS(state, stats) {
-      if (!stats) return;
-      
-      // Update account size and other stats
-      state.accountSize = stats.accountSize || state.accountSize;
-      state.baseTradeSize = stats.baseTradeSize || state.baseTradeSize;
-      state.adjustedTradeSize = stats.adjustedTradeSize || state.adjustedTradeSize;
-      state.currentPercentage = stats.currentPercentage || state.currentPercentage;
-      
-      // Update daily stats if provided
-      if (stats.dailyStats) {
-        state.dailyStats = {
-          ...state.dailyStats,
-          ...stats.dailyStats
-        };
-      }
-      
-      console.log('Updated total stats:', stats);
     },
 
     SET_ACCOUNT_SIZE(state, size) {
-      console.log('SET_ACCOUNT_SIZE mutation called:', { oldSize: state.accountSize, newSize: size });
       state.accountSize = size;
-      // Recalculate percentage when account size changes
       state.currentPercentage = (state.baseTradeSize / size) * 100;
-    },
-
-    UPDATE_AFTER_TRADE(state, { status, profitLoss }) {
-      console.log('UPDATE_AFTER_TRADE mutation started:', {
-        status,
-        profitLoss,
-        currentState: { ...state }
-      });
-      
-      // Update streak and SL count
-      if (status === 'TARGET_HIT') {
-        const oldStreak = state.tradeStreak;
-        state.tradeStreak = Math.min(state.tradeStreak + 1, 3);
-        state.baseTradeSize = Math.round(state.baseTradeSize * 1.2);
-        state.adjustedTradeSize = state.baseTradeSize;
-        state.dailyStats.dailyProfit += profitLoss;
-        console.log('Target hit updates:', {
-          streakChange: `${oldStreak} -> ${state.tradeStreak}`,
-          newTradeSize: state.baseTradeSize,
-          slTaken: state.slTaken,
-          dailyProfit: state.dailyStats.dailyProfit
-        });
-      } else if (status === 'STOPLOSS_HIT') {
-        const oldStreak = state.tradeStreak;
-        state.tradeStreak = Math.max(state.tradeStreak - 1, -3);
-        state.baseTradeSize = Math.round(state.baseTradeSize * 0.8);
-        state.adjustedTradeSize = state.baseTradeSize;
-        state.slTaken++;
-        state.dailyStats.dailyLoss += Math.abs(profitLoss);
-        console.log('Stoploss hit updates:', {
-          streakChange: `${oldStreak} -> ${state.tradeStreak}`,
-          newTradeSize: state.baseTradeSize,
-          slTaken: state.slTaken,
-          dailyLoss: state.dailyStats.dailyLoss
-        });
-      }
-
-      // Update daily stats
-      const today = new Date().toDateString();
-      if (state.dailyStats.lastTradeDate !== today) {
-        console.log('New trading day detected, resetting daily stats');
-        state.dailyStats = {
-          lastTradeDate: today,
-          dailyTradeCount: 1,
-          dailyLoss: status === 'STOPLOSS_HIT' ? Math.abs(profitLoss) : 0,
-          dailyProfit: status === 'TARGET_HIT' ? profitLoss : 0
-        };
-        state.slTaken = status === 'STOPLOSS_HIT' ? 1 : 0;
-      } else {
-        state.dailyStats.dailyTradeCount++;
-      }
-
-      // Update account size and recalculate percentage
-      state.accountSize = Math.round(state.accountSize + profitLoss);
-      state.currentPercentage = (state.baseTradeSize / state.accountSize) * 100;
     }
   },
+
   actions: {
     async fetchRiskManagement({ commit }) {
       try {
@@ -189,7 +117,7 @@ export default {
         if (!token) {
           console.log('No authentication token found, using default values');
           commit('SET_ACCOUNT_SIZE', 10000);
-          commit('UPDATE_TRADE_SIZE', 100);
+          commit('UPDATE_TRADE_SIZE', 1000);
           return;
         }
 
@@ -200,72 +128,43 @@ export default {
         });
 
         if (!response.ok) {
-          if (response.status === 401) {
-            console.log('Not authenticated, using default values');
-            commit('SET_ACCOUNT_SIZE', 10000);
-            commit('UPDATE_TRADE_SIZE', 100);
-          } else {
-            throw new Error('Failed to fetch risk management data');
-          }
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Fetched risk management data:', data);
+        commit('SET_RISK_MANAGEMENT', { data });
         
-        const riskManagementData = {
-          accountSize: data.accountSize || 10000,
-          baseTradeSize: data.baseTradeSize || 1000,
-          adjustedTradeSize: data.baseTradeSize || 1000, // Simplified: adjusted = base
-          tradeStreak: data.tradeStreak || 0,
-          slTaken: data.slTaken || 0,
-          currentPercentage: ((data.baseTradeSize || 1000) / (data.accountSize || 10000)) * 100,
-          dailyStats: data.dailyStats || {
-            lastTradeDate: null,
-            dailyTradeCount: 0,
-            dailyLoss: 0,
-            dailyProfit: 0
-          }
-        };
-
-        commit('SET_RISK_MANAGEMENT', { data: riskManagementData });
-        return riskManagementData;
       } catch (error) {
-        console.error('Error fetching risk management:', error);
-        throw error;
+        console.error('Error fetching risk management data:', error);
+        commit('SET_ACCOUNT_SIZE', 10000);
+        commit('UPDATE_TRADE_SIZE', 1000);
       }
     },
 
-    async updateAfterTrade({ commit, state }, { status, profitLoss }) {
+    async updateAfterTrade({commit }, { status, profitLoss }) {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('No authentication token found');
-
-        // Calculate new trade size before making the request
-        const currentTradeSize = state.baseTradeSize;
-        const newTradeSize = status === 'TARGET_HIT' 
-          ? Math.round(currentTradeSize * 1.2) 
-          : Math.round(currentTradeSize * 0.8);
-
-          const response = await fetch(`${API_URL}/api/risk-management/update`, {
+        console.log('Updating after trade:', { status, profitLoss });
+        
+        // Send update to backend
+        const response = await fetch(`${API_URL}/api/risk-management/update`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
-          body: JSON.stringify({ 
-            status, 
-            profitLoss,
-            newTradeSize,
-            currentPercentage: (newTradeSize / (state.accountSize + profitLoss)) * 100
-          })
+          body: JSON.stringify({ status, profitLoss })
         });
 
-        if (!response.ok) throw new Error('Failed to update risk management');
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Backend error:', errorText);
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
 
         const data = await response.json();
-        console.log('Updated risk management data:', data);
+        console.log('Risk management updated with data:', data);
         
-        commit('SET_RISK_MANAGEMENT', { data, status, profitLoss });
+        commit('SET_RISK_MANAGEMENT', { data });
         return data;
       } catch (error) {
         console.error('Error updating risk management:', error);
@@ -273,29 +172,26 @@ export default {
       }
     },
 
-    async updateSettings({ commit,  }, { accountSize, baseTradeSize }) {
+    async updateSettings({ commit }, { accountSize, baseTradeSize }) {
       try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-          const response = await fetch(`${API_URL}/api/risk-management/settings`, {
+        const response = await fetch(`${API_URL}/api/risk-management/settings`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ 
-            accountSize, 
-            baseTradeSize,
-            currentPercentage: (baseTradeSize / accountSize) * 100
-          })
+          body: JSON.stringify({ accountSize, baseTradeSize })
         });
 
-        if (!response.ok) throw new Error('Failed to update settings');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
-        commit('UPDATE_TRADE_SIZE', baseTradeSize);
-        commit('SET_ACCOUNT_SIZE', accountSize);
+        commit('SET_RISK_MANAGEMENT', { data });
         return data;
       } catch (error) {
         console.error('Error updating settings:', error);
@@ -305,18 +201,17 @@ export default {
   },
 
   getters: {
-    currentTradeSize: state => state.baseTradeSize, // Simplified: no more adjusted trade size
-    basePercentage: state => ((state.baseTradeSize / state.accountSize) * 100).toFixed(1),
-    adjustedPercentage: state => ((state.baseTradeSize / state.accountSize) * 100).toFixed(1), // Same as base now
-    dailyProfitLoss: state => state.dailyStats.dailyProfit - state.dailyStats.dailyLoss,
+    dailyNet: state => {
+      const wins = state.dailyStats.wins || 0;
+      const losses = state.dailyStats.losses || 0;
+      return wins - losses;
+    },
     canTrade: state => {
       const canTrade = state.slTaken < 3 && 
-                      state.dailyStats.dailyTradeCount < state.settings.maxTradesPerDay &&
-                      state.dailyStats.dailyLoss < state.settings.maxDailyLoss;
+                      state.dailyStats.trades < state.settings.maxTradesPerDay;
       console.log('Can trade check:', {
         slTaken: state.slTaken,
-        dailyTradeCount: state.dailyStats.dailyTradeCount,
-        dailyLoss: state.dailyStats.dailyLoss,
+        dailyTrades: state.dailyStats.trades,
         result: canTrade
       });
       return canTrade;

@@ -21,7 +21,8 @@
            :class="{
               'open': trade.status === 'OPEN',
               'long': trade.isLong,
-              'short': !trade.isLong
+              'short': !trade.isLong,
+              'newest': trade === trades[0]
             }">
             <!-- Normal View -->
             <div v-if="!editingTrade || editingTrade.id !== (trade.id || trade._id)">
@@ -75,15 +76,15 @@
                     <button class="action-button delete-btn" @click="confirmDelete(trade.id)">🗑️</button>
                     <button 
                       class="action-button success-btn"
-                      @click="updateTradeStatus(trade.id, 'TARGET_HIT')"
-                      :disabled="trade.status !== 'OPEN'"
+                      @click="updateTradeStatus(trade, 'TARGET_HIT')"
+                      v-if="trade.status === 'OPEN'"
                     >
                       Target Hit ✅
                     </button>
                     <button 
                       class="action-button failure-btn"
-                      @click="updateTradeStatus(trade.id, 'STOPLOSS_HIT')"
-                      :disabled="trade.status !== 'OPEN'"
+                      @click="updateTradeStatus(trade, 'STOPLOSS_HIT')"
+                      v-if="trade.status === 'OPEN'"
                     >
                       Stoploss Hit ❌
                     </button>
@@ -138,7 +139,7 @@
 
 <script>
 import '../assets/styles/TradeHistorySection.css';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useStore } from 'vuex';
 
 export default {
@@ -155,9 +156,16 @@ export default {
   },
   setup(props) {
     const store = useStore();
-    const trades = ref([]);
+    const tradesData = ref([]);
     const loading = ref(true);
     const editingTrade = ref(null);
+
+    // Computed property to sort trades by newest first
+    const trades = computed(() => {
+      return [...tradesData.value].sort((a, b) => 
+        new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
+      );
+    });
 
     const getStatusText = (status) => {
       switch(status) {
@@ -182,7 +190,7 @@ export default {
       try {
         loading.value = true;
         const fetchedTrades = await store.dispatch('trades/fetchTrades');
-        trades.value = fetchedTrades;
+        tradesData.value = fetchedTrades;
       } catch (error) {
         console.error('Error fetching trades:', error);
       } finally {
@@ -202,27 +210,16 @@ export default {
       fetchTrades();
     }
 
-    const updateTradeStatus = async (tradeId, status) => {
+    const updateTradeStatus = async (trade, status) => {
       try {
-        console.log('Updating trade status:', { tradeId, status });
-        const { trade, stats } = await store.dispatch('trades/updateTradeStatus', { 
-          tradeId: tradeId.toString(), 
-          status 
+        console.log('Updating trade status:', { trade, status });
+        await store.dispatch('trades/updateTradeStatus', {
+          tradeId: trade.id || trade._id,
+          status
         });
-        
-        // Update risk management stats
-        if (stats) {
-          await store.dispatch('riskManagement/updateAfterTrade', {
-            status: trade.status,
-            potentialProfit: trade.potentialProfit,
-            potentialLoss: trade.potentialLoss
-          });
-        }
-        
-        await fetchTrades(); // Refresh the list after update
+        await fetchTrades(); // Refresh trades list
       } catch (error) {
         console.error('Error updating trade status:', error);
-        // TODO: Add error notification
       }
     };
 
