@@ -47,11 +47,27 @@ export default {
       
       console.log('Setting risk management with data:', data);
       
-      state.accountSize = data.accountSize;
-      state.baseTradeSize = data.baseTradeSize;
-      state.currentPercentage = data.currentPercentage;
-      state.tradeStreak = data.tradeStreak;
-      state.slTaken = data.slTaken;
+      // Update base values if they exist and are valid numbers
+      if (typeof data.accountSize === 'number' && !isNaN(data.accountSize)) {
+        state.accountSize = data.accountSize;
+      }
+      if (typeof data.baseTradeSize === 'number' && !isNaN(data.baseTradeSize)) {
+        state.baseTradeSize = data.baseTradeSize;
+      }
+      if (typeof data.currentPercentage === 'number' && !isNaN(data.currentPercentage)) {
+        state.currentPercentage = data.currentPercentage;
+      } else {
+        // Recalculate percentage if not provided
+        state.currentPercentage = Number(((state.baseTradeSize / state.accountSize) * 100).toFixed(2));
+      }
+      
+      // Update streak and SL if they exist and are valid numbers
+      if (typeof data.tradeStreak === 'number' && !isNaN(data.tradeStreak)) {
+        state.tradeStreak = data.tradeStreak;
+      }
+      if (typeof data.slTaken === 'number' && !isNaN(data.slTaken)) {
+        state.slTaken = data.slTaken;
+      }
       
       // Update daily stats with all fields
       if (data.dailyStats) {
@@ -101,12 +117,14 @@ export default {
 
     UPDATE_TRADE_SIZE(state, newSize) {
       state.baseTradeSize = newSize;
-      state.currentPercentage = (newSize / state.accountSize) * 100;
+      // Calculate new percentage based on current account size
+      state.currentPercentage = Number(((newSize / state.accountSize) * 100).toFixed(2));
     },
 
     SET_ACCOUNT_SIZE(state, size) {
       state.accountSize = size;
-      state.currentPercentage = (state.baseTradeSize / size) * 100;
+      // Recalculate percentage when account size changes
+      state.currentPercentage = Number(((state.baseTradeSize / size) * 100).toFixed(2));
     }
   },
 
