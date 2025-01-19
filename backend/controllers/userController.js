@@ -3,6 +3,62 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const emailVerificationController = require('./emailVerification');
+const Trade = require('../models/Trade');
+
+// Add this helper function to calculate stats from trade history
+const calculateTradeStats = (trades) => {
+  const stats = {
+    trades: trades.length,
+    wins: 0,
+    losses: 0,
+    totalGain: 0,
+    totalRisk: 0,
+    totalReward: 0,
+    averageRR: 0
+  };
+
+  trades.forEach(trade => {
+    // Calculate profit/loss
+    const profitLoss = trade.exitPrice - trade.entryPrice;
+    stats.totalGain += profitLoss;
+
+    // Calculate win/loss
+    if (profitLoss > 0) {
+      stats.wins++;
+    } else if (profitLoss < 0) {
+      stats.losses++;
+    }
+
+    // Calculate risk/reward
+    const risk = Math.abs(trade.stopLoss - trade.entryPrice);
+    const reward = Math.abs(trade.takeProfit - trade.entryPrice);
+    
+    stats.totalRisk += risk;
+    stats.totalReward += reward;
+  });
+
+  // Calculate average R/R ratio
+  if (stats.totalRisk > 0) {
+    stats.averageRR = stats.totalReward / stats.totalRisk;
+  }
+
+  return stats;
+};
+
+// Add this function to update user stats
+const updateUserStats = async (userId) => {
+  try {
+    const user = await User.findById(userId).populate('tradeHistory');
+    if (!user || !user.tradeHistory) return;
+
+    const stats = calculateTradeStats(user.tradeHistory);
+    
+    user.riskManagement.totalStats = stats;
+    await user.save();
+  } catch (error) {
+    console.error('Error updating user stats:', error);
+  }
+};
 
 exports.login = async (req, res) => {
   const { username, password } = req.body;
@@ -462,3 +518,86 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: 'Server error while deleting user' });
   }
 };
+
+exports.addTrade = async (req, res) => {
+  try {
+    const { entryPrice, exitPrice, stopLoss, takeProfit, notes } = req.body;
+    const userId = req.user.id;
+
+    const trade = new Trade({
+      user: userId,
+      entryPrice,
+      exitPrice,
+      stopLoss,
+      takeProfit,
+      notes
+    });
+
+    await trade.save();
+
+    // Add trade to user's history
+    const user = await User.findById(userId);
+    if (!user.tradeHistory) {
+      user.tradeHistory = [];
+    }
+    user.tradeHistory.push(trade._id);
+    await user.save();
+
+    // Update user stats
+    await updateUserStats(userId);
+
+    res.json({ trade, msg: 'Trade added successfully' });
+  } catch (error) {
+    console.error('Error adding trade:', error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+exports.getUserStats = async (req, res) => {
+  try {
+    // Get all users and select necessary fields
+    const users = await User.find({}, {
+      username: 1,
+      isPaidUser: 1,
+      'riskManagement.totalStats': 1
+    }).lean();
+
+    // Transform users data
+    const transformedUsers = users.map(user => ({
+      id: user._id,
+      username: user.username,
+      isPremium: user.isPaidUser,
+      totalTrades: user.riskManagement?.totalStats?.trades || 0,
+      totalGain: user.riskManagement?.totalStats?.totalGain || 0,
+      riskRewardRatio: user.riskManagement?.totalStats?.averageRR || 0,
+      winrate: user.riskManagement?.totalStats?.trades > 0
+        ? user.riskManagement.totalStats.wins / user.riskManagement.totalStats.trades
+        : 0
+    }));
+
+    // Sort by total trades descending
+    transformedUsers.sort((a, b) => b.totalTrades - a.totalTrades);
+
+    return res.json({ users: transformedUsers });
+  } catch (error) {
+    console.error('Error getting user stats:', error);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+exports.recalculateAllStats = async (req, res) => {
+  try {
+    const users = await User.find();
+    
+    for (const user of users) {
+      await updateUserStats(user._id);
+    }
+
+    res.json({ msg: 'All user stats recalculated successfully' });
+  } catch (error) {
+    console.error('Error recalculating stats:', error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+module.exports = exports;
