@@ -165,7 +165,8 @@ export default {
     },
 
     calculatePercentage() {
-      return this.currentPercentage ? this.currentPercentage.toFixed(2) : 0;
+      const percentage = (this.localTradeSize / this.localAccountSize) * 100;
+      return percentage.toFixed(2);
     },
 
     streakLabel() {
@@ -340,42 +341,42 @@ export default {
     watch: {
       accountSize: {
         handler(newVal) {
-          if (newVal !== this.localAccountSize) {
+          if (newVal && newVal !== this.localAccountSize) {
             this.localAccountSize = newVal;
-            this.currentPercentage = Number(this.calculatePercentage);
           }
         },
         immediate: true
       },
       baseTradeSize: {
         handler(newVal) {
-          if (newVal !== this.localTradeSize) {
+          if (newVal && newVal !== this.localTradeSize) {
             this.localTradeSize = newVal;
-            this.currentPercentage = Number(this.calculatePercentage);
           }
         },
         immediate: true
       },
-      showTooltip(newVal) {  // Changed from showResetTooltip
+      showTooltip(newVal) {
         if (newVal && this.slTaken === 3) {
-          clearTimeout(this.tooltipTimer);  // Changed from tooltipHoverTimer
-          this.askingForGrass = false;
+          // Set a timer to ask about grass after a delay
           this.tooltipTimer = setTimeout(() => {
             this.askingForGrass = true;
-          }, 5000);
+          }, 2000);
         } else {
-          clearTimeout(this.tooltipTimer);  // Changed from tooltipHoverTimer
+          if (this.tooltipTimer) {
+            clearTimeout(this.tooltipTimer);
+          }
           this.askingForGrass = false;
         }
-      },
+      }
     },
-  
-  async created() {
-    try {
-      await this.$store.dispatch('riskManagement/fetchRiskManagement');
-    } catch (error) {
-      console.error('Error initializing risk management:', error);
-    }
+
+  created() {
+    // Fetch initial risk management data
+    this.$store.dispatch('riskManagement/fetchRiskManagement');
+    
+    // Initialize local values from store
+    this.localAccountSize = this.accountSize;
+    this.localTradeSize = this.baseTradeSize;
   }
 }
 </script>
