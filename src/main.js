@@ -23,7 +23,9 @@ import {
   faTrashAlt,
   faCrown,
   faUserShield,
-  faSignOutAlt as faSignOut
+  faCheck,
+  faTimes,
+  faEdit
 } from '@fortawesome/free-solid-svg-icons'
 
 import router from './router'
@@ -51,7 +53,9 @@ library.add(
   faTrashAlt,
   faCrown,
   faUserShield,
-  faSignOut
+  faCheck,
+  faTimes,
+  faEdit
 )
 
 const app = createApp(App)
