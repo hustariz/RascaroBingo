@@ -211,7 +211,57 @@ export default {
       throw error;
     }
   },
-  
+
+  async updateUserAdminStatus(userId, isAdmin) {
+    try {
+      const response = await api.put('/users/admin-status', { userId, isAdmin });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user admin status:', error);
+      throw error;
+    }
+  },
+
+  async updateUserEmail(userId, email) {
+    try {
+      const response = await api.put('/users/email', { userId, email });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user email:', error);
+      throw error;
+    }
+  },
+
+  async sendVerificationEmail(userId) {
+    try {
+      const response = await api.post('/users/send-verification', { userId });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      throw error;
+    }
+  },
+
+  async updateUsername(userId, username) {
+    try {
+      const response = await api.put('/users/username', { userId, username });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating username:', error);
+      throw error;
+    }
+  },
+
+  async deleteUser(userId) {
+    try {
+      const response = await api.delete(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  },
+
   // Email verification methods
   checkEmail(email) {
     return api.post('/auth/check-email', { email })
