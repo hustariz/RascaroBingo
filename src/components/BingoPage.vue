@@ -246,12 +246,6 @@ export default defineComponent({
       isSidebarCollapsed: false,
       currentTradeIdea: null,
       currentSymbol: 'XRPusd',
-      rrChecks: {
-        riskReward: 0,
-        stopLoss: false,
-        entryPrice: false,
-        takeProfit: false
-      },
       localBingoCells: Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
         title: '',
@@ -278,7 +272,6 @@ export default defineComponent({
     ...mapState('bingo', ['loading']),
     ...mapGetters('bingo', [
       'getCurrentPage',
-      'getCurrentPageCells',
       'getCurrentPageIndex',
       'getAllPages'
     ]),
@@ -289,7 +282,20 @@ export default defineComponent({
     },
 
     activeScore() {
-      return this.activeCells.reduce((total, cell) => total + (cell.selected ? cell.points || 0 : 0), 0);
+      return this.activeCells.reduce((total, cell) => {
+        return total + (cell.selected ? (cell.points || 0) : 0);
+      }, 0);
+    },
+
+    rrChecks() {
+      const score = this.activeScore;
+      console.log('Computing R/R checks for score:', score);
+      return {
+        sixPoints: score >= 6 && score < 11,      // 2R/R
+        elevenPoints: score >= 11 && score < 16,  // 3R/R
+        sixteenPoints: score >= 16 && score < 20, // 4R/R
+        twentyPoints: score >= 20                 // 5R/R (Hidden Bingo)
+      };
     },
 
     currentPageName: {
@@ -474,7 +480,8 @@ export default defineComponent({
         } else if (widget.component === 'TradeDetailsSection') {
           widget.props = { ...widget.props,
             tradeIdea: this.currentTradeIdea,
-            tradingSymbol: this.currentSymbol
+            tradingSymbol: this.currentSymbol,
+            rrChecks: this.rrChecks
           };
         }
       }
@@ -506,9 +513,9 @@ export default defineComponent({
     },
 
     async handleCellClick(cellIndex) {
-      const cells = this.getCurrentPageCells;
-      if (cells && cells[cellIndex]) {
-        const cell = cells[cellIndex];
+      const currentPage = this.getCurrentPage;
+      if (currentPage && currentPage.bingoCells && currentPage.bingoCells[cellIndex]) {
+        const cell = currentPage.bingoCells[cellIndex];
         this.$store.commit('bingo/UPDATE_CELL', {
           pageIndex: this.currentPageIndex,
           cellIndex,
@@ -516,7 +523,7 @@ export default defineComponent({
         });
         await this.$store.dispatch('bingo/saveCardState');
       } else {
-        console.warn('Invalid cell index or cells not loaded:', { cellIndex, cells });
+        console.warn('Invalid cell index or cells not loaded:', { cellIndex, currentPage });
       }
     },
 
@@ -542,14 +549,14 @@ export default defineComponent({
 
         const cell = { ...currentPage.bingoCells[cellIndex], ...newData };
 
-        this.UPDATE_CELL({
+        this.$store.commit('bingo/UPDATE_CELL', {
           pageIndex: this.getCurrentPageIndex,
           cellIndex,
           cell
         });
 
         if (this.isAuthenticated) {
-          await this.saveCardState();
+          await this.$store.dispatch('bingo/saveCardState');
         } else {
           // Save to localStorage for non-authenticated users
           const bingoState = JSON.stringify(this.$store.state.bingo);
