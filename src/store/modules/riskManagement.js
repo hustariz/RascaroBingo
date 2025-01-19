@@ -1,10 +1,14 @@
 // store/modules/riskManagement.js
-const API_URL = process.env.VUE_APP_API_URL;
+const API_URL = process.env.VUE_APP_API_URL || 
+  (typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_URL : undefined) || 
+  'https://api.rascarobingo.com';
+
 console.log('🌍 Using API URL:', API_URL);
 
 if (!API_URL) {
-  console.error('❌ VITE_API_URL is not defined in environment');
+  console.error('❌ No API URL defined in environment');
 }
+
 export default {
   namespaced: true,
   state: {
