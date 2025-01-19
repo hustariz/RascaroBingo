@@ -6,9 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { 
   faUser, 
   faSignOutAlt, 
+  faCheck, 
+  faTimes, 
+  faEdit, 
+  faEnvelope, 
+  faPencilAlt, 
+  faTrashAlt,
+  faCheckCircle,
   faCog, 
   faDice, 
-  faEnvelope,
   faChartBar, 
   faTrophy, 
   faStore, 
@@ -18,14 +24,8 @@ import {
   faLock,
   faChartLine,
   faBrain,
-  faCheckCircle,
-  faPencilAlt, 
-  faTrashAlt,
   faCrown,
-  faUserShield,
-  faCheck,
-  faTimes,
-  faEdit
+  faUserShield
 } from '@fortawesome/free-solid-svg-icons'
 
 import router from './router'
@@ -34,28 +34,28 @@ import '@fortawesome/fontawesome-free/css/all.css'
 import store from './store'
 
 library.add(
-  faUser, 
-  faSignOutAlt, 
-  faCog, 
-  faDice, 
-  faEnvelope, 
-  faChartBar, 
-  faTrophy, 
-  faStore, 
-  faCircleQuestion, 
-  faExclamationCircle, 
+  faUser,
+  faSignOutAlt,
+  faCheck,
+  faTimes,
+  faEdit,
+  faEnvelope,
+  faPencilAlt,
+  faTrashAlt,
+  faCheckCircle,
+  faCog,
+  faDice,
+  faChartBar,
+  faTrophy,
+  faStore,
+  faCircleQuestion,
+  faExclamationCircle,
   faCreditCard,
   faLock,
   faChartLine,
   faBrain,
-  faCheckCircle,
-  faPencilAlt,
-  faTrashAlt,
   faCrown,
-  faUserShield,
-  faCheck,
-  faTimes,
-  faEdit
+  faUserShield
 )
 
 const app = createApp(App)
