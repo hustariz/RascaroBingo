@@ -160,8 +160,8 @@ export default {
     dailyNet() {
       if (!this.dailyStats) return 0;
       const profit = parseFloat(this.dailyStats.dailyProfit || 0);
-      const loss = parseFloat(this.dailyStats.dailyLoss || 0);
-      return profit - loss;
+      const loss = parseFloat(this.dailyStats.dailyLoss || 0); // Loss is stored as positive
+      return profit - loss; // Subtract loss since it's stored as positive
     },
 
     calculatePercentage() {
