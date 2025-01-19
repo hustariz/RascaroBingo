@@ -12,7 +12,20 @@ import {
   faEnvelope, 
   faPencilAlt, 
   faTrashAlt,
-  faCheckCircle 
+  faCheckCircle,
+  faCog, 
+  faDice, 
+  faChartBar, 
+  faTrophy, 
+  faStore, 
+  faCircleQuestion, 
+  faExclamationCircle, 
+  faCreditCard, 
+  faLock,
+  faChartLine,
+  faBrain,
+  faCrown,
+  faUserShield
 } from '@fortawesome/free-solid-svg-icons'
 
 import router from './router'
@@ -29,13 +42,26 @@ library.add(
   faEnvelope,
   faPencilAlt,
   faTrashAlt,
-  faCheckCircle
+  faCheckCircle,
+  faCog,
+  faDice,
+  faChartBar,
+  faTrophy,
+  faStore,
+  faCircleQuestion,
+  faExclamationCircle,
+  faCreditCard,
+  faLock,
+  faChartLine,
+  faBrain,
+  faCrown,
+  faUserShield
 )
 
 const app = createApp(App)
 app.component('font-awesome-icon', FontAwesomeIcon)
-app.use(store)
 app.use(router)
+app.use(store)
 
 if (api.isAuthenticated()) {
     api.checkAuth().catch(error => {
