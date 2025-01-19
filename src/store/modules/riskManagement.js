@@ -100,6 +100,26 @@ export default {
       });
     },
 
+    SET_TOTAL_STATS(state, stats) {
+      if (!stats) return;
+      
+      // Update account size and other stats
+      state.accountSize = stats.accountSize || state.accountSize;
+      state.baseTradeSize = stats.baseTradeSize || state.baseTradeSize;
+      state.adjustedTradeSize = stats.adjustedTradeSize || state.adjustedTradeSize;
+      state.currentPercentage = stats.currentPercentage || state.currentPercentage;
+      
+      // Update daily stats if provided
+      if (stats.dailyStats) {
+        state.dailyStats = {
+          ...state.dailyStats,
+          ...stats.dailyStats
+        };
+      }
+      
+      console.log('Updated total stats:', stats);
+    },
+
     SET_ACCOUNT_SIZE(state, size) {
       console.log('SET_ACCOUNT_SIZE mutation called:', { oldSize: state.accountSize, newSize: size });
       state.accountSize = size;

@@ -12,6 +12,8 @@ router.post('/login', userController.login);
 // Protected Routes (Auth required)
 router.get('/me', auth, userController.getCurrentUser);
 router.post('/refresh-token', userController.refreshToken);
+router.get('/stats', auth, userController.getUserStats);
+router.post('/stats/recalculate', auth, userController.recalculateAllStats);
 
 // Admin routes (Auth + Admin required)
 router.get('/all', auth, adminAuth, userController.getAllUsers);

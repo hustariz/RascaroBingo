@@ -258,22 +258,25 @@ export default {
         }
 
         const trade = {
-          type: this.isLong ? 'Long' : 'Short',
-          stoploss: Number(this.stoploss),
-          entry: Number(this.entry),
-          target: Number(this.target),
-          riskReward: this.currentRR,
-          tradeIdea: this.tradeIdea,
-          symbol: this.tradingSymbol,
-          timestamp: new Date().toISOString(),
-          tradeSize,
+          pair: this.tradingSymbol,
+          isLong: this.isLong,
+          entryPrice: Number(this.entry),
+          stopLoss: Number(this.stoploss),
+          takeProfit: Number(this.target),
+          notes: this.tradeIdea || '',
+          status: 'OPEN',
           potentialProfit,
-          potentialLoss: -tradeSize // Maximum loss is always the trade size
+          potentialLoss: -tradeSize,
+          riskRewardRatio: this.currentRR
         };
 
         try {
           await this.$store.dispatch('trades/saveTrade', trade);
-          console.log('💾 Saving trade:', trade);
+          console.log(' Saving trade:', trade);
+          
+          // Refresh trade history after saving
+          await this.$store.dispatch('trades/fetchTrades');
+          
           this.clearForm();
         } catch (error) {
           console.error('Error saving trade:', error);

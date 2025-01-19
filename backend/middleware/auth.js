@@ -6,7 +6,15 @@ module.exports = async (req, res, next) => {
   try {
     // Get token from header
     const authHeader = req.header('Authorization');
-    console.log(' [AUTH] Checking authorization header:', authHeader ? 'Present' : 'Missing');
+    console.log(' [AUTH] Request:', {
+      method: req.method,
+      path: req.path,
+      authHeader: authHeader ? 'Present' : 'Missing',
+      headers: {
+        ...req.headers,
+        authorization: req.headers.authorization ? 'Bearer [REDACTED]' : undefined
+      }
+    });
     
     if (!authHeader) {
       console.log(' [AUTH] No Authorization header');
@@ -33,9 +41,12 @@ module.exports = async (req, res, next) => {
     try {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log(' [AUTH] Token verified, decoded payload:', {
+      console.log(' [AUTH] Token verified:', {
         userId: decoded.user?.id,
-        username: decoded.user?.username
+        username: decoded.user?.username,
+        iat: decoded.iat,
+        exp: decoded.exp,
+        now: Math.floor(Date.now() / 1000)
       });
       
       if (!decoded.user || !decoded.user.id) {
@@ -50,7 +61,7 @@ module.exports = async (req, res, next) => {
       // Find user and verify token is still valid
       const user = await User.findById(decoded.user.id).select('-password');
       if (!user) {
-        console.log(' [AUTH] User not found');
+        console.log(' [AUTH] User not found:', decoded.user.id);
         return res.status(401).json({
           success: false,
           message: 'User not found',
@@ -65,18 +76,23 @@ module.exports = async (req, res, next) => {
         email: user.email
       };
       
-      console.log(' [AUTH] Authentication successful for user:', user.username);
+      console.log(' [AUTH] Authentication successful:', {
+        userId: user._id,
+        username: user.username,
+        method: req.method,
+        path: req.path
+      });
       next();
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        console.log(' [AUTH] Token expired');
+        console.log(' [AUTH] Token expired:', error);
         return res.status(401).json({
           success: false,
           message: 'Token expired',
           code: 'TOKEN_EXPIRED'
         });
       } else if (error.name === 'JsonWebTokenError') {
-        console.log(' [AUTH] Invalid token');
+        console.log(' [AUTH] Invalid token:', error);
         return res.status(401).json({
           success: false,
           message: 'Invalid token',

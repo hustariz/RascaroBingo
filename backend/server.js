@@ -117,12 +117,12 @@ app.get('/api', (req, res) => {
   });
 });
 
-// 3. API 404 Handler
-app.use('/api/*', (req, res) => {
-  console.log('API 404:', req.method, req.url);
+// 3. API 404 Handler - Only for /api routes that don't match any defined routes
+app.all('/api/*', (req, res) => {
+  console.log('API 404:', req.method, req.originalUrl);
   res.status(404).json({
     error: 'API Route Not Found',
-    message: `Route ${req.method} ${req.url} not found`
+    message: `Route ${req.method} ${req.originalUrl} not found`
   });
 });
 
