@@ -120,7 +120,7 @@ exports.updateRiskManagement = async (req, res) => {
         dailyLoss: status === 'STOPLOSS_HIT' ? -numericProfitLoss : 0
       };
       // On a new day, start fresh with SL counter
-      user.riskManagement.slTaken = status === 'STOPLOSS_HIT' ? 1 : 0;
+      user.riskManagement.slTaken = 0; // Always reset to 0 on new day
     } else {
       // Update existing daily stats
       user.riskManagement.dailyStats.lastTradeDate = today;
@@ -132,9 +132,6 @@ exports.updateRiskManagement = async (req, res) => {
       } else if (status === 'STOPLOSS_HIT') {
         user.riskManagement.dailyStats.losses++;
         user.riskManagement.dailyStats.dailyLoss += -numericProfitLoss;
-        // Increment SL counter by 1, max of 3
-        const currentSL = user.riskManagement.slTaken || 0;
-        user.riskManagement.slTaken = Math.min(3, currentSL + 1);
       }
     }
 
@@ -149,6 +146,8 @@ exports.updateRiskManagement = async (req, res) => {
           error: 'Cannot take more than 3 stoplosses per day'
         });
       }
+      // Increment SL counter by 1 after the check
+      user.riskManagement.slTaken = currentSL + 1;
     }
 
     // Handle streak and trade size changes

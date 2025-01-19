@@ -98,12 +98,12 @@ export default {
       }
     },
 
-    async updateTradeStatus({ commit, dispatch }, { tradeId, status }) {
+    async updateTradeStatus({ commit}, { tradeId, status, profitLoss }) {
       try {
         commit('SET_LOADING', true);
-        console.log('🔄 Updating trade status:', { tradeId, status });
+        console.log('🔄 Updating trade status:', { tradeId, status, profitLoss });
         
-        const response = await api.put(`/trades/${tradeId}/status`, { status });
+        const response = await api.put(`/trades/${tradeId}/status`, { status, profitLoss });
         const { trade, stats } = response.data;
         
         if (!trade) {
@@ -118,7 +118,7 @@ export default {
         
         // Then ensure risk management is updated
         if (stats) {
-          await dispatch('riskManagement/fetchRiskManagement', null, { root: true });
+          commit('riskManagement/SET_RISK_MANAGEMENT', { data: stats }, { root: true });
         }
         
         commit('SET_LOADING', false);

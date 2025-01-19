@@ -137,10 +137,10 @@ exports.saveTrade = async (req, res) => {
 exports.updateTradeStatus = async (req, res) => {
   try {
     const { tradeId } = req.params;
-    const { status } = req.body;
+    const { status, profitLoss } = req.body;
     const userId = req.user.id;
 
-    console.log(' [TRADE] Update request:', { 
+    console.log(' Update request:', { 
       tradeId,
       status,
       userId
@@ -153,7 +153,7 @@ exports.updateTradeStatus = async (req, res) => {
     ]);
 
     if (!trade) {
-      console.error(' [TRADE] Trade not found:', tradeId);
+      console.error(' Trade not found:', tradeId);
       return res.status(404).json({ 
         success: false,
         msg: 'Trade not found' 
@@ -161,12 +161,20 @@ exports.updateTradeStatus = async (req, res) => {
     }
 
     if (!user) {
-      console.error(' [TRADE] User not found:', userId);
+      console.error(' User not found:', userId);
       return res.status(404).json({
         success: false,
         msg: 'User not found'
       });
     }
+
+    console.log(' Ownership check:', { 
+      tradeId,
+      tradeUserId: trade.user.toString(),
+      requestUserId: userId,
+      isMatch: trade.user.toString() === userId,
+      tradeStatus: trade.status
+    });
 
     // Convert both IDs to strings for comparison
     const tradeUserId = trade.user.toString();
@@ -174,7 +182,7 @@ exports.updateTradeStatus = async (req, res) => {
 
     // Verify user owns this trade
     if (tradeUserId !== requestUserId) {
-      console.error(' [TRADE] Unauthorized:', { 
+      console.error(' Unauthorized:', { 
         tradeId,
         tradeUserId,
         requestUserId
@@ -187,7 +195,7 @@ exports.updateTradeStatus = async (req, res) => {
 
     // Verify valid status transition
     if (trade.status !== 'OPEN') {
-      console.error(' [TRADE] Invalid status transition:', {
+      console.error(' Invalid status transition:', {
         tradeId,
         currentStatus: trade.status,
         requestedStatus: status
@@ -198,177 +206,181 @@ exports.updateTradeStatus = async (req, res) => {
       });
     }
 
-    // Calculate profit/loss based on trade details
-    let profitLoss = 0;
-    const tradeSize = user.riskManagement.baseTradeSize;
-    
-    if (status === 'TARGET_HIT') {
-      // For longs: (target - entry) * trade size
-      // For shorts: (entry - target) * trade size
-      const priceDiff = trade.isLong 
-        ? trade.takeProfit - trade.entryPrice
-        : trade.entryPrice - trade.takeProfit;
-      profitLoss = Math.abs(priceDiff * tradeSize);
-    } else if (status === 'STOPLOSS_HIT') {
-      // For longs: (stoploss - entry) * trade size
-      // For shorts: (entry - stoploss) * trade size
-      const priceDiff = trade.isLong
-        ? trade.stopLoss - trade.entryPrice
-        : trade.entryPrice - trade.stopLoss;
-      profitLoss = -Math.abs(priceDiff * tradeSize);
+    // Check if we've hit the daily SL limit before processing
+    if (status === 'STOPLOSS_HIT') {
+      const currentSL = user.riskManagement.slTaken || 0;
+      if (currentSL >= 3) {
+        console.log(' Daily SL limit reached:', currentSL);
+        return res.status(400).json({
+          success: false,
+          msg: 'Daily stoploss limit reached (3/3)',
+          error: 'Cannot take more than 3 stoplosses per day'
+        });
+      }
     }
 
-    console.log(' [TRADE] Calculated P/L:', {
-      status,
-      profitLoss,
-      details: {
+    // Update trade status
+    trade.status = status;
+    await trade.save();
+    console.log('✅ [TRADE] Status updated:', { tradeId, newStatus: status });
+
+    // Calculate updated stats
+    const stats = await calculateUserStats(userId);
+    console.log('📊 [TRADE] Stats updated:', stats);
+
+    // Update risk management based on trade result
+    if (status === 'TARGET_HIT' || status === 'STOPLOSS_HIT') {
+      // Calculate actual P/L based on percentage gain/loss relative to trade size
+      const currentTradeSize = user.riskManagement.baseTradeSize || 1000;
+      let actualProfitLoss;
+      
+      if (status === 'TARGET_HIT') {
+        // For a win, calculate percentage gain from entry to target
+        const entryPrice = parseFloat(trade.entryPrice);
+        const targetPrice = parseFloat(trade.takeProfit);
+        let percentageGain;
+        
+        if (trade.isLong) {
+          percentageGain = ((targetPrice - entryPrice) / entryPrice) * 100;
+        } else {
+          // For shorts, profit is when price goes down
+          percentageGain = ((entryPrice - targetPrice) / entryPrice) * 100;
+        }
+        actualProfitLoss = (percentageGain / 100) * currentTradeSize;
+      } else {
+        // For a loss, calculate percentage loss from entry to stop
+        const entryPrice = parseFloat(trade.entryPrice);
+        const stopPrice = parseFloat(trade.stopLoss);
+        let percentageLoss;
+        
+        if (trade.isLong) {
+          percentageLoss = ((entryPrice - stopPrice) / entryPrice) * 100;
+        } else {
+          // For shorts, loss is when price goes up
+          percentageLoss = ((stopPrice - entryPrice) / entryPrice) * 100;
+        }
+        actualProfitLoss = (percentageLoss / 100) * currentTradeSize;
+      }
+
+      // Round to 2 decimal places
+      actualProfitLoss = Math.round(actualProfitLoss * 100) / 100;
+
+      console.log('💵 P/L Calculation:', {
+        status,
         isLong: trade.isLong,
         entry: trade.entryPrice,
         target: trade.takeProfit,
-        stoploss: trade.stopLoss,
-        tradeSize
-      }
-    });
-
-    // Update the trade
-    trade.status = status;
-    trade.realizedPnL = profitLoss;
-    await trade.save();
-
-    // Update user stats
-    const stats = await calculateUserStats(userId);
-    console.log(' [TRADE] Updated stats:', stats);
-
-    // Check stoploss limit before updating
-    if (status === 'STOPLOSS_HIT' && user.riskManagement.slTaken >= 3) {
-      return res.status(400).json({
-        success: false,
-        msg: 'Daily stoploss limit reached (3/3)',
-        error: 'Cannot take more than 3 stoplosses per day'
+        stop: trade.stopLoss,
+        tradeSize: currentTradeSize,
+        calculatedPL: actualProfitLoss
       });
-    }
 
-    // Update total stats
-    user.riskManagement.totalStats = {
-      ...user.riskManagement.totalStats,
-      trades: stats.trades,
-      wins: stats.wins,
-      losses: stats.losses,
-      totalGain: stats.totalGain,
-      totalRisk: stats.totalRisk,
-      totalReward: stats.totalReward,
-      averageRR: stats.averageRR
-    };
-
-    // Update daily stats
-    const today = new Date();
-    const lastTradeDate = user.riskManagement.dailyStats?.lastTradeDate ? new Date(user.riskManagement.dailyStats.lastTradeDate) : null;
-
-    // Reset daily stats if it's a new day
-    if (!lastTradeDate || lastTradeDate.getDate() !== today.getDate()) {
-      user.riskManagement.dailyStats = {
-        lastTradeDate: today,
-        trades: 1,
-        wins: status === 'TARGET_HIT' ? 1 : 0,
-        losses: status === 'STOPLOSS_HIT' ? 1 : 0,
-        dailyProfit: profitLoss > 0 ? profitLoss : 0,
-        dailyLoss: profitLoss < 0 ? Math.abs(profitLoss) : 0
-      };
-    } else {
-      // Update existing daily stats
-      const currentStats = user.riskManagement.dailyStats || {};
-      user.riskManagement.dailyStats = {
-        lastTradeDate: today,
-        trades: (currentStats.trades || 0) + 1,
-        wins: status === 'TARGET_HIT' 
-          ? (currentStats.wins || 0) + 1 
-          : (currentStats.wins || 0),
-        losses: status === 'STOPLOSS_HIT'
-          ? (currentStats.losses || 0) + 1
-          : (currentStats.losses || 0),
-        dailyProfit: profitLoss > 0 
-          ? (currentStats.dailyProfit || 0) + profitLoss
-          : (currentStats.dailyProfit || 0),
-        dailyLoss: profitLoss < 0
-          ? (currentStats.dailyLoss || 0) + Math.abs(profitLoss)
-          : (currentStats.dailyLoss || 0)
-      };
-    }
-
-    const netPL = (user.riskManagement.dailyStats.dailyProfit || 0) - (user.riskManagement.dailyStats.dailyLoss || 0);
-    console.log(' [TRADE] Daily stats updated:', {
-      ...user.riskManagement.dailyStats,
-      profitLoss,
-      netPL
-    });
-
-    // Update trade streak and trade size
-    if (status === 'TARGET_HIT') {
-      const currentStreak = parseInt(user.riskManagement.tradeStreak || 0);
-      if (currentStreak < 0) {
-        // When winning from negative streak, go to 0 first
-        user.riskManagement.tradeStreak = 0;
+      // Update account size based on actual P/L
+      const currentAccountSize = user.riskManagement.accountSize || 10000;
+      if (status === 'TARGET_HIT') {
+        user.riskManagement.accountSize = Math.round(currentAccountSize + actualProfitLoss);
       } else {
-        // When at 0 or in positive streak, increment
-        user.riskManagement.tradeStreak = Math.min(currentStreak + 1, 3);
+        user.riskManagement.accountSize = Math.round(currentAccountSize - actualProfitLoss);
       }
-      user.riskManagement.baseTradeSize = Math.round(user.riskManagement.baseTradeSize * 1.2);
-    } else if (status === 'STOPLOSS_HIT') {
+      console.log('💰 Account size updated:', {
+        oldSize: currentAccountSize,
+        newSize: user.riskManagement.accountSize,
+        profitLoss: status === 'TARGET_HIT' ? actualProfitLoss : -actualProfitLoss
+      });
+
+      // Update risk management
+      const today = new Date();
+      const lastTradeDate = user.riskManagement.dailyStats?.lastTradeDate ? new Date(user.riskManagement.dailyStats.lastTradeDate) : null;
+      const isNewDay = !lastTradeDate || 
+        lastTradeDate.getFullYear() !== today.getFullYear() ||
+        lastTradeDate.getMonth() !== today.getMonth() ||
+        lastTradeDate.getDate() !== today.getDate();
+
+      // Adjust trade size based on result (20% up for win, 20% down for loss)
+      // Only adjust if we're not at the streak limits
       const currentStreak = parseInt(user.riskManagement.tradeStreak || 0);
-      if (currentStreak >= 0) {
-        // If in positive or neutral streak, move down one level
-        user.riskManagement.tradeStreak = currentStreak - 1;
+      
+      if (status === 'TARGET_HIT' && currentStreak < 3) {
+        user.riskManagement.baseTradeSize = Math.round(currentTradeSize * 1.2); // Increase by 20%
+        console.log('📈 Trade size increased by 20%:', {
+          oldSize: currentTradeSize,
+          newSize: user.riskManagement.baseTradeSize,
+          streak: currentStreak
+        });
+      } else if (status === 'STOPLOSS_HIT' && currentStreak > -3) {
+        user.riskManagement.baseTradeSize = Math.round(currentTradeSize * 0.8); // Decrease by 20%
+        console.log('📉 Trade size decreased by 20%:', {
+          oldSize: currentTradeSize,
+          newSize: user.riskManagement.baseTradeSize,
+          streak: currentStreak
+        });
       } else {
-        // If in negative streak, move down one level (min -3)
-        user.riskManagement.tradeStreak = Math.max(-3, currentStreak - 1);
+        console.log('ℹ️ Trade size unchanged (at streak limit):', {
+          size: currentTradeSize,
+          streak: currentStreak
+        });
       }
-      user.riskManagement.slTaken = Math.min((user.riskManagement.slTaken || 0) + 1, 3);
-      user.riskManagement.baseTradeSize = Math.round(user.riskManagement.baseTradeSize * 0.8);
+
+      // Reset daily stats if it's a new day
+      if (isNewDay) {
+        user.riskManagement.dailyStats = {
+          lastTradeDate: today,
+          trades: 1,
+          wins: status === 'TARGET_HIT' ? 1 : 0,
+          losses: status === 'STOPLOSS_HIT' ? 1 : 0,
+          dailyProfit: status === 'TARGET_HIT' ? actualProfitLoss : 0,
+          dailyLoss: status === 'STOPLOSS_HIT' ? actualProfitLoss : 0
+        };
+        user.riskManagement.slTaken = status === 'STOPLOSS_HIT' ? 1 : 0;
+      } else {
+        // Update existing daily stats
+        user.riskManagement.dailyStats.lastTradeDate = today;
+        user.riskManagement.dailyStats.trades++;
+        
+        if (status === 'TARGET_HIT') {
+          user.riskManagement.dailyStats.wins++;
+          user.riskManagement.dailyStats.dailyProfit += actualProfitLoss;
+        } else if (status === 'STOPLOSS_HIT') {
+          user.riskManagement.dailyStats.losses++;
+          user.riskManagement.dailyStats.dailyLoss += actualProfitLoss;
+        }
+      }
+
+      // Update trade streak
+      if (status === 'TARGET_HIT') {
+        const currentStreak = parseInt(user.riskManagement.tradeStreak || 0);
+        // Always increment by 1, capped at +3
+        const newStreak = Math.min(3, currentStreak + 1);
+        user.riskManagement.tradeStreak = newStreak;
+        console.log('Streak after win:', {
+          oldStreak: currentStreak,
+          newStreak,
+          change: '+1'
+        });
+      } else if (status === 'STOPLOSS_HIT') {
+        const currentStreak = parseInt(user.riskManagement.tradeStreak || 0);
+        // Always decrement by 1, capped at -3
+        const newStreak = Math.max(-3, currentStreak - 1);
+        user.riskManagement.tradeStreak = newStreak;
+        console.log('Streak after loss:', {
+          oldStreak: currentStreak,
+          newStreak,
+          change: '-1'
+        });
+      }
+
+      // Save user changes
+      await user.save();
+      console.log(' Risk management updated:', user.riskManagement);
     }
-
-    // Update account size and recalculate percentage
-    user.riskManagement.accountSize = Math.round(user.riskManagement.accountSize + profitLoss);
-    user.riskManagement.currentPercentage = (user.riskManagement.baseTradeSize / user.riskManagement.accountSize) * 100;
-
-    // Save changes
-    await Promise.all([
-      trade.save(),
-      user.save()
-    ]);
-
-    console.log(' [TRADE] Risk management updated:', {
-      dailyStats: {
-        ...user.riskManagement.dailyStats,
-        netPL
-      },
-      totalStats: user.riskManagement.totalStats,
-      accountSize: user.riskManagement.accountSize,
-      settings: user.riskManagement.settings,
-      slTaken: user.riskManagement.slTaken,
-      tradeStreak: user.riskManagement.tradeStreak,
-      baseTradeSize: user.riskManagement.baseTradeSize,
-      currentPercentage: user.riskManagement.currentPercentage
-    });
 
     res.json({ 
       success: true,
       trade,
-      stats: {
-        ...stats,
-        tradeStreak: user.riskManagement.tradeStreak,
-        slTaken: user.riskManagement.slTaken,
-        accountSize: user.riskManagement.accountSize,
-        baseTradeSize: user.riskManagement.baseTradeSize,
-        currentPercentage: user.riskManagement.currentPercentage,
-        dailyStats: {
-          ...user.riskManagement.dailyStats,
-          netPL
-        }
-      },
-      profitLoss
+      stats: user.riskManagement
     });
   } catch (error) {
-    console.error(' [TRADE] Error updating trade status:', error);
+    console.error(' Error updating trade status:', error);
     res.status(500).json({ 
       success: false,
       msg: 'Server error',
@@ -382,7 +394,7 @@ exports.deleteTrade = async (req, res) => {
     const { tradeId } = req.params;
     const userId = req.user.id;
 
-    console.log(' [TRADE] Delete request:', { 
+    console.log(' Delete request:', { 
       tradeId,
       userId
     });
@@ -390,7 +402,7 @@ exports.deleteTrade = async (req, res) => {
     // First verify the trade exists
     const trade = await Trade.findById(tradeId);
     if (!trade) {
-      console.error(' [TRADE] Trade not found:', tradeId);
+      console.error(' Trade not found:', tradeId);
       return res.status(404).json({ 
         success: false,
         msg: 'Trade not found' 
@@ -401,7 +413,7 @@ exports.deleteTrade = async (req, res) => {
     const tradeUserId = trade.user.toString();
     const requestUserId = userId.toString();
 
-    console.log(' [TRADE] Ownership check:', {
+    console.log(' Ownership check:', {
       tradeId,
       tradeUserId,
       requestUserId,
@@ -410,7 +422,7 @@ exports.deleteTrade = async (req, res) => {
 
     // Verify user owns this trade
     if (tradeUserId !== requestUserId) {
-      console.error(' [TRADE] Unauthorized:', { 
+      console.error(' Unauthorized:', { 
         tradeId,
         tradeUserId,
         requestUserId
@@ -424,11 +436,11 @@ exports.deleteTrade = async (req, res) => {
 
     // Delete the trade
     await Trade.findByIdAndDelete(tradeId);
-    console.log(' [TRADE] Deleted:', tradeId);
+    console.log(' Deleted:', tradeId);
 
     // Update user stats
     const stats = await calculateUserStats(requestUserId);
-    console.log(' [TRADE] Stats updated:', stats);
+    console.log(' Stats updated:', stats);
 
     // Send response
     res.json({ 
@@ -437,7 +449,7 @@ exports.deleteTrade = async (req, res) => {
       stats
     });
   } catch (error) {
-    console.error(' [TRADE] Error:', error);
+    console.error(' Error:', error);
     res.status(500).json({ 
       success: false,
       msg: 'Server error while deleting trade',
