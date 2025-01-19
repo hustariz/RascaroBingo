@@ -230,6 +230,64 @@ exports.updateTradeStatus = async (req, res) => {
 
     // Update risk management based on trade result
     if (status === 'TARGET_HIT' || status === 'STOPLOSS_HIT') {
+      // Calculate actual P/L based on percentage gain/loss relative to trade size
+      const currentTradeSize = user.riskManagement.baseTradeSize || 1000;
+      let actualProfitLoss;
+      
+      if (status === 'TARGET_HIT') {
+        // For a win, calculate percentage gain from entry to target
+        const entryPrice = parseFloat(trade.entryPrice);
+        const targetPrice = parseFloat(trade.takeProfit);
+        let percentageGain;
+        
+        if (trade.isLong) {
+          percentageGain = ((targetPrice - entryPrice) / entryPrice) * 100;
+        } else {
+          // For shorts, profit is when price goes down
+          percentageGain = ((entryPrice - targetPrice) / entryPrice) * 100;
+        }
+        actualProfitLoss = (percentageGain / 100) * currentTradeSize;
+      } else {
+        // For a loss, calculate percentage loss from entry to stop
+        const entryPrice = parseFloat(trade.entryPrice);
+        const stopPrice = parseFloat(trade.stopLoss);
+        let percentageLoss;
+        
+        if (trade.isLong) {
+          percentageLoss = ((entryPrice - stopPrice) / entryPrice) * 100;
+        } else {
+          // For shorts, loss is when price goes up
+          percentageLoss = ((stopPrice - entryPrice) / entryPrice) * 100;
+        }
+        actualProfitLoss = (percentageLoss / 100) * currentTradeSize;
+      }
+
+      // Round to 2 decimal places
+      actualProfitLoss = Math.round(actualProfitLoss * 100) / 100;
+
+      console.log('💵 P/L Calculation:', {
+        status,
+        isLong: trade.isLong,
+        entry: trade.entryPrice,
+        target: trade.takeProfit,
+        stop: trade.stopLoss,
+        tradeSize: currentTradeSize,
+        calculatedPL: actualProfitLoss
+      });
+
+      // Update account size based on actual P/L
+      const currentAccountSize = user.riskManagement.accountSize || 10000;
+      if (status === 'TARGET_HIT') {
+        user.riskManagement.accountSize = Math.round(currentAccountSize + actualProfitLoss);
+      } else {
+        user.riskManagement.accountSize = Math.round(currentAccountSize - actualProfitLoss);
+      }
+      console.log('💰 Account size updated:', {
+        oldSize: currentAccountSize,
+        newSize: user.riskManagement.accountSize,
+        profitLoss: status === 'TARGET_HIT' ? actualProfitLoss : -actualProfitLoss
+      });
+
       // Update risk management
       const today = new Date();
       const lastTradeDate = user.riskManagement.dailyStats?.lastTradeDate ? new Date(user.riskManagement.dailyStats.lastTradeDate) : null;
@@ -240,7 +298,6 @@ exports.updateTradeStatus = async (req, res) => {
 
       // Adjust trade size based on result (20% up for win, 20% down for loss)
       // Only adjust if we're not at the streak limits
-      const currentTradeSize = user.riskManagement.baseTradeSize || 1000;
       const currentStreak = parseInt(user.riskManagement.tradeStreak || 0);
       
       if (status === 'TARGET_HIT' && currentStreak < 3) {
@@ -271,8 +328,8 @@ exports.updateTradeStatus = async (req, res) => {
           trades: 1,
           wins: status === 'TARGET_HIT' ? 1 : 0,
           losses: status === 'STOPLOSS_HIT' ? 1 : 0,
-          dailyProfit: status === 'TARGET_HIT' ? profitLoss : 0,
-          dailyLoss: status === 'STOPLOSS_HIT' ? -profitLoss : 0
+          dailyProfit: status === 'TARGET_HIT' ? actualProfitLoss : 0,
+          dailyLoss: status === 'STOPLOSS_HIT' ? actualProfitLoss : 0
         };
         user.riskManagement.slTaken = status === 'STOPLOSS_HIT' ? 1 : 0;
       } else {
@@ -282,11 +339,10 @@ exports.updateTradeStatus = async (req, res) => {
         
         if (status === 'TARGET_HIT') {
           user.riskManagement.dailyStats.wins++;
-          user.riskManagement.dailyStats.dailyProfit += profitLoss;
+          user.riskManagement.dailyStats.dailyProfit += actualProfitLoss;
         } else if (status === 'STOPLOSS_HIT') {
           user.riskManagement.dailyStats.losses++;
-          user.riskManagement.dailyStats.dailyLoss += -profitLoss;
-          user.riskManagement.slTaken = (user.riskManagement.slTaken || 0) + 1;
+          user.riskManagement.dailyStats.dailyLoss += actualProfitLoss;
         }
       }
 
