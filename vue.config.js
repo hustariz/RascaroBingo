@@ -2,7 +2,7 @@ const { defineConfig } = require('@vue/cli-service')
 
 module.exports = defineConfig({
   publicPath: '/', 
-  transpileDependencies: true,
+  transpileDependencies: [],
   outputDir: 'dist',
   chainWebpack: config => {
     config.plugin('html').tap(args => {
@@ -11,7 +11,7 @@ module.exports = defineConfig({
     })
   },
   devServer: {
-    historyApiFallback: true,  // Add this line
+    historyApiFallback: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3004',
@@ -20,4 +20,4 @@ module.exports = defineConfig({
       }
     }
   }
-});
+})

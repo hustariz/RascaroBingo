@@ -245,8 +245,6 @@ export default {
     }
   },
 
-<<<<<<< HEAD
-=======
   async updateUserAdminStatus(userId, isAdmin) {
     try {
       const response = await api.put('/users/admin-status', { userId, isAdmin });
@@ -297,7 +295,6 @@ export default {
     }
   },
 
->>>>>>> Admin_panel
   // Email verification methods
   checkEmail(email) {
     return api.post('/auth/check-email', { email })
