@@ -213,10 +213,39 @@ export default {
     const updateTradeStatus = async (trade, status) => {
       try {
         console.log('Updating trade status:', { trade, status });
+        
+        // Get current risk management state
+        const riskState = store.state.riskManagement;
+        
+        // Check if we're hitting stoploss and already at max SL
+        if (status === 'STOPLOSS_HIT' && riskState.slTaken >= 3) {
+          alert('You have reached the maximum number of stoploss trades for today. Take a break and come back tomorrow!');
+          return;
+        }
+        
+        // Calculate P/L based on trade type and status
+        let profitLoss = 0;
+        if (status === 'TARGET_HIT') {
+          // For longs: takeProfit - entryPrice
+          // For shorts: entryPrice - takeProfit
+          profitLoss = trade.isLong ? 
+            trade.takeProfit - trade.entryPrice :
+            trade.entryPrice - trade.takeProfit;
+        } else if (status === 'STOPLOSS_HIT') {
+          // For longs: stopLoss - entryPrice (negative)
+          // For shorts: entryPrice - stopLoss (negative)
+          profitLoss = trade.isLong ?
+            trade.stopLoss - trade.entryPrice :
+            trade.entryPrice - trade.stopLoss;
+        }
+
+        // First update trade status - this will also update risk management
         await store.dispatch('trades/updateTradeStatus', {
           tradeId: trade.id || trade._id,
-          status
+          status,
+          profitLoss
         });
+
         await fetchTrades(); // Refresh trades list
       } catch (error) {
         console.error('Error updating trade status:', error);

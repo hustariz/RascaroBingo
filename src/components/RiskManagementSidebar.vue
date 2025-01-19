@@ -171,13 +171,13 @@ export default {
 
     streakLabel() {
       const labels = {
-        '-3': `Go touch some GRASS (${this.currentPercentage.toFixed(1)}%)`,
-        '-2': `Cold streak (${this.currentPercentage.toFixed(1)}%)`,
-        '-1': `Malus streak (${this.currentPercentage.toFixed(1)}%)`,
-        '0': `Normal trade (${this.currentPercentage.toFixed(1)}%)`,
-        '1': `Bonus streak (${this.currentPercentage.toFixed(1)}%)`,
-        '2': `HOT streak (${this.currentPercentage.toFixed(1)}%)`,
-        '3': `COOKING (${this.currentPercentage.toFixed(1)}%)`
+        '-3': `Go touch some GRASS (${this.calculatePercentage}%)`,
+        '-2': `Cold streak (${this.calculatePercentage}%)`,
+        '-1': `Malus streak (${this.calculatePercentage}%)`,
+        '0': `Normal trade (${this.calculatePercentage}%)`,
+        '1': `Bonus streak (${this.calculatePercentage}%)`,
+        '2': `HOT streak (${this.calculatePercentage}%)`,
+        '3': `COOKING (${this.calculatePercentage}%)`
       };
       return labels[this.tradeStreak] || labels['0'];
     },
