@@ -156,11 +156,42 @@ export default {
   },
   computed: {
     currentRR() {
-      if (this.rrChecks.twentyPoints) return 5;    // Hidden Bingo (≥20 points)
-      if (this.rrChecks.sixteenPoints) return 4;   // ≥16 points
-      if (this.rrChecks.elevenPoints) return 3;    // ≥11 points
-      if (this.rrChecks.sixPoints) return 2;       // ≥6 points
-      return 1; // default R/R
+      // Log the current points and checks
+      console.log('Current R/R checks:', {
+        points: this.rrChecks,
+        twentyPoints: this.rrChecks.twentyPoints,
+        sixteenPoints: this.rrChecks.sixteenPoints,
+        elevenPoints: this.rrChecks.elevenPoints,
+        sixPoints: this.rrChecks.sixPoints
+      });
+
+      // Hidden Bingo (≥20 points) - 5R/R
+      if (this.rrChecks.twentyPoints) {
+        console.log('Using 5R/R (Hidden Bingo)');
+        return 5;
+      }
+      
+      // ≥16 points - 4R/R
+      if (this.rrChecks.sixteenPoints) {
+        console.log('Using 4R/R (16+ points)');
+        return 4;
+      }
+      
+      // ≥11 points - 3R/R
+      if (this.rrChecks.elevenPoints) {
+        console.log('Using 3R/R (11+ points)');
+        return 3;
+      }
+      
+      // ≥6 points - 2R/R
+      if (this.rrChecks.sixPoints) {
+        console.log('Using 2R/R (6+ points)');
+        return 2;
+      }
+
+      // Default - 1R/R
+      console.log('Using default 1R/R');
+      return 1;
     }
   },
   watch: {
@@ -206,19 +237,31 @@ export default {
 
       // For Short positions (isLong = false)
       if (!this.isLong) {
-        // For shorts: risk is stoploss - entry (stoploss is above entry)
+        // Calculate risk (distance from entry to stoploss)
         const risk = Number(this.stoploss) - Number(this.entry);
+        // Calculate reward based on R/R level
         const reward = risk * this.currentRR;
-        // Ensure target doesn't go below 0
-        this.target = Math.max(Number(this.entry) - reward, 0);
+        // For shorts: target = entry - reward (target is below entry)
+        this.target = Number(Math.max(0, (Number(this.entry) - reward)).toFixed(2));
       } 
       // For Long positions (isLong = true)
       else {
-        // For longs: risk is entry - stoploss (stoploss is below entry)
+        // Calculate risk (distance from entry to stoploss)
         const risk = Number(this.entry) - Number(this.stoploss);
+        // Calculate reward based on R/R level
         const reward = risk * this.currentRR;
-        this.target = Number(this.entry) + reward;
+        // For longs: target = entry + reward (target is above entry)
+        this.target = Number((Number(this.entry) + reward).toFixed(2));
       }
+
+      // Log the calculation for debugging
+      console.log('Target calculation:', {
+        isLong: this.isLong,
+        entry: this.entry,
+        stoploss: this.stoploss,
+        target: this.target,
+        rr: this.currentRR
+      });
     },
     
     // Add new method for reverse calculation
@@ -227,16 +270,31 @@ export default {
 
       // For Short positions
       if (!this.isLong) {
+        // Calculate total reward (entry - target)
         const reward = Number(this.entry) - Number(this.target);
+        // Calculate risk based on R/R level
         const risk = reward / this.currentRR;
-        this.stoploss = Number(this.entry) + risk;
+        // For shorts: stoploss = entry + risk (stoploss is above entry)
+        this.stoploss = Number((Number(this.entry) + risk).toFixed(2));
       }
       // For Long positions
       else {
+        // Calculate total reward (target - entry)
         const reward = Number(this.target) - Number(this.entry);
+        // Calculate risk based on R/R level
         const risk = reward / this.currentRR;
-        this.stoploss = Number(this.entry) - risk;
+        // For longs: stoploss = entry - risk (stoploss is below entry)
+        this.stoploss = Number((Number(this.entry) - risk).toFixed(2));
       }
+
+      // Log the calculation for debugging
+      console.log('Stoploss calculation:', {
+        isLong: this.isLong,
+        entry: this.entry,
+        target: this.target,
+        stoploss: this.stoploss,
+        rr: this.currentRR
+      });
     },
     
     async saveTrade() {
@@ -258,22 +316,25 @@ export default {
         }
 
         const trade = {
-          type: this.isLong ? 'Long' : 'Short',
-          stoploss: Number(this.stoploss),
-          entry: Number(this.entry),
-          target: Number(this.target),
-          riskReward: this.currentRR,
-          tradeIdea: this.tradeIdea,
-          symbol: this.tradingSymbol,
-          timestamp: new Date().toISOString(),
-          tradeSize,
+          pair: this.tradingSymbol,
+          isLong: this.isLong,
+          entryPrice: Number(this.entry),
+          stopLoss: Number(this.stoploss),
+          takeProfit: Number(this.target),
+          notes: this.tradeIdea || '',
+          status: 'OPEN',
           potentialProfit,
-          potentialLoss: -tradeSize // Maximum loss is always the trade size
+          potentialLoss: -tradeSize,
+          riskRewardRatio: this.currentRR
         };
 
         try {
           await this.$store.dispatch('trades/saveTrade', trade);
-          console.log('💾 Saving trade:', trade);
+          console.log(' Saving trade:', trade);
+          
+          // Refresh trade history after saving
+          await this.$store.dispatch('trades/fetchTrades');
+          
           this.clearForm();
         } catch (error) {
           console.error('Error saving trade:', error);

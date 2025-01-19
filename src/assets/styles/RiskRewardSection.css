@@ -213,7 +213,7 @@
 
   animation: riskrewardGlowPulse 2s infinite;
 
-  z-index: 1500;
+  z-index: 5;
 
 }
 
@@ -245,7 +245,7 @@
 
   display: none;
 
-  z-index: 1500;
+  z-index: 5;
 
   box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
 

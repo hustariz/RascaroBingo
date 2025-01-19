@@ -3,7 +3,7 @@ import axios from 'axios';
 // Try to get API URL from different environment variable formats
 const API_URL = process.env.VUE_APP_API_URL || 
   (typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_URL : undefined) || 
-  'https://api.rascarobingo.com';
+  'http://localhost:3004';
 
 console.log('🌍 Using API URL:', API_URL);
 
@@ -24,12 +24,19 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    console.log('🔑 Request interceptor - Token:', token ? 'Present' : 'Missing');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔑 Added token to request headers');
+    } else {
+      console.log('⚠️ No token found in localStorage');
     }
+    
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -54,12 +61,7 @@ api.interceptors.response.use(
           return await api(originalRequest);
         }
       } catch (retryError) {
-        console.log('⚠️ Retry failed, using cached state');
-        // Return cached data if available
-        const cachedData = localStorage.getItem('bingoState');
-        if (cachedData) {
-          return Promise.resolve({ data: JSON.parse(cachedData) });
-        }
+        console.error('❌ Retry failed:', retryError);
       }
     }
 
@@ -68,25 +70,26 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Unauthorized - clear token and redirect to login
+          console.log('🚫 Unauthorized - clearing token');
           localStorage.removeItem('token');
           window.location.href = '/login';
           break;
         case 403:
           // Forbidden
-          console.error('Access forbidden');
+          console.error('🚫 Access forbidden:', error.response.data);
           break;
         case 404:
           // Not found
-          console.error('Resource not found');
+          console.error('❌ Resource not found:', error.response.data);
           break;
         default:
-          console.error('API Error:', error.response.data);
+          console.error('❌ API Error:', error.response.data);
       }
     } else if (error.request) {
       // Network error
-      console.error('Network Error:', error.request);
+      console.error('🌐 Network Error:', error.request);
     } else {
-      console.error('Error:', error.message);
+      console.error('❌ Error:', error.message);
     }
     return Promise.reject(error);
   }
@@ -217,7 +220,7 @@ export default {
         console.log('✅ User data retrieved:', response.data);
         return response.data;
       }
-      throw new Error('No user data received');
+      throw new Error(response.data.message || 'Failed to load user data');
     } catch (error) {
       console.error('❌ Error getting current user:', error);
       throw error;
@@ -379,5 +382,55 @@ export default {
       }
       throw error.response?.data || error.message;
     }
-  }
+  },
+
+  // User statistics methods
+  getUserStats() {
+    return api.get('/users/stats').then(response => response.data);
+  },
+
+  // Trade methods
+  async get(endpoint) {
+    try {
+      console.log('🔍 GET request to:', endpoint);
+      const response = await api.get(endpoint);
+      return response;
+    } catch (error) {
+      console.error('❌ GET request failed:', error);
+      throw error;
+    }
+  },
+
+  async post(endpoint, data) {
+    try {
+      console.log('📝 POST request to:', endpoint);
+      const response = await api.post(endpoint, data);
+      return response;
+    } catch (error) {
+      console.error('❌ POST request failed:', error);
+      throw error;
+    }
+  },
+
+  async put(endpoint, data) {
+    try {
+      console.log('📝 PUT request to:', endpoint);
+      const response = await api.put(endpoint, data);
+      return response;
+    } catch (error) {
+      console.error('❌ PUT request failed:', error);
+      throw error;
+    }
+  },
+
+  async delete(endpoint) {
+    try {
+      console.log('🗑️ DELETE request to:', endpoint);
+      const response = await api.delete(endpoint);
+      return response;
+    } catch (error) {
+      console.error('❌ DELETE request failed:', error);
+      throw error;
+    }
+  },
 };

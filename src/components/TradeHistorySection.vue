@@ -16,43 +16,44 @@
         </div>
         
         <div v-else class="trades-list">
-          <div v-for="trade in trades" :key="trade._id" 
+          <div v-for="trade in trades" :key="trade.id || trade._id" 
            class="trade-card" 
            :class="{
-              'open': trade.status === 'OPEN' || !trade.status,
-              'long': trade.type === 'Long',
-              'short': trade.type === 'Short'
+              'open': trade.status === 'OPEN',
+              'long': trade.isLong,
+              'short': !trade.isLong,
+              'newest': trade === trades[0]
             }">
             <!-- Normal View -->
-            <div v-if="!editingTrade || editingTrade._id !== trade._id">
-              <div class="trade-header" :class="trade.type.toLowerCase()">
-                <span class="trade-type">{{ trade.type }}</span>
-                <span class="trade-symbol">{{ trade.symbol }}</span>
-                <span class="trade-date">{{ formatDate(trade.timestamp) }}</span>
+            <div v-if="!editingTrade || editingTrade.id !== (trade.id || trade._id)">
+              <div class="trade-header" :class="trade.isLong ? 'long' : 'short'">
+                <span class="trade-type">{{ trade.isLong ? 'Long' : 'Short' }}</span>
+                <span class="trade-symbol">{{ trade.pair }}</span>
+                <span class="trade-date">{{ formatDate(trade.date) }}</span>
               </div>
               
               <div class="trade-details">
                 <div class="price-details">
                   <div class="price-item">
                     <span class="label">Stoploss:</span>
-                    <span class="value">${{ trade.stoploss }}</span>
+                    <span class="value">${{ trade.stopLoss }}</span>
                   </div>
                   <div class="price-item">
                     <span class="label">Entry:</span>
-                    <span class="value">${{ trade.entry }}</span>
+                    <span class="value">${{ trade.entryPrice }}</span>
                   </div>
                   <div class="price-item">
                     <span class="label">Target:</span>
-                    <span class="value">${{ trade.target }}</span>
+                    <span class="value">${{ trade.takeProfit }}</span>
                   </div>
                   <div class="price-item">
                     <span class="label">R/R:</span>
-                    <span class="value">{{ trade.riskReward }}R</span>
+                    <span class="value">{{ trade.riskRewardRatio }}R</span>
                   </div>
                 </div>
                 
-                <div v-if="trade.tradeIdea" class="trade-idea">
-                  <strong>Idea:</strong> {{ trade.tradeIdea }}
+                <div v-if="trade.notes" class="trade-idea">
+                  <strong>Notes:</strong> {{ trade.notes }}
                 </div>
                 
                 <div class="status-actions-container">
@@ -62,7 +63,7 @@
                       <span :class="{
                         'target-hit': trade.status === 'TARGET_HIT',
                         'stoploss-hit': trade.status === 'STOPLOSS_HIT',
-                        'open': trade.status === 'OPEN' || !trade.status,
+                        'open': trade.status === 'OPEN',
                         'closed': trade.status === 'TARGET_HIT' || trade.status === 'STOPLOSS_HIT'
                       }">
                         {{ getStatusText(trade.status) }}
@@ -72,18 +73,18 @@
                   
                   <div class="trade-actions">
                     <button class="action-button edit-btn" @click="startEdit(trade)">✏️</button>
-                    <button class="action-button delete-btn" @click="confirmDelete(trade._id)">🗑️</button>
+                    <button class="action-button delete-btn" @click="confirmDelete(trade.id)">🗑️</button>
                     <button 
                       class="action-button success-btn"
-                      @click="updateTradeStatus(trade._id, 'TARGET_HIT')"
-                      :disabled="trade.status !== 'OPEN'"
+                      @click="updateTradeStatus(trade, 'TARGET_HIT')"
+                      v-if="trade.status === 'OPEN'"
                     >
                       Target Hit ✅
                     </button>
                     <button 
                       class="action-button failure-btn"
-                      @click="updateTradeStatus(trade._id, 'STOPLOSS_HIT')"
-                      :disabled="trade.status !== 'OPEN'"
+                      @click="updateTradeStatus(trade, 'STOPLOSS_HIT')"
+                      v-if="trade.status === 'OPEN'"
                     >
                       Stoploss Hit ❌
                     </button>
@@ -100,24 +101,24 @@
               </div>
               <div class="edit-content">
                 <div class="form-group">
-                  <label>Symbol:</label>
-                  <input type="text" v-model="editingTrade.symbol">
+                  <label>Pair:</label>
+                  <input type="text" v-model="editingTrade.pair">
                 </div>
                 <div class="form-group">
                   <label>Stoploss ($):</label>
-                  <input type="number" v-model="editingTrade.stoploss">
+                  <input type="number" v-model="editingTrade.stopLoss">
                 </div>
                 <div class="form-group">
                   <label>Entry ($):</label>
-                  <input type="number" v-model="editingTrade.entry">
+                  <input type="number" v-model="editingTrade.entryPrice">
                 </div>
                 <div class="form-group">
                   <label>Target ($):</label>
-                  <input type="number" v-model="editingTrade.target">
+                  <input type="number" v-model="editingTrade.takeProfit">
                 </div>
                 <div class="form-group">
-                  <label>Trade Idea:</label>
-                  <textarea v-model="editingTrade.tradeIdea"></textarea>
+                  <label>Notes:</label>
+                  <textarea v-model="editingTrade.notes"></textarea>
                 </div>
                 <div class="edit-actions">
                   <button class="action-button save-btn" @click="saveEdit">
@@ -138,7 +139,7 @@
 
 <script>
 import '../assets/styles/TradeHistorySection.css';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useStore } from 'vuex';
 
 export default {
@@ -153,16 +154,18 @@ export default {
       default: false
     }
   },
-  watch: {
-    'store.state.riskManagement.adjustedTradeSize'(newSize) {
-      console.log('Trade size updated in history:', newSize);
-    }
-  },
-  setup(_, { emit }) {  // Change props to _ since we're not using it directly
+  setup(props) {
     const store = useStore();
-    const trades = ref([]);
+    const tradesData = ref([]);
     const loading = ref(true);
     const editingTrade = ref(null);
+
+    // Computed property to sort trades by newest first
+    const trades = computed(() => {
+      return [...tradesData.value].sort((a, b) => 
+        new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
+      );
+    });
 
     const getStatusText = (status) => {
       switch(status) {
@@ -173,15 +176,21 @@ export default {
         case 'OPEN':
           return 'OPEN';
         default:
-          return status;
+          return status || 'OPEN';
       }
+    };
+
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
 
     const fetchTrades = async () => {
       try {
         loading.value = true;
         const fetchedTrades = await store.dispatch('trades/fetchTrades');
-        trades.value = fetchedTrades;
+        tradesData.value = fetchedTrades;
       } catch (error) {
         console.error('Error fetching trades:', error);
       } finally {
@@ -189,40 +198,26 @@ export default {
       }
     };
 
-    const updateTradeStatus = async (tradeId, status) => {
+    // Watch for changes in isVisible prop
+    watch(() => props.isVisible, (newValue) => {
+      if (newValue) {
+        fetchTrades();
+      }
+    });
+
+    // Initial fetch if visible
+    if (props.isVisible) {
+      fetchTrades();
+    }
+
+    const updateTradeStatus = async (trade, status) => {
       try {
-        const trade = trades.value.find(t => t._id === tradeId);
-        if (!trade) return;
-
-        let profitLoss = 0;
-        const tradeSize = store.state.riskManagement.adjustedTradeSize;
-
-        // Calculate absolute points difference
-        const points = trade.type === 'Long' 
-          ? (status === 'TARGET_HIT' ? trade.target - trade.entry : trade.stoploss - trade.entry)
-          : (status === 'TARGET_HIT' ? trade.entry - trade.target : trade.entry - trade.stoploss);
-
-        // Calculate profit/loss based on fixed points
-        profitLoss = Math.round(points * (tradeSize / trade.entry));
-
-        console.log('Trade result:', {
-          type: trade.type,
-          entry: trade.entry,
-          exit: status === 'TARGET_HIT' ? trade.target : trade.stoploss,
-          tradeSize,
-          profitLoss,
-          calculation: {
-            points,
-            tradeSize,
-            entry: trade.entry
-          }
+        console.log('Updating trade status:', { trade, status });
+        await store.dispatch('trades/updateTradeStatus', {
+          tradeId: trade.id || trade._id,
+          status
         });
-
-        await store.dispatch('trades/updateTradeStatus', { tradeId, status });
-        await store.dispatch('riskManagement/updateAfterTrade', { status, profitLoss });
-        
-        emit('trade-status-update', { status, profitLoss });
-        await fetchTrades();
+        await fetchTrades(); // Refresh trades list
       } catch (error) {
         console.error('Error updating trade status:', error);
       }
@@ -232,56 +227,48 @@ export default {
       editingTrade.value = { ...trade };
     };
 
-    const saveEdit = async () => {
-      try {
-        if (!editingTrade.value) return;
-        await store.dispatch('trades/updateTrade', {
-          ...editingTrade.value,
-          symbol: editingTrade.value.symbol
-        });
-        editingTrade.value = null;
-        await fetchTrades();
-      } catch (error) {
-        console.error('Error updating trade:', error);
-      }
-    };
-
     const cancelEdit = () => {
       editingTrade.value = null;
     };
-    
+
+    const saveEdit = async () => {
+      try {
+        await store.dispatch('trades/updateTrade', editingTrade.value);
+        await fetchTrades();
+        editingTrade.value = null;
+      } catch (error) {
+        console.error('Error saving trade:', error);
+      }
+    };
 
     const confirmDelete = async (tradeId) => {
       if (confirm('Are you sure you want to delete this trade?')) {
         try {
-          await store.dispatch('trades/deleteTrade', tradeId);
-          await fetchTrades();
+          await store.dispatch('trades/deleteTrade', tradeId.toString());
+          await fetchTrades(); // Refresh the list after deletion
         } catch (error) {
           console.error('Error deleting trade:', error);
         }
       }
     };
 
-    const formatDate = (timestamp) => {
-      return new Date(timestamp).toLocaleString();
-    };
-
-    onMounted(fetchTrades);
-
-    
+    onMounted(async () => {
+      await fetchTrades();
+    });
 
     return {
       trades,
       loading,
       editingTrade,
-      updateTradeStatus,
-      startEdit,
-      saveEdit,
-      cancelEdit,
-      confirmDelete,
+      getStatusText,
       formatDate,
-      getStatusText
+      updateTradeStatus,
+      fetchTrades,
+      startEdit,
+      cancelEdit,
+      saveEdit,
+      confirmDelete
     };
   }
-}
+};
 </script>

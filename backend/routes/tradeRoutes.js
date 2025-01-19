@@ -1,14 +1,27 @@
 // routes/tradeRoutes.js
 const express = require('express');
 const router = express.Router();
-const tradeController = require('../controllers/tradeController');
 const auth = require('../middleware/auth');
+const tradeController = require('../controllers/tradeController');
 
-// Protect all trade routes with auth middleware
-router.post('/', auth, tradeController.createTrade);
+// @route   POST /api/trades
+// @desc    Create a new trade
+// @access  Private
+router.post('/', auth, tradeController.saveTrade);
+
+// @route   GET /api/trades
+// @desc    Get all trades for the user
+// @access  Private
 router.get('/', auth, tradeController.getTrades);
-router.put('/:id', auth, tradeController.updateTrade);
-router.delete('/:id', auth, tradeController.deleteTrade);
-router.patch('/:tradeId/status', auth, tradeController.updateTradeStatus);
+
+// @route   PUT /api/trades/:tradeId/status
+// @desc    Update a trade's status
+// @access  Private
+router.put('/:tradeId/status', auth, tradeController.updateTradeStatus);
+
+// @route   DELETE /api/trades/:tradeId
+// @desc    Delete a trade
+// @access  Private
+router.delete('/:tradeId', auth, tradeController.deleteTrade);
 
 module.exports = router;

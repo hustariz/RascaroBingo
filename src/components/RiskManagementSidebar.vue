@@ -63,6 +63,7 @@
                   v-html="slLabel"
                 ></span>
                 
+                <div class="risk-tooltip-bridge"></div>
                 <div v-if="showTooltip && slTaken === 3" class="risk-tooltip">
                   <template v-if="!askingForGrass">
                     Session ended, come back later
@@ -98,17 +99,27 @@
       <div class="settings-group">
         <h2>Daily Stats</h2>
         <div class="setting-item">
-          <label>Daily Net P/L:</label>
-          <span class="net-value" :class="{
-            'positive': dailyNet > 0,
-            'negative': dailyNet < 0
-          }">
-            ${{ (dailyNet || 0).toLocaleString() }}
-          </span>
+          <label>Trades Today:</label>
+          <span>{{ dailyStats?.trades || 0 }}</span>
+        </div>
+        <div class="setting-item wins-losses-row">
+          <div class="stat-column">
+            <label>Daily Wins:</label>
+            <span class="win">{{ dailyStats?.wins || 0 }}</span>
+          </div>
+          <div class="stat-column">
+            <label>Daily Losses:</label>
+            <span class="loss">{{ dailyStats?.losses || 0 }}</span>
+          </div>
         </div>
         <div class="setting-item">
-          <label>Trades Today:</label>
-          <span class="trades-count">{{ dailyStats?.dailyTradeCount || 0 }}</span>
+          <label style="display: block; text-align: center; margin-bottom: 4px;">Daily Net P/L:</label>
+          <div class="daily-pl">
+            <span :class="{ 'profit': dailyNet > 0, 'loss': dailyNet < 0 }">
+              ${{ Math.abs(dailyNet).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+              <span class="pl-indicator">{{ dailyNet >= 0 ? '▲' : '▼' }}</span>
+            </span>
+          </div>
         </div>
         <button class="reset-button" @click="resetStats">
           <span>Reset Daily Stats</span>
@@ -139,56 +150,58 @@ export default {
     ...mapState('riskManagement', [
       'accountSize',
       'baseTradeSize',
-      'adjustedTradeSize',
+      'currentPercentage',
       'tradeStreak',
       'slTaken',
       'dailyStats',
+      'totalStats'
     ]),
 
     dailyNet() {
-    const profit = this.dailyStats?.dailyProfit || 0;
-    const loss = this.dailyStats?.dailyLoss || 0;
-    return profit - loss;
-  },
-    
-  calculatePercentage() {
-    return ((this.localTradeSize / this.localAccountSize) * 100).toFixed(1);
-  },
+      if (!this.dailyStats) return 0;
+      const profit = parseFloat(this.dailyStats.dailyProfit || 0);
+      const loss = parseFloat(this.dailyStats.dailyLoss || 0);
+      return profit - loss;
+    },
 
-  streakLabel() {
+    calculatePercentage() {
+      const percentage = (this.localTradeSize / this.localAccountSize) * 100;
+      return percentage.toFixed(2);
+    },
+
+    streakLabel() {
       const labels = {
-        '-3': `Grass Streak (${this.currentPercentage}%)`,
-        '-2': `Cold streak (${this.currentPercentage}%)`,
-        '-1': `Malus streak (${this.currentPercentage}%)`,
-        '0': `Normal trade (${this.currentPercentage}%)`,
-        '1': `Bonus streak (${this.currentPercentage}%)`,
-        '2': `HOT streak (${this.currentPercentage}%)`,
-        '3': `COOKING (${this.currentPercentage}%)`
+        '-3': `Go touch some GRASS (${this.currentPercentage.toFixed(1)}%)`,
+        '-2': `Cold streak (${this.currentPercentage.toFixed(1)}%)`,
+        '-1': `Malus streak (${this.currentPercentage.toFixed(1)}%)`,
+        '0': `Normal trade (${this.currentPercentage.toFixed(1)}%)`,
+        '1': `Bonus streak (${this.currentPercentage.toFixed(1)}%)`,
+        '2': `HOT streak (${this.currentPercentage.toFixed(1)}%)`,
+        '3': `COOKING (${this.currentPercentage.toFixed(1)}%)`
       };
       return labels[this.tradeStreak] || labels['0'];
     },
 
     streakColor() {
-    const colors = {
-      '-3': '#0033cc', // Deep Blue
-      '-2': '#0066cc', // Blue
-      '-1': '#66b3ff', // Light Blue
-      '0': '#FFFFFF',  // White
-      '1': '#ffb366',  // Light Orange
-      '2': '#ff7f00',  // Orange
-      '3': '#ff3300'   // Red-Orange
-    };
-    return colors[this.tradeStreak] || colors['0'];
-  },
+      const colors = {
+        '-3': '#0033cc', // Deep Blue
+        '-2': '#0066cc', // Blue
+        '-1': '#66b3ff', // Light Blue
+        '0': '#FFFFFF',  // White
+        '1': '#ffb366',  // Light Orange
+        '2': '#ff7f00',  // Orange
+        '3': '#ff3300'   // Red-Orange
+      };
+      return colors[this.tradeStreak] || colors['0'];
+    },
 
-  
-  fillWidth() {
-    // Calculate fill width based on streak level (-3 to +3)
-    const baseWidth = 50; // Center point (%)
-    const increment = 16.67; // Width increment per level
-    const level = this.tradeStreak;
-    return `${baseWidth + (level * increment)}%`;
-  },
+    fillWidth() {
+      // Calculate fill width based on streak level (-3 to +3)
+      const baseWidth = 50; // Center point (%)
+      const increment = 16.67; // Width increment per level
+      const level = parseInt(this.tradeStreak);
+      return `${baseWidth + (level * increment)}%`;
+    },
 
     slLabel() {
       const labels = {
@@ -209,14 +222,12 @@ export default {
       };
       return colors[this.slTaken] || colors['0'];
     },
-    
-    // Add this computed property for the liquid width
+
     slFillWidth() {
       return `${(this.slTaken / 3) * 100}%`;
     }
   },
 
-  
   methods: {
     async handleGrassResponse(touched) {
       if (touched) {
@@ -330,42 +341,42 @@ export default {
     watch: {
       accountSize: {
         handler(newVal) {
-          if (newVal !== this.localAccountSize) {
+          if (newVal && newVal !== this.localAccountSize) {
             this.localAccountSize = newVal;
-            this.currentPercentage = Number(this.calculatePercentage);
           }
         },
         immediate: true
       },
       baseTradeSize: {
         handler(newVal) {
-          if (newVal !== this.localTradeSize) {
+          if (newVal && newVal !== this.localTradeSize) {
             this.localTradeSize = newVal;
-            this.currentPercentage = Number(this.calculatePercentage);
           }
         },
         immediate: true
       },
-      showTooltip(newVal) {  // Changed from showResetTooltip
+      showTooltip(newVal) {
         if (newVal && this.slTaken === 3) {
-          clearTimeout(this.tooltipTimer);  // Changed from tooltipHoverTimer
-          this.askingForGrass = false;
+          // Set a timer to ask about grass after a delay
           this.tooltipTimer = setTimeout(() => {
             this.askingForGrass = true;
-          }, 5000);
+          }, 2000);
         } else {
-          clearTimeout(this.tooltipTimer);  // Changed from tooltipHoverTimer
+          if (this.tooltipTimer) {
+            clearTimeout(this.tooltipTimer);
+          }
           this.askingForGrass = false;
         }
-      },
+      }
     },
-  
-  async created() {
-    try {
-      await this.$store.dispatch('riskManagement/fetchRiskManagement');
-    } catch (error) {
-      console.error('Error initializing risk management:', error);
-    }
+
+  created() {
+    // Fetch initial risk management data
+    this.$store.dispatch('riskManagement/fetchRiskManagement');
+    
+    // Initialize local values from store
+    this.localAccountSize = this.accountSize;
+    this.localTradeSize = this.baseTradeSize;
   }
 }
 </script>
