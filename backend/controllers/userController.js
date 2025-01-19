@@ -243,10 +243,10 @@ exports.refreshToken = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, 'username email isPaidUser');
+    const users = await User.find().select('username email isPaidUser isAdmin isEmailVerified');
     res.json(users);
   } catch (err) {
-    console.error('Error fetching users:', err);
+    console.error('Error getting users:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -268,5 +268,197 @@ exports.updateUserPremiumStatus = async (req, res) => {
   } catch (err) {
     console.error('Error updating user premium status:', err);
     res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+exports.updateUserAdminStatus = async (req, res) => {
+  try {
+    const { userId, isAdmin } = req.body;
+    
+    // Validate request
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+    if (typeof isAdmin !== 'boolean') {
+      return res.status(400).json({ message: 'isAdmin must be a boolean value' });
+    }
+
+    // Find user and update
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent self-demotion for safety
+    if (user._id.toString() === req.user.id && !isAdmin) {
+      return res.status(403).json({ message: 'Cannot remove admin status from yourself' });
+    }
+
+    user.isAdmin = isAdmin;
+    await user.save();
+
+    res.json({ 
+      message: `Admin status ${isAdmin ? 'granted to' : 'removed from'} user`,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        isPaidUser: user.isPaidUser
+      }
+    });
+  } catch (error) {
+    console.error('Error updating admin status:', error);
+    res.status(500).json({ message: 'Server error while updating admin status' });
+  }
+};
+
+exports.updateUserEmail = async (req, res) => {
+  try {
+    const { userId, email } = req.body;
+
+    // Validate request
+    if (!userId || !email) {
+      return res.status(400).json({ message: 'User ID and email are required' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    // Check if email is already in use
+    const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email is already in use' });
+    }
+
+    // Find and update user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update email and reset verification status
+    user.email = email;
+    user.isEmailVerified = false;
+    await user.save();
+
+    res.json({
+      message: 'Email updated successfully',
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        isPaidUser: user.isPaidUser,
+        isAdmin: user.isAdmin
+      }
+    });
+  } catch (error) {
+    console.error('Error updating user email:', error);
+    res.status(500).json({ message: 'Server error while updating email' });
+  }
+};
+
+exports.sendVerificationEmail = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Validate request
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Send verification email using the emailVerificationController
+    await emailVerificationController.sendVerification(user);
+
+    res.json({ message: 'Verification email sent successfully' });
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+    res.status(500).json({ message: 'Server error while sending verification email' });
+  }
+};
+
+exports.updateUsername = async (req, res) => {
+  try {
+    const { userId, username } = req.body;
+
+    // Validate request
+    if (!userId || !username) {
+      return res.status(400).json({ message: 'User ID and username are required' });
+    }
+
+    // Validate username format
+    if (username.length < 3 || username.length > 30) {
+      return res.status(400).json({ message: 'Username must be between 3 and 30 characters' });
+    }
+
+    // Check if username is already in use
+    const existingUser = await User.findOne({ username, _id: { $ne: userId } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username is already in use' });
+    }
+
+    // Find and update user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.username = username;
+    await user.save();
+
+    res.json({
+      message: 'Username updated successfully',
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        isPaidUser: user.isPaidUser,
+        isAdmin: user.isAdmin
+      }
+    });
+  } catch (error) {
+    console.error('Error updating username:', error);
+    res.status(500).json({ message: 'Server error while updating username' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Validate request
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent self-deletion
+    if (user._id.toString() === req.user.id) {
+      return res.status(403).json({ message: 'Cannot delete your own account' });
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Server error while deleting user' });
   }
 };
