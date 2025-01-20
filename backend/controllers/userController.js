@@ -18,29 +18,31 @@ const calculateTradeStats = (trades) => {
   };
 
   trades.forEach(trade => {
-    // Calculate profit/loss
-    const profitLoss = trade.exitPrice - trade.entryPrice;
-    stats.totalGain += profitLoss;
+    // Only count closed trades
+    if (trade.status === 'OPEN') return;
 
-    // Calculate win/loss
-    if (profitLoss > 0) {
+    // Calculate win/loss based on status
+    if (trade.status === 'TARGET_HIT') {
       stats.wins++;
-    } else if (profitLoss < 0) {
+      stats.totalGain += trade.actualProfit || 0;
+    } else if (trade.status === 'STOPLOSS_HIT') {
       stats.losses++;
+      stats.totalGain += trade.actualProfit || 0;
     }
 
-    // Calculate risk/reward
-    const risk = Math.abs(trade.stopLoss - trade.entryPrice);
-    const reward = Math.abs(trade.takeProfit - trade.entryPrice);
-    
-    stats.totalRisk += risk;
-    stats.totalReward += reward;
+    // Add to total R/R calculation
+    if (trade.riskRewardRatio) {
+      stats.totalReward += trade.riskRewardRatio;
+    }
   });
 
   // Calculate average R/R ratio
-  if (stats.totalRisk > 0) {
-    stats.averageRR = stats.totalReward / stats.totalRisk;
+  if (stats.trades > 0) {
+    stats.averageRR = stats.totalReward / stats.trades;
   }
+
+  // Round total gain to 2 decimal places
+  stats.totalGain = Math.round(stats.totalGain * 100) / 100;
 
   return stats;
 };
@@ -555,24 +557,26 @@ exports.addTrade = async (req, res) => {
 
 exports.getUserStats = async (req, res) => {
   try {
-    // Get all users and select necessary fields
-    const users = await User.find({}, {
-      username: 1,
-      isPaidUser: 1,
-      'riskManagement.totalStats': 1
-    }).lean();
+    // Get all users and populate their trade history
+    const users = await User.find({})
+      .populate('tradeHistory')
+      .select('username isPaidUser tradeHistory')
+      .lean();
 
     // Transform users data
-    const transformedUsers = users.map(user => ({
-      id: user._id,
-      username: user.username,
-      isPremium: user.isPaidUser,
-      totalTrades: user.riskManagement?.totalStats?.trades || 0,
-      totalGain: user.riskManagement?.totalStats?.totalGain || 0,
-      riskRewardRatio: user.riskManagement?.totalStats?.averageRR || 0,
-      winrate: user.riskManagement?.totalStats?.trades > 0
-        ? user.riskManagement.totalStats.wins / user.riskManagement.totalStats.trades
-        : 0
+    const transformedUsers = await Promise.all(users.map(async user => {
+      // Calculate stats for each user
+      const stats = calculateTradeStats(user.tradeHistory || []);
+
+      return {
+        id: user._id,
+        username: user.username,
+        isPremium: user.isPaidUser,
+        totalTrades: stats.trades,
+        totalGain: stats.totalGain,
+        riskRewardRatio: stats.averageRR,
+        winrate: stats.trades > 0 ? stats.wins / stats.trades : 0
+      };
     }));
 
     // Sort by total trades descending

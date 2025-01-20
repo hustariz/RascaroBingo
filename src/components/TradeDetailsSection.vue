@@ -151,7 +151,8 @@ export default {
       target: null,
       isLong: false,
       isTargetEditable: false,
-      showHistory: false
+      showHistory: false,
+      actualRR: 0
     }
   },
   computed: {
@@ -199,17 +200,9 @@ export default {
       handler: 'calculateTarget',
       immediate: true
     },
-    tradeIdea: {
-      handler(newIdea) {
-        console.log('Trade idea received:', newIdea);
-      },
-      immediate: true
-    },
     entry: {
       handler() {
-        if (this.isTargetEditable) {
-          this.calculateStoploss();
-        } else {
+        if (this.entry && this.stoploss && !this.isTargetEditable) {
           this.calculateTarget();
         }
       },
@@ -217,16 +210,13 @@ export default {
     },
     target: {
       handler() {
-        if (this.isTargetEditable) {
-          this.calculateStoploss();
+        // Only recalculate R/R when target changes, don't move stoploss
+        if (this.entry && this.stoploss && this.target) {
+          this.calculateActualRR();
         }
       }
     },
     isLong: {
-      handler: 'calculateTarget',
-      immediate: true
-    },
-    currentRR: {
       handler: 'calculateTarget',
       immediate: true
     }
@@ -239,7 +229,7 @@ export default {
       if (!this.isLong) {
         // Calculate risk (distance from entry to stoploss)
         const risk = Number(this.stoploss) - Number(this.entry);
-        // Calculate reward based on R/R level
+        // Calculate reward based on R/R level from bingo
         const reward = risk * this.currentRR;
         // For shorts: target = entry - reward (target is below entry)
         this.target = Number(Math.max(0, (Number(this.entry) - reward)).toFixed(2));
@@ -248,99 +238,89 @@ export default {
       else {
         // Calculate risk (distance from entry to stoploss)
         const risk = Number(this.entry) - Number(this.stoploss);
-        // Calculate reward based on R/R level
+        // Calculate reward based on R/R level from bingo
         const reward = risk * this.currentRR;
         // For longs: target = entry + reward (target is above entry)
         this.target = Number((Number(this.entry) + reward).toFixed(2));
       }
 
-      // Log the calculation for debugging
-      console.log('Target calculation:', {
-        isLong: this.isLong,
-        entry: this.entry,
-        stoploss: this.stoploss,
-        target: this.target,
-        rr: this.currentRR
-      });
+      // Calculate actual R/R after setting target
+      this.calculateActualRR();
     },
-    
-    // Add new method for reverse calculation
-    calculateStoploss() {
-      if (!this.entry || !this.target || !this.isTargetEditable) return;
 
-      // For Short positions
-      if (!this.isLong) {
-        // Calculate total reward (entry - target)
-        const reward = Number(this.entry) - Number(this.target);
-        // Calculate risk based on R/R level
-        const risk = reward / this.currentRR;
-        // For shorts: stoploss = entry + risk (stoploss is above entry)
-        this.stoploss = Number((Number(this.entry) + risk).toFixed(2));
-      }
-      // For Long positions
-      else {
-        // Calculate total reward (target - entry)
-        const reward = Number(this.target) - Number(this.entry);
-        // Calculate risk based on R/R level
-        const risk = reward / this.currentRR;
-        // For longs: stoploss = entry - risk (stoploss is below entry)
-        this.stoploss = Number((Number(this.entry) - risk).toFixed(2));
+    calculateActualRR() {
+      if (!this.entry || !this.stoploss || !this.target) return;
+
+      let risk, reward;
+      
+      if (this.isLong) {
+        risk = Math.abs(Number(this.entry) - Number(this.stoploss));
+        reward = Math.abs(Number(this.target) - Number(this.entry));
+      } else {
+        risk = Math.abs(Number(this.stoploss) - Number(this.entry));
+        reward = Math.abs(Number(this.entry) - Number(this.target));
       }
 
-      // Log the calculation for debugging
-      console.log('Stoploss calculation:', {
+      this.actualRR = risk > 0 ? Number((reward / risk).toFixed(2)) : 0;
+
+      console.log('Actual R/R calculation:', {
         isLong: this.isLong,
         entry: this.entry,
-        target: this.target,
         stoploss: this.stoploss,
-        rr: this.currentRR
+        target: this.target,
+        risk,
+        reward,
+        actualRR: this.actualRR
       });
     },
     
     async saveTrade() {
-        if (!this.validateTrade()) return;
+      if (!this.validateTrade()) return;
 
-        // Get current trade size from risk management store
-        const tradeSize = this.$store.state.riskManagement.adjustedTradeSize;
+      // Get current trade size from risk management store
+      const tradeSize = this.$store.state.riskManagement.adjustedTradeSize;
+      
+      // Calculate potential profit and loss based on actual prices
+      let potentialProfit = 0;
+      let potentialLoss = 0;
+      
+      if (this.isLong) {
+        const risk = Math.abs(Number(this.entry) - Number(this.stoploss));
+        const reward = Math.abs(Number(this.target) - Number(this.entry));
+        potentialProfit = reward * (tradeSize / risk);
+        potentialLoss = -tradeSize;
+      } else {
+        const risk = Math.abs(Number(this.stoploss) - Number(this.entry));
+        const reward = Math.abs(Number(this.entry) - Number(this.target));
+        potentialProfit = reward * (tradeSize / risk);
+        potentialLoss = -tradeSize;
+      }
+
+      const trade = {
+        pair: this.tradingSymbol,
+        isLong: this.isLong,
+        entryPrice: Number(this.entry),
+        stopLoss: Number(this.stoploss),
+        takeProfit: Number(this.target),
+        notes: this.tradeIdea || '',
+        status: 'OPEN',
+        potentialProfit,
+        potentialLoss,
+        riskRewardRatio: this.actualRR // Use actual calculated R/R instead of bingo R/R
+      };
+
+      try {
+        await this.$store.dispatch('trades/saveTrade', trade);
+        console.log(' Saving trade:', trade);
         
-        // Calculate potential profit and loss
-        let potentialProfit = 0;
-        if (this.isLong) {
-          const risk = Number(this.entry) - Number(this.stoploss);
-          const reward = Number(this.target) - Number(this.entry);
-          potentialProfit = reward * (tradeSize / risk);
-        } else {
-          const risk = Number(this.stoploss) - Number(this.entry);
-          const reward = Number(this.entry) - Number(this.target);
-          potentialProfit = reward * (tradeSize / risk);
-        }
-
-        const trade = {
-          pair: this.tradingSymbol,
-          isLong: this.isLong,
-          entryPrice: Number(this.entry),
-          stopLoss: Number(this.stoploss),
-          takeProfit: Number(this.target),
-          notes: this.tradeIdea || '',
-          status: 'OPEN',
-          potentialProfit,
-          potentialLoss: -tradeSize,
-          riskRewardRatio: this.currentRR
-        };
-
-        try {
-          await this.$store.dispatch('trades/saveTrade', trade);
-          console.log(' Saving trade:', trade);
-          
-          // Refresh trade history after saving
-          await this.$store.dispatch('trades/fetchTrades');
-          
-          this.clearForm();
-        } catch (error) {
-          console.error('Error saving trade:', error);
-        }
-      },
-
+        // Refresh trade history after saving
+        await this.$store.dispatch('trades/fetchTrades');
+        
+        this.clearForm();
+      } catch (error) {
+        console.error('Error saving trade:', error);
+      }
+    },
     clearForm() {
       this.stoploss = null;
       this.entry = null;
