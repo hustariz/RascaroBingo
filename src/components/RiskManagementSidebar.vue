@@ -44,7 +44,11 @@
                 <div class="bubble-effect"></div>
               </div>
             </div>
-            <span class="streak-value" :style="{ color: streakColor }">{{ streakLabel }}</span>
+            <span 
+              class="streak-value" 
+              :class="{ 'grass-state': tradeStreak === -3 }"
+              :style="{ color: streakColor }"
+            >{{ streakLabel }}</span>
           </div>
         </div>
         <div class="setting-item">
@@ -196,11 +200,12 @@ export default {
     },
 
     fillWidth() {
-      // Calculate fill width based on streak level (-3 to +3)
+      // Calculate fill width based on streak level (-3 to +3) and slTaken
       const baseWidth = 50; // Center point (%)
       const increment = 16.67; // Width increment per level
       const level = parseInt(this.tradeStreak);
-      return `${baseWidth + (level * increment)}%`;
+      const slTaken = parseInt(this.slTaken);
+      return `${baseWidth + (level * increment) + (slTaken * 5)}%`;
     },
 
     slLabel() {
