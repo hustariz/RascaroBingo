@@ -3,8 +3,16 @@
     <div class="trade-history-container widget-container" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
       <div class="section-header">
         <h2>Trade History</h2>
-        <button class="close-button" @click="$emit('close')">×</button>
+        <div class="header-buttons">
+          <button class="action-button clear-history" title="Clear Trade History" @click="confirmClearHistory">
+            🧹
+          </button>
+          <button class="action-button nuke-positions" title="Close All Positions" @click="confirmNukePositions">
+            💣
+          </button>
+        </div>
       </div>
+      <button class="close-button" @click="$emit('close')">×</button>
       
       <div class="trade-history-content">
         <div v-if="loading" class="loading">
@@ -156,16 +164,48 @@ export default {
   },
   setup(props) {
     const store = useStore();
-    const tradesData = ref([]);
     const loading = ref(true);
     const editingTrade = ref(null);
 
-    // Computed property to sort trades by newest first
+    // Computed property to sort trades by status (open first) and then by date
     const trades = computed(() => {
-      return [...tradesData.value].sort((a, b) => 
-        new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
-      );
+      return store.state.trades.trades
+        .map(trade => ({
+          ...trade,
+          id: trade._id || trade.id // Ensure ID is always set
+        }))
+        .sort((a, b) => {
+          // First sort by status (OPEN trades first)
+          if (a.status === 'OPEN' && b.status !== 'OPEN') return -1;
+          if (a.status !== 'OPEN' && b.status === 'OPEN') return 1;
+          
+          // Then sort by date within each group
+          return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
+        });
     });
+
+    const fetchTrades = async () => {
+      try {
+        loading.value = true;
+        await store.dispatch('trades/fetchTrades');
+      } catch (error) {
+        console.error('Error fetching trades:', error);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    // Watch for changes in isVisible prop
+    watch(() => props.isVisible, (newValue) => {
+      if (newValue) {
+        fetchTrades();
+      }
+    });
+
+    // Initial fetch if visible
+    if (props.isVisible) {
+      fetchTrades();
+    }
 
     const getStatusText = (status) => {
       switch(status) {
@@ -186,34 +226,8 @@ export default {
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
 
-    const fetchTrades = async () => {
-      try {
-        loading.value = true;
-        const fetchedTrades = await store.dispatch('trades/fetchTrades');
-        tradesData.value = fetchedTrades;
-      } catch (error) {
-        console.error('Error fetching trades:', error);
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    // Watch for changes in isVisible prop
-    watch(() => props.isVisible, (newValue) => {
-      if (newValue) {
-        fetchTrades();
-      }
-    });
-
-    // Initial fetch if visible
-    if (props.isVisible) {
-      fetchTrades();
-    }
-
     const updateTradeStatus = async (trade, status) => {
       try {
-        console.log('Updating trade status:', { trade, status });
-        
         // Get current risk management state
         const riskState = store.state.riskManagement;
         
@@ -226,29 +240,35 @@ export default {
         // Calculate P/L based on trade type and status
         let profitLoss = 0;
         if (status === 'TARGET_HIT') {
-          // For longs: takeProfit - entryPrice
-          // For shorts: entryPrice - takeProfit
           profitLoss = trade.isLong ? 
             trade.takeProfit - trade.entryPrice :
             trade.entryPrice - trade.takeProfit;
         } else if (status === 'STOPLOSS_HIT') {
-          // For longs: stopLoss - entryPrice (negative)
-          // For shorts: entryPrice - stopLoss (negative)
           profitLoss = trade.isLong ?
             trade.stopLoss - trade.entryPrice :
             trade.entryPrice - trade.stopLoss;
         }
 
-        // First update trade status - this will also update risk management
+        // Ensure we have a valid trade ID
+        const tradeId = trade._id || trade.id;
+        if (!tradeId) {
+          console.error('Trade is missing both _id and id:', trade);
+          await fetchTrades(); // Refresh trades to get proper IDs
+          return;
+        }
+
+        // Update trade status
         await store.dispatch('trades/updateTradeStatus', {
-          tradeId: trade.id || trade._id,
+          tradeId,
           status,
           profitLoss
         });
 
-        await fetchTrades(); // Refresh trades list
+        // Refresh trades to ensure everything is in sync
+        await fetchTrades();
       } catch (error) {
         console.error('Error updating trade status:', error);
+        await fetchTrades(); // Refresh trades in case of error
       }
     };
 
@@ -281,6 +301,27 @@ export default {
       }
     };
 
+    const confirmClearHistory = async () => {
+      if (confirm('Are you sure you want to clear your trade history?\nThis will hide all closed trades but keep them in the database for statistics.')) {
+        try {
+          await store.dispatch('trades/clearTradeHistory');
+        } catch (error) {
+          console.error('Error clearing trade history:', error);
+        }
+      }
+    };
+
+    const confirmNukePositions = async () => {
+      if (confirm('ARE YOU SURE YOU WANT TO CLOSE ALL YOUR POSITIONS AT MARKET PRICE?')) {
+        try {
+          await store.dispatch('trades/nukePositions');
+          await fetchTrades(); // Refresh the list after nuking
+        } catch (error) {
+          console.error('Error nuking positions:', error);
+        }
+      }
+    };
+
     onMounted(async () => {
       await fetchTrades();
     });
@@ -296,8 +337,83 @@ export default {
       startEdit,
       cancelEdit,
       saveEdit,
-      confirmDelete
+      confirmDelete,
+      confirmClearHistory,
+      confirmNukePositions
     };
   }
 };
 </script>
+
+<style scoped>
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  position: relative;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.close-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #eee;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.close-button:hover {
+  color: #ff4757;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.action-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-history {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.clear-history:hover {
+  color: #ffe44d;
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+  transform: scale(1.05);
+}
+
+.nuke-positions {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.2);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.nuke-positions:hover {
+  color: #ff6b7a;
+  background: rgba(255, 71, 87, 0.3);
+  border-color: rgba(255, 71, 87, 0.5);
+  transform: scale(1.05);
+}
+</style>

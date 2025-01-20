@@ -24,23 +24,23 @@ export default {
       state.trades = trades
         .map(trade => ({
           ...trade,
-          id: trade._id
+          id: trade._id || trade.id
         }))
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
     },
     ADD_TRADE(state, trade) {
       // Map MongoDB _id to id for frontend consistency
       state.trades.unshift({
         ...trade,
-        id: trade._id
+        id: trade._id || trade.id
       });
     },
     UPDATE_TRADE(state, updatedTrade) {
-      const index = state.trades.findIndex(t => t.id === (updatedTrade.id || updatedTrade._id));
+      const index = state.trades.findIndex(t => t.id === updatedTrade.id || t.id === updatedTrade._id || t._id === updatedTrade.id || t._id === updatedTrade._id);
       if (index !== -1) {
         state.trades.splice(index, 1, {
           ...updatedTrade,
-          id: updatedTrade._id
+          id: updatedTrade._id || updatedTrade.id
         });
       }
     },
@@ -48,10 +48,21 @@ export default {
       const trade = state.trades.find(t => t.id === tradeId || t._id === tradeId);
       if (trade) {
         trade.status = status;
+        // Ensure ID is preserved
+        trade.id = trade._id || trade.id;
       }
     },
     DELETE_TRADE(state, tradeId) {
       state.trades = state.trades.filter(t => (t.id || t._id) !== tradeId);
+    },
+    CLEAR_CLOSED_TRADES(state) {
+      // Keep only open trades and ensure IDs are preserved
+      state.trades = state.trades
+        .filter(trade => trade.status === 'OPEN')
+        .map(trade => ({
+          ...trade,
+          id: trade._id || trade.id
+        }));
     },
     SET_LOADING(state, status) {
       state.loading = status;
@@ -161,12 +172,26 @@ export default {
         commit('SET_LOADING', false);
         throw error;
       }
+    },
+
+    async clearTradeHistory({ commit }) {
+      try {
+        commit('SET_LOADING', true);
+        // Only clear trades from the frontend state
+        commit('CLEAR_CLOSED_TRADES');
+        commit('SET_LOADING', false);
+      } catch (error) {
+        commit('SET_ERROR', error.message);
+        commit('SET_LOADING', false);
+        throw error;
+      }
     }
   },
 
   getters: {
     allTrades: state => state.trades,
     isLoading: state => state.loading,
-    error: state => state.error
+    error: state => state.error,
+    openTradesCount: state => state.trades.filter(trade => trade.status === 'OPEN').length,
   }
 };
