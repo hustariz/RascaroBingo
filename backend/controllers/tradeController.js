@@ -343,6 +343,9 @@ exports.updateTradeStatus = async (req, res) => {
         } else if (status === 'STOPLOSS_HIT') {
           user.riskManagement.dailyStats.losses++;
           user.riskManagement.dailyStats.dailyLoss += actualProfitLoss;
+          // Increment slTaken counter for same-day stop losses
+          user.riskManagement.slTaken = (user.riskManagement.slTaken || 0) + 1;
+          console.log('Stop loss counter updated:', user.riskManagement.slTaken);
         }
       }
 

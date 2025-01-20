@@ -119,15 +119,103 @@
 }
 
 .streak-value {
-  font-size: 1.1rem; /* Reduced from 1.2rem */
+  font-size: 1.1rem;
   font-weight: bold;
   transition: all 0.3s ease;
-  padding: 2px 6px; /* Reduced from 4px 8px */
+  padding: 2px 6px;
   border-radius: 4px;
+  position: relative;
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Cold states */
+.streak-value[style*="#0033cc"],  /* Deep Blue */
+.streak-value[style*="#0066cc"],  /* Blue */
+.streak-value[style*="#66b3ff"] { /* Light Blue */
+  text-shadow: 0 0 10px currentColor;
+  animation: 
+    float 3s ease-in-out infinite,
+    pulse 2s ease-in-out infinite;
+}
+
+/* Hot states */
+.streak-value[style*="#ffb366"],  /* Light Orange */
+.streak-value[style*="#ff7f00"],  /* Orange */
+.streak-value[style*="#ff3300"] { /* Red-Orange */
+  text-shadow: 0 0 10px currentColor;
+  animation: 
+    float 3s ease-in-out infinite,
+    temperature 1.5s ease-in-out infinite;
+}
+
+/* Max streak states */
+.streak-value[style*="#0033cc"],  /* Coldest */
+.streak-value[style*="#ff3300"] { /* Hottest */
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  animation: 
+    float 2s ease-in-out infinite,
+    pulse 1.5s ease-in-out infinite,
+    temperature 2s ease-in-out infinite;
 }
 
 .streak-value:hover {
   background: rgba(238, 175, 17, 0.1);
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+.streak-value.updating {
+  transform: scale(1.1);
+  animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 5px currentColor; }
+  50% { box-shadow: 0 0 15px currentColor; }
+  100% { box-shadow: 0 0 5px currentColor; }
+}
+
+@keyframes temperature {
+  0% { filter: brightness(0.9); }
+  50% { filter: brightness(1.1); }
+  100% { filter: brightness(0.9); }
+}
+
+/* Enhance the liquid effect */
+.streak-liquid {
+  position: relative;
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 10px;
+}
+
+.streak-liquid::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  animation: shine 2s linear infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* Session End Styles */
@@ -795,4 +883,59 @@ h2 + .wins-losses-row {
 
 .daily-pl span.updating {
   animation: flash 0.3s ease-in-out;
+}
+
+/* Grass state styling */
+.streak-value.grass-state {
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 51, 204, 0.2),
+    rgba(102, 179, 255, 0.3)
+  );
+  padding: 4px 8px;
+  border: 1px solid rgba(102, 179, 255, 0.4);
+  text-shadow: 
+    -1px -1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px 1px 0 #fff,
+    0 0 10px rgba(102, 179, 255, 0.8),
+    0 0 20px rgba(102, 179, 255, 0.4);
+  position: relative;
+  margin: 0 24px; /* Make room for the grass emojis */
+}
+
+.streak-value.grass-state::before,
+.streak-value.grass-state::after {
+  text-shadow: 
+    -1px -1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px 1px 0 #fff;
+  font-size: 1.2em;
+}
+
+.streak-value.grass-state::before {
+  content: '🌿';
+  position: absolute;
+  left: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: grassWave 2s ease-in-out infinite;
+}
+
+.streak-value.grass-state::after {
+  content: '🌿';
+  position: absolute;
+  right: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: grassWave 2s ease-in-out infinite reverse;
+}
+
+@keyframes grassWave {
+  0%, 100% { transform: translateY(-50%) rotate(-5deg); }
+  50% { transform: translateY(-50%) rotate(5deg); }
 }
