@@ -265,6 +265,10 @@ exports.updateTradeStatus = async (req, res) => {
       // Round to 2 decimal places
       actualProfitLoss = Math.round(actualProfitLoss * 100) / 100;
 
+      // Store the actual profit/loss in the trade model
+      trade.actualProfit = status === 'TARGET_HIT' ? actualProfitLoss : -actualProfitLoss;
+      await trade.save();
+
       console.log('💵 P/L Calculation:', {
         status,
         isLong: trade.isLong,
@@ -272,7 +276,8 @@ exports.updateTradeStatus = async (req, res) => {
         target: trade.takeProfit,
         stop: trade.stopLoss,
         tradeSize: currentTradeSize,
-        calculatedPL: actualProfitLoss
+        calculatedPL: actualProfitLoss,
+        storedPL: trade.actualProfit
       });
 
       // Update account size based on actual P/L
