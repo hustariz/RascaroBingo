@@ -74,7 +74,12 @@
             <div :class="['gain', { positive: user.totalGain > 0, negative: user.totalGain < 0 }]">
               {{ formatGain(user.totalGain) }}
             </div>
-            <div :class="['rr', { 'good-rr': user.riskRewardRatio >= 2, 'bad-rr': user.riskRewardRatio < 1 }]" 
+            <div :class="['rr', {
+              'rr-golden': user.riskRewardRatio >= 3,
+              'rr-purple': user.riskRewardRatio >= 1.5 && user.riskRewardRatio < 3,
+              'rr-normal': user.riskRewardRatio >= 1 && user.riskRewardRatio < 1.5,
+              'rr-bad': user.riskRewardRatio < 1
+            }]" 
                  :title="getRRTitle(user.riskRewardRatio)">
               {{ formatRR(user.riskRewardRatio) }}
             </div>
@@ -139,15 +144,19 @@ export default {
         : `-$${Math.abs(gain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     },
     formatRR(rr) {
-      if (rr === null || rr === undefined) return 'N/A';
-      return `${Number(rr).toFixed(1)}:1`;
+      if (rr === null || rr === undefined) return '-';
+      return Number(rr).toFixed(1);
     },
     getRRTitle(rr) {
-      if (rr === null || rr === undefined) return 'No Risk/Reward data available';
-      if (rr >= 2) return 'Excellent Risk/Reward ratio';
-      if (rr >= 1.5) return 'Good Risk/Reward ratio';
-      if (rr >= 1) return 'Acceptable Risk/Reward ratio';
-      return 'Poor Risk/Reward ratio';
+      if (rr >= 3) {
+        return `Exceptional R/R: ${rr} (Elite Level)`;
+      } else if (rr >= 1.5) {
+        return `Strong R/R: ${rr} (Professional Level)`;
+      } else if (rr >= 1) {
+        return `Acceptable R/R: ${rr} (Break Even Level)`;
+      } else {
+        return `Poor R/R: ${rr} (High Risk Level)`;
+      }
     },
     getRankClass(rank) {
       if (rank === 1) return 'gold';
@@ -183,6 +192,7 @@ export default {
     0 0 15px rgba(238, 175, 17, 0.5);
   padding: 1rem 2rem;
   border-radius: 8px;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .feature-box {
@@ -195,6 +205,15 @@ export default {
   margin: 2rem auto;
   box-shadow: 0 0 20px rgba(238, 175, 17, 0.2);
   backdrop-filter: blur(5px);
+  transform: translateY(20px);
+  animation: slideUp 0.5s ease forwards;
+}
+
+@keyframes slideUp {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .leaderboard-controls {
@@ -217,12 +236,48 @@ export default {
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.sort-controls button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(238, 175, 17, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.sort-controls button:hover::after {
+  opacity: 1;
+  animation: shine 1.5s infinite;
+}
+
+@keyframes shine {
+  0% {
+    transform: rotate(45deg) translateX(-100%);
+  }
+  100% {
+    transform: rotate(45deg) translateX(100%);
+  }
 }
 
 .sort-controls button:hover,
 .sort-controls button.active {
   background: rgb(238, 175, 17);
   color: black;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(238, 175, 17, 0.3);
 }
 
 .leaderboard-table {
@@ -248,10 +303,24 @@ export default {
 .table-row {
   color: white;
   transition: background-color 0.3s ease;
+  animation: slideIn 0.5s ease-out backwards;
 }
 
-.table-row:hover {
-  background: rgba(238, 175, 17, 0.1);
+.table-row:nth-child(1) { animation-delay: 0.1s; }
+.table-row:nth-child(2) { animation-delay: 0.2s; }
+.table-row:nth-child(3) { animation-delay: 0.3s; }
+.table-row:nth-child(4) { animation-delay: 0.4s; }
+.table-row:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .rank {
@@ -265,21 +334,37 @@ export default {
   line-height: 30px;
   border-radius: 50%;
   background: rgba(238, 175, 17, 0.1);
+  transition: all 0.3s ease;
 }
 
 .rank-number.gold {
   background: linear-gradient(45deg, #FFD700, #FFA500);
   color: black;
+  animation: pulse 2s infinite;
 }
 
 .rank-number.silver {
   background: linear-gradient(45deg, #C0C0C0, #A9A9A9);
   color: black;
+  animation: pulse 2.5s infinite;
 }
 
 .rank-number.bronze {
   background: linear-gradient(45deg, #CD7F32, #8B4513);
   color: white;
+  animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(238, 175, 17, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(238, 175, 17, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(238, 175, 17, 0);
+  }
 }
 
 .user {
@@ -291,6 +376,16 @@ export default {
 .premium-badge {
   color: rgb(238, 175, 17);
   margin-left: 0.5rem;
+  animation: crownFloat 3s ease-in-out infinite;
+}
+
+@keyframes crownFloat {
+  0%, 100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
 }
 
 .trades,
@@ -298,42 +393,161 @@ export default {
 .gain,
 .rr {
   text-align: center;
+  transition: all 0.3s ease;
 }
 
 .gain.positive {
   color: #4CAF50;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
 }
 
 .gain.negative {
   color: #f44336;
+  text-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
 }
 
 .rr {
   font-weight: bold;
   cursor: help;
+  transition: all 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
-.rr.good-rr {
-  color: #4CAF50;
+.rr.rr-golden {
+  color: #FFD700;
+  background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  animation: fireGlow 2s ease-in-out infinite;
 }
 
-.rr.bad-rr {
+@keyframes fireGlow {
+  0% {
+    text-shadow: 
+      0 0 4px rgba(255, 215, 0, 0.5),
+      0 0 8px rgba(255, 165, 0, 0.5),
+      0 0 12px rgba(255, 140, 0, 0.5);
+    box-shadow: 
+      0 0 4px rgba(255, 215, 0, 0.2),
+      0 0 8px rgba(255, 165, 0, 0.2);
+  }
+  50% {
+    text-shadow: 
+      0 0 8px rgba(255, 215, 0, 0.8),
+      0 0 16px rgba(255, 165, 0, 0.8),
+      0 0 24px rgba(255, 140, 0, 0.8);
+    box-shadow: 
+      0 0 8px rgba(255, 215, 0, 0.4),
+      0 0 16px rgba(255, 165, 0, 0.4);
+  }
+  100% {
+    text-shadow: 
+      0 0 4px rgba(255, 215, 0, 0.5),
+      0 0 8px rgba(255, 165, 0, 0.5),
+      0 0 12px rgba(255, 140, 0, 0.5);
+    box-shadow: 
+      0 0 4px rgba(255, 215, 0, 0.2),
+      0 0 8px rgba(255, 165, 0, 0.2);
+  }
+}
+
+.rr.rr-purple {
+  color: #9D5CF0;
+  background: linear-gradient(45deg, rgba(157, 92, 240, 0.1), rgba(122, 40, 138, 0.1));
+  border: 1px solid rgba(157, 92, 240, 0.3);
+  animation: purpleGlow 3s ease-in-out infinite;
+}
+
+@keyframes purpleGlow {
+  0% {
+    text-shadow: 
+      0 0 4px rgba(157, 92, 240, 0.5),
+      0 0 8px rgba(122, 40, 138, 0.5);
+    box-shadow: 
+      0 0 4px rgba(157, 92, 240, 0.2),
+      0 0 8px rgba(122, 40, 138, 0.2);
+  }
+  50% {
+    text-shadow: 
+      0 0 8px rgba(157, 92, 240, 0.8),
+      0 0 16px rgba(122, 40, 138, 0.8);
+    box-shadow: 
+      0 0 8px rgba(157, 92, 240, 0.4),
+      0 0 16px rgba(122, 40, 138, 0.4);
+  }
+  100% {
+    text-shadow: 
+      0 0 4px rgba(157, 92, 240, 0.5),
+      0 0 8px rgba(122, 40, 138, 0.5);
+    box-shadow: 
+      0 0 4px rgba(157, 92, 240, 0.2),
+      0 0 8px rgba(122, 40, 138, 0.2);
+  }
+}
+
+.rr.rr-normal {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rr.rr-bad {
   color: #f44336;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  animation: dangerPulse 2s ease-in-out infinite;
 }
 
-.loading,
-.error {
-  text-align: center;
-  padding: 2rem;
-  color: white;
+@keyframes dangerPulse {
+  0% {
+    text-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+    box-shadow: 0 0 4px rgba(244, 67, 54, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 8px rgba(244, 67, 54, 0.8);
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+    box-shadow: 0 0 4px rgba(244, 67, 54, 0.2);
+  }
 }
 
 .loading {
-  color: rgb(238, 175, 17);
+  text-align: center;
+  padding: 2rem;
+  color: white;
+  animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
 }
 
 .error {
+  text-align: center;
+  padding: 2rem;
   color: #ff4444;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.table-row:hover {
+  background: rgba(238, 175, 17, 0.1);
+  transform: scale(1.01);
+  box-shadow: 0 0 15px rgba(238, 175, 17, 0.15);
 }
 
 @media (max-width: 768px) {
