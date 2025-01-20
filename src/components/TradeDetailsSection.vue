@@ -98,6 +98,7 @@
         <button class="tradedetails-history-button" @click="checkTradeHistory">
           <span class="tradedetails-history-icon">📊</span>
           Trade History
+          <span v-if="openTradesCount > 0" class="trade-count-bubble">{{ openTradesCount }}</span>
         </button>
       </div>
     </div>
@@ -156,6 +157,9 @@ export default {
     }
   },
   computed: {
+    openTradesCount() {
+      return this.$store.getters['trades/openTradesCount'];
+    },
     currentRR() {
       // Log the current points and checks
       console.log('Current R/R checks:', {
@@ -374,3 +378,29 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.trade-count-bubble {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ff4757;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+
+.tradedetails-history-button {
+  position: relative;
+  z-index: 1;
+}
+</style>
