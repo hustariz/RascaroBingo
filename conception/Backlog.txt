@@ -1,12 +1,23 @@
-Screenshot Detector if the app is open and it register you take a screenshot, 
-Pop a windows saying, TAKE YOUR FUCKING PROFIT!
 
-Add change Username / Mail functionnality in the admin pannel also ResetPassword. (Add the mail reset password)
+Correction, fix features:
+Add change Username / Mail functionnality(done) in the admin pannel:
+add a ResetPassword buton. (Add the mail reset password bouton somewhere)
 Correct the search user bug in admin Panel.
 
-Add the email authentification code when trying to create en account.
-Add the subscription page. (Now do the right subscription and link it to paypal
+In the RegisterForm Add a verification if user as already an account, and if yes, redirect him directly to LoginForm with 
+mail already written.
 
 Add a $ icon to all paid functionnality in the about pages.
+
+New features:
+Add a screenshot detector to the app.
+
+Screenshot Detector if the app is open and it register you take a screenshot, 
+Pop a windows saying, TAKE YOUR FUCKING PROFIT!
+ALso propose to close directly all open position at market price.
+
+Add the subscription page. (Now do the right subscription and link it to paypal or stripe)
+To link I need to delet my previous AE first and create a new one.
+
 
 
