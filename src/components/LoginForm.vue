@@ -45,7 +45,7 @@
 
 <script>
 import '../assets/styles/LoginForm.css';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import { useAuth } from '@/composables/useAuth';  // Import the composable
@@ -56,15 +56,26 @@ export default {
     isOpen: {
       type: Boolean,
       required: true
+    },
+    prefillUsername: {
+      type: String,
+      default: ''
     }
   },
   setup(props, { emit }) {
     const router = useRouter();
     const auth = useAuth();  // Call the composable to get the auth methods
-    const username = ref('');
+    const username = ref(props.prefillUsername);
     const password = ref('');
     const isLoading = ref(false);
     const errorMessage = ref('');
+
+    // Watch for changes in the prefillUsername prop
+    watch(() => props.prefillUsername, (newValue) => {
+      if (newValue) {
+        username.value = newValue;
+      }
+    });
 
     const handleLogin = async () => {
       isLoading.value = true;
@@ -90,7 +101,7 @@ export default {
         
         // Navigate to bingo page and refresh
         await router.push('/bingo');
-        console.log('🔄 Refreshing page to ensure proper state...');
+        console.log(' Refreshing page to ensure proper state...');
         window.location.reload();
       } catch (error) {
         console.error('Login error:', error);

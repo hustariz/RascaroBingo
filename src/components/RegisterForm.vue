@@ -103,9 +103,15 @@ export default {
       }
 
       try {
-        const { exists } = await api.checkEmail(email.value);
+        const { exists, username: existingUsername } = await api.checkEmail(email.value);
         if (exists) {
           emailError.value = 'This email is already registered';
+          // Emit event with the existing username
+          emit('email-exists', { email: email.value, username: existingUsername });
+          // Close form after a longer delay
+          setTimeout(() => {
+            closeForm();
+          }, 3000); // Increased to 3 seconds
           return false;
         }
         return true;
