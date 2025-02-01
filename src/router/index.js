@@ -8,7 +8,9 @@ import LeaderboardPage from '@/components/LeaderboardPage.vue'
 import ShopPage from '@/components/ShopPage.vue'
 import AboutPage from '@/components/AboutPage.vue'
 import PaymentPage from '@/components/PaymentPage.vue'
-import EmailVerification from '@/components/EmailVerification.vue';
+import EmailVerification from '@/components/EmailVerification.vue'
+import KrakenTradeSection from '@/components/KrakenTradeSection.vue';
+import KrakenTest from '@/components/KrakenTest.vue';
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -63,7 +65,23 @@ const routes = [
   { 
     path: '/bingo', 
     name: 'Bingo',
-    component: BingoPage
+    component: BingoPage,
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/trading', 
+    name: 'Trading',
+    component: KrakenTradeSection,
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/kraken-test', 
+    name: 'KrakenTest',
+    component: KrakenTest,
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true }
   },
   { 
     path: '/profile', 
