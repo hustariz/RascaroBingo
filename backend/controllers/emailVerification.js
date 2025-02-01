@@ -152,7 +152,10 @@ const emailVerificationController = {
     try {
       const { email } = req.body;
       const user = await User.findOne({ email });
-      res.json({ exists: !!user });
+      res.json({ 
+        exists: !!user,
+        username: user ? user.username : null 
+      });
     } catch (error) {
       console.error('Check email error:', error);
       res.status(500).json({ message: 'Error checking email' });
