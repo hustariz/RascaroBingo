@@ -1,7 +1,10 @@
 <template>
   <div id="app">
     <Navbar />
-    <router-view></router-view>
+    <router-view 
+      @open-login-form="showLoginForm = true"
+      @open-register-form="showRegisterForm = true"
+    ></router-view>
   </div>
 </template>
 

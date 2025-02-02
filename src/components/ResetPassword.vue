@@ -49,7 +49,8 @@ import api from '@/services/api';
 
 export default {
   name: 'ResetPassword',
-  setup() {
+  emits: ['openLoginForm'],
+  setup(props, { emit }) {
     const router = useRouter();
     const route = useRoute();
     const token = route.params.token;
@@ -82,7 +83,8 @@ export default {
         await api.resetPassword(token, password.value);
         success.value = 'Password reset successful! Redirecting to login...';
         setTimeout(() => {
-          router.push('/login');
+          emit('openLoginForm');
+          router.push('/');
         }, 2000);
       } catch (err) {
         console.error('Password reset error:', err);
