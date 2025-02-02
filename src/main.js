@@ -30,7 +30,8 @@ import {
   faBrain,
   faCrown,
   faUserShield,
-  faCircleNotch
+  faCircleNotch,
+  faKey
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -56,7 +57,8 @@ library.add(
   faBrain,
   faCrown,
   faUserShield,
-  faCircleNotch
+  faCircleNotch,
+  faKey
 );
 
 const app = createApp(App);

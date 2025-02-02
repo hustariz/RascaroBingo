@@ -28,22 +28,24 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD
   },
   debug: true,
-  logger: true // Enable built-in logger
+  logger: true
 });
 
-// Verify transporter configuration
-transporter.verify(function(error) {
-  if (error) {
-    console.error('❌ Email transporter verification failed:', {
-      error: error.message,
+// Test the transporter immediately
+(async () => {
+  try {
+    const testResult = await transporter.verify();
+    console.log('✅ Email transporter test result:', testResult);
+  } catch (error) {
+    console.error('❌ Email transporter test failed:', {
+      message: error.message,
       code: error.code,
       command: error.command,
-      stack: error.stack
+      response: error.response,
+      responseCode: error.responseCode
     });
-  } else {
-    console.log('✅ Email transporter verified successfully');
   }
-});
+})();
 
 // Log environment variables (without sensitive info)
 console.log('Email Configuration:', {
@@ -147,6 +149,9 @@ const sendVerificationEmail = async (user, token) => {
 
 // Controller methods
 const emailVerificationController = {
+  transporter,
+  generateVerificationToken,
+  sendVerificationEmail,
   // Check if email exists
   checkEmail: async (req, res) => {
     try {

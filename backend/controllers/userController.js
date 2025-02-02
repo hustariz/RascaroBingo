@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const emailVerificationController = require('./emailVerification');
 const Trade = require('../models/Trade');
+const crypto = require('crypto');
 
 // Add this helper function to calculate stats from trade history
 const calculateTradeStats = (trades) => {
@@ -601,6 +602,119 @@ exports.recalculateAllStats = async (req, res) => {
   } catch (error) {
     console.error('Error recalculating stats:', error);
     res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+// Password Reset Methods
+exports.requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate reset token (32 bytes = 64 hex characters)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    
+    // Save hashed token to database
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Create reset URL with the plain token
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    
+    console.log('Generated reset URL:', resetUrl);
+
+    // Send email
+    const mailOptions = {
+      from: {
+        name: 'RascaroBingo',
+        address: process.env.EMAIL_USER
+      },
+      to: user.email,
+      subject: 'Reset Your RascaroBingo Password',
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+          <h2 style="color: #eeb111; text-align: center;">Reset Your Password</h2>
+          <p>Hello ${user.username},</p>
+          <p>We received a request to reset your password. Click the button below to create a new password:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" 
+               style="background-color: #eeb111; 
+                      color: black; 
+                      padding: 12px 24px; 
+                      text-decoration: none; 
+                      border-radius: 25px;
+                      font-weight: bold;">
+              Reset Password
+            </a>
+          </div>
+          <p>If the button doesn't work, you can also click on this link:</p>
+          <p><a href="${resetUrl}">${resetUrl}</a></p>
+          <p>This reset link will expire in 1 hour.</p>
+          <p>If you didn't request a password reset, please ignore this email.</p>
+        </div>
+      `
+    };
+
+    await emailVerificationController.transporter.sendMail(mailOptions);
+    res.json({ message: 'Password reset email sent' });
+  } catch (error) {
+    console.error('Error in password reset request:', error);
+    res.status(500).json({ message: 'Error sending reset email' });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    console.log('Reset password attempt with token:', token);
+
+    if (!token || !password) {
+      return res.status(400).json({
+        message: 'Missing required fields'
+      });
+    }
+
+    // Find user with matching token that hasn't expired
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      console.log('Invalid token details:', {
+        tokenProvided: token,
+        userFound: !!user,
+        tokenExpired: user ? Date.now() > user.resetPasswordExpires : null
+      });
+      return res.status(400).json({
+        message: 'Password reset token is invalid or has expired'
+      });
+    }
+
+    console.log('Found user for reset:', user.email);
+
+    // Update password
+    user.password = password; // Will be hashed by the pre-save middleware
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    
+    await user.save();
+    console.log('Password reset successful for user:', user.email);
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Error in password reset:', error);
+    res.status(500).json({ 
+      message: 'Failed to reset password',
+      error: error.message 
+    });
   }
 };
 

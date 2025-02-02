@@ -11,6 +11,7 @@ import PaymentPage from '@/components/PaymentPage.vue'
 import EmailVerification from '@/components/EmailVerification.vue'
 import KrakenTradeSection from '@/components/KrakenTradeSection.vue';
 import KrakenTest from '@/components/KrakenTest.vue';
+import ResetPassword from '@/components/ResetPassword.vue';
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -128,6 +129,11 @@ const routes = [
     path: '/verify-email/:token',
     name: 'EmailVerification',
     component: EmailVerification
+  },
+  {
+    path: '/reset-password/:token',
+    name: 'ResetPassword',
+    component: ResetPassword
   },
   {
     path: '/admin',
