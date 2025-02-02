@@ -34,6 +34,7 @@ body {
   background-image: url('./assets/images/BingoBackgroundClassy.png');
   background-color: #000; /* Fallback color */
   background-attachment: fixed;
+  background-size: cover;
   min-height: 100vh;
 }
 
@@ -43,6 +44,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #ffffff;
+  min-height: 100vh;
 }
 
 /* Desktop styles */

@@ -39,30 +39,39 @@
           
           <div v-else v-for="user in filteredUsers" :key="user._id" class="table-row">
             <div class="cell username-cell">
-              <span v-if="user.editingUsername" class="username-edit-container">
-                <input 
-                  v-model="user.newUsername" 
-                  type="text" 
-                  class="username-input"
-                  @keyup.enter="updateUsername(user)"
-                  @keyup.esc="cancelUsernameEdit(user)"
-                  ref="usernameInput"
-                >
-                <div class="username-actions">
-                  <button class="icon-button confirm" @click="updateUsername(user)" title="Save">
-                    <font-awesome-icon icon="check" />
+              <div class="user-header">
+                <span v-if="user.editingUsername" class="username-edit-container">
+                  <input 
+                    v-model="user.newUsername" 
+                    type="text" 
+                    class="username-input"
+                    @keyup.enter="updateUsername(user)"
+                    @keyup.esc="cancelUsernameEdit(user)"
+                    ref="usernameInput"
+                  >
+                  <div class="username-actions">
+                    <button class="icon-button confirm" @click="updateUsername(user)" title="Save">
+                      <font-awesome-icon icon="check" />
+                    </button>
+                    <button class="icon-button cancel" @click="cancelUsernameEdit(user)" title="Cancel">
+                      <font-awesome-icon icon="times" />
+                    </button>
+                  </div>
+                </span>
+                <span v-else class="username-display">
+                  {{ user.username }}
+                  <button class="icon-button edit" @click="startUsernameEdit(user)" title="Edit Username">
+                    <font-awesome-icon icon="pencil-alt" />
                   </button>
-                  <button class="icon-button cancel" @click="cancelUsernameEdit(user)" title="Cancel">
-                    <font-awesome-icon icon="times" />
+                  <button 
+                    class="icon-button"
+                    @click="sendPasswordReset(user)"
+                    title="Reset Password"
+                  >
+                    <font-awesome-icon icon="key" />
                   </button>
-                </div>
-              </span>
-              <span v-else class="username-display">
-                {{ user.username }}
-                <button class="icon-button edit" @click="startUsernameEdit(user)" title="Edit Username">
-                  <font-awesome-icon icon="pencil-alt" />
-                </button>
-              </span>
+                </span>
+              </div>
             </div>
             <div class="cell email-cell">
               <span v-if="user.editing" class="email-edit-container">
@@ -294,6 +303,15 @@ export default {
           this.error = 'Failed to delete user. Please try again.';
           console.error('Error deleting user:', err);
         }
+      }
+    },
+
+    async sendPasswordReset(user) {
+      try {
+        await api.requestPasswordReset(user.email);
+        this.showSuccess(`Password reset email sent to ${user.email}`);
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to send password reset email';
       }
     },
 
@@ -553,6 +571,14 @@ export default {
   transform: translateY(0);
 }
 
+.action-button.reset-password {
+  background-color: #eeb111;
+}
+
+.action-button.reset-password:hover {
+  background-color: #d49f0f;
+}
+
 .loading-message,
 .error-message,
 .no-results {
@@ -681,5 +707,15 @@ button.active {
 .success {
   color: #4CAF50;
   margin: 10px 0;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-header h3 {
+  margin: 0;
 }
 </style>

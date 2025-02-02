@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -70,7 +71,12 @@ const UserSchema = new mongoose.Schema({
     }
   },
   emailVerificationToken: String,
-  emailVerificationExpires: Date
+  emailVerificationExpires: Date,
+  resetPasswordToken: {
+    type: String,
+    index: true // Add index for faster queries
+  },
+  resetPasswordExpires: Date
 }, {
   toJSON: {
     transform: function(doc, ret) {
@@ -83,10 +89,28 @@ const UserSchema = new mongoose.Schema({
       delete ret.refreshTokens;
       delete ret._id;
       delete ret.__v;
+      delete ret.emailVerificationToken;
+      delete ret.emailVerificationExpires;
+      delete ret.resetPasswordToken;
+      delete ret.resetPasswordExpires;
       return ret;
     }
   }
 });
+
+// Hash password before saving
+UserSchema.pre('save', async function(next) {
+  if (this.isModified('password')) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
+  next();
+});
+
+// Compare password method
+UserSchema.methods.comparePassword = async function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 // Virtual for calculating winrate
 UserSchema.virtual('winrate').get(function() {

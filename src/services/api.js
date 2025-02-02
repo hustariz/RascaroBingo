@@ -326,6 +326,21 @@ export default {
       });
   },
 
+  // Password reset
+  async requestPasswordReset(email) {
+    console.log('🔄 Requesting password reset for:', email);
+    const response = await api.post('/users/reset-password-request', { email });
+    console.log('✅ Password reset email sent');
+    return response.data;
+  },
+
+  async resetPassword(token, newPassword) {
+    console.log('🔄 Resetting password with token');
+    const response = await api.post(`/users/reset-password/${token}`, { password: newPassword });
+    console.log('✅ Password reset successful');
+    return response.data;
+  },
+
   // Bingo card methods
   getBingoCard() {
     return api.get('/bingo/card')
