@@ -3,15 +3,24 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
 const history = require('connect-history-api-fallback');
+
+// Load environment variables
+const envPath = path.join(__dirname, '.env');
+console.log('Loading environment from:', envPath);
+require('dotenv').config({ path: envPath });
 
 // Log environment status (without sensitive info)
 console.log('Environment Variables Status:', {
   hasEmailUser: !!process.env.EMAIL_USER,
   hasEmailPassword: !!process.env.EMAIL_PASSWORD,
+  hasKrakenApiKey: !!process.env.KRAKEN_API_KEY,
+  hasKrakenApiSecret: !!process.env.KRAKEN_API_SECRET,
   frontendUrl: process.env.FRONTEND_URL,
-  nodeEnv: process.env.NODE_ENV
+  nodeEnv: process.env.NODE_ENV,
+  availableEnvKeys: Object.keys(process.env),
+  krakenKeyLength: process.env.KRAKEN_API_KEY?.length,
+  krakenSecretLength: process.env.KRAKEN_API_SECRET?.length
 });
 
 // Initialize express app
@@ -22,9 +31,9 @@ const PORT = process.env.PORT || 3004;
 const userRoutes = require('./routes/userRoutes');
 const bingoRoutes = require('./routes/bingo');
 const tradeRoutes = require('./routes/tradeRoutes');
-const riskManagementRoutes = require('./routes/riskManagementRoutes');
 const emailVerificationRoutes = require('./routes/emailVerification');
-const { initializeScheduler } = require('./services/schedulerService');
+const krakenRoutes = require('./routes/krakenRoutes');
+const krakenFuturesRoutes = require('./routes/krakenFuturesRoutes');
 
 // CORS Configuration
 const corsOptions = {
@@ -32,7 +41,9 @@ const corsOptions = {
     'http://localhost:8080',
     'http://localhost:3004',
     'https://rascarobingo.onrender.com',
-    'https://rascarobingo-wley.onrender.com'
+    'https://rascarobingo-wley.onrender.com',
+    'https://rascarobingo.com',
+    'https://www.rascarobingo.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -87,7 +98,6 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('❌ MongoDB connection error:', err);
   process.exit(1);
 });
-initializeScheduler();
 
 // Routes Configuration (in order of priority)
 // 1. Health Check
@@ -103,8 +113,9 @@ app.get('/health', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoRoutes);
 app.use('/api/trades', tradeRoutes);
-app.use('/api/risk-management', riskManagementRoutes);
 app.use('/api/auth', emailVerificationRoutes);
+app.use('/api/kraken', krakenRoutes);
+app.use('/api/kraken/futures', krakenFuturesRoutes);
 
 // 2. API Info Route
 app.get('/api', (req, res) => {
@@ -115,12 +126,12 @@ app.get('/api', (req, res) => {
   });
 });
 
-// 3. API 404 Handler
-app.use('/api/*', (req, res) => {
-  console.log('API 404:', req.method, req.url);
+// 3. API 404 Handler - Only for /api routes that don't match any defined routes
+app.all('/api/*', (req, res) => {
+  console.log('API 404:', req.method, req.originalUrl);
   res.status(404).json({
     error: 'API Route Not Found',
-    message: `Route ${req.method} ${req.url} not found`
+    message: `Route ${req.method} ${req.originalUrl} not found`
   });
 });
 

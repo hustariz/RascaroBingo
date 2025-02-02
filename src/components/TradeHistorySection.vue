@@ -3,8 +3,16 @@
     <div class="trade-history-container widget-container" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
       <div class="section-header">
         <h2>Trade History</h2>
-        <button class="close-button" @click="$emit('close')">×</button>
+        <div class="header-buttons">
+          <button class="action-button clear-history" title="Clear Trade History" @click="confirmClearHistory">
+            🧹
+          </button>
+          <button class="action-button nuke-positions" title="Close All Positions" @click="confirmNukePositions">
+            💣
+          </button>
+        </div>
       </div>
+      <button class="close-button" @click="$emit('close')">×</button>
       
       <div class="trade-history-content">
         <div v-if="loading" class="loading">
@@ -16,43 +24,44 @@
         </div>
         
         <div v-else class="trades-list">
-          <div v-for="trade in trades" :key="trade._id" 
+          <div v-for="trade in trades" :key="trade.id || trade._id" 
            class="trade-card" 
            :class="{
-              'open': trade.status === 'OPEN' || !trade.status,
-              'long': trade.type === 'Long',
-              'short': trade.type === 'Short'
+              'open': trade.status === 'OPEN',
+              'long': trade.isLong,
+              'short': !trade.isLong,
+              'newest': trade === trades[0]
             }">
             <!-- Normal View -->
-            <div v-if="!editingTrade || editingTrade._id !== trade._id">
-              <div class="trade-header" :class="trade.type.toLowerCase()">
-                <span class="trade-type">{{ trade.type }}</span>
-                <span class="trade-symbol">{{ trade.symbol }}</span>
-                <span class="trade-date">{{ formatDate(trade.timestamp) }}</span>
+            <div v-if="!editingTrade || editingTrade.id !== (trade.id || trade._id)">
+              <div class="trade-header" :class="trade.isLong ? 'long' : 'short'">
+                <span class="trade-type">{{ trade.isLong ? 'Long' : 'Short' }}</span>
+                <span class="trade-symbol">{{ trade.pair }}</span>
+                <span class="trade-date">{{ formatDate(trade.date) }}</span>
               </div>
               
               <div class="trade-details">
                 <div class="price-details">
                   <div class="price-item">
                     <span class="label">Stoploss:</span>
-                    <span class="value">${{ trade.stoploss }}</span>
+                    <span class="value">${{ trade.stopLoss }}</span>
                   </div>
                   <div class="price-item">
                     <span class="label">Entry:</span>
-                    <span class="value">${{ trade.entry }}</span>
+                    <span class="value">${{ trade.entryPrice }}</span>
                   </div>
                   <div class="price-item">
                     <span class="label">Target:</span>
-                    <span class="value">${{ trade.target }}</span>
+                    <span class="value">${{ trade.takeProfit }}</span>
                   </div>
                   <div class="price-item">
                     <span class="label">R/R:</span>
-                    <span class="value">{{ trade.riskReward }}R</span>
+                    <span class="value">{{ trade.riskRewardRatio }}R</span>
                   </div>
                 </div>
                 
-                <div v-if="trade.tradeIdea" class="trade-idea">
-                  <strong>Idea:</strong> {{ trade.tradeIdea }}
+                <div v-if="trade.notes" class="trade-idea">
+                  <strong>Notes:</strong> {{ trade.notes }}
                 </div>
                 
                 <div class="status-actions-container">
@@ -62,7 +71,7 @@
                       <span :class="{
                         'target-hit': trade.status === 'TARGET_HIT',
                         'stoploss-hit': trade.status === 'STOPLOSS_HIT',
-                        'open': trade.status === 'OPEN' || !trade.status,
+                        'open': trade.status === 'OPEN',
                         'closed': trade.status === 'TARGET_HIT' || trade.status === 'STOPLOSS_HIT'
                       }">
                         {{ getStatusText(trade.status) }}
@@ -72,18 +81,18 @@
                   
                   <div class="trade-actions">
                     <button class="action-button edit-btn" @click="startEdit(trade)">✏️</button>
-                    <button class="action-button delete-btn" @click="confirmDelete(trade._id)">🗑️</button>
+                    <button class="action-button delete-btn" @click="confirmDelete(trade.id)">🗑️</button>
                     <button 
                       class="action-button success-btn"
-                      @click="updateTradeStatus(trade._id, 'TARGET_HIT')"
-                      :disabled="trade.status !== 'OPEN'"
+                      @click="updateTradeStatus(trade, 'TARGET_HIT')"
+                      v-if="trade.status === 'OPEN'"
                     >
                       Target Hit ✅
                     </button>
                     <button 
                       class="action-button failure-btn"
-                      @click="updateTradeStatus(trade._id, 'STOPLOSS_HIT')"
-                      :disabled="trade.status !== 'OPEN'"
+                      @click="updateTradeStatus(trade, 'STOPLOSS_HIT')"
+                      v-if="trade.status === 'OPEN'"
                     >
                       Stoploss Hit ❌
                     </button>
@@ -100,24 +109,24 @@
               </div>
               <div class="edit-content">
                 <div class="form-group">
-                  <label>Symbol:</label>
-                  <input type="text" v-model="editingTrade.symbol">
+                  <label>Pair:</label>
+                  <input type="text" v-model="editingTrade.pair">
                 </div>
                 <div class="form-group">
                   <label>Stoploss ($):</label>
-                  <input type="number" v-model="editingTrade.stoploss">
+                  <input type="number" v-model="editingTrade.stopLoss">
                 </div>
                 <div class="form-group">
                   <label>Entry ($):</label>
-                  <input type="number" v-model="editingTrade.entry">
+                  <input type="number" v-model="editingTrade.entryPrice">
                 </div>
                 <div class="form-group">
                   <label>Target ($):</label>
-                  <input type="number" v-model="editingTrade.target">
+                  <input type="number" v-model="editingTrade.takeProfit">
                 </div>
                 <div class="form-group">
-                  <label>Trade Idea:</label>
-                  <textarea v-model="editingTrade.tradeIdea"></textarea>
+                  <label>Notes:</label>
+                  <textarea v-model="editingTrade.notes"></textarea>
                 </div>
                 <div class="edit-actions">
                   <button class="action-button save-btn" @click="saveEdit">
@@ -138,7 +147,7 @@
 
 <script>
 import '../assets/styles/TradeHistorySection.css';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useStore } from 'vuex';
 
 export default {
@@ -153,16 +162,50 @@ export default {
       default: false
     }
   },
-  watch: {
-    'store.state.riskManagement.adjustedTradeSize'(newSize) {
-      console.log('Trade size updated in history:', newSize);
-    }
-  },
-  setup(_, { emit }) {  // Change props to _ since we're not using it directly
+  setup(props) {
     const store = useStore();
-    const trades = ref([]);
     const loading = ref(true);
     const editingTrade = ref(null);
+
+    // Computed property to sort trades by status (open first) and then by date
+    const trades = computed(() => {
+      return store.state.trades.trades
+        .map(trade => ({
+          ...trade,
+          id: trade._id || trade.id // Ensure ID is always set
+        }))
+        .sort((a, b) => {
+          // First sort by status (OPEN trades first)
+          if (a.status === 'OPEN' && b.status !== 'OPEN') return -1;
+          if (a.status !== 'OPEN' && b.status === 'OPEN') return 1;
+          
+          // Then sort by date within each group
+          return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
+        });
+    });
+
+    const fetchTrades = async () => {
+      try {
+        loading.value = true;
+        await store.dispatch('trades/fetchTrades');
+      } catch (error) {
+        console.error('Error fetching trades:', error);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    // Watch for changes in isVisible prop
+    watch(() => props.isVisible, (newValue) => {
+      if (newValue) {
+        fetchTrades();
+      }
+    });
+
+    // Initial fetch if visible
+    if (props.isVisible) {
+      fetchTrades();
+    }
 
     const getStatusText = (status) => {
       switch(status) {
@@ -173,58 +216,59 @@ export default {
         case 'OPEN':
           return 'OPEN';
         default:
-          return status;
+          return status || 'OPEN';
       }
     };
 
-    const fetchTrades = async () => {
-      try {
-        loading.value = true;
-        const fetchedTrades = await store.dispatch('trades/fetchTrades');
-        trades.value = fetchedTrades;
-      } catch (error) {
-        console.error('Error fetching trades:', error);
-      } finally {
-        loading.value = false;
-      }
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
 
-    const updateTradeStatus = async (tradeId, status) => {
+    const updateTradeStatus = async (trade, status) => {
       try {
-        const trade = trades.value.find(t => t._id === tradeId);
-        if (!trade) return;
-
+        // Get current risk management state
+        const riskState = store.state.riskManagement;
+        
+        // Check if we're hitting stoploss and already at max SL
+        if (status === 'STOPLOSS_HIT' && riskState.slTaken >= 3) {
+          alert('You have reached the maximum number of stoploss trades for today. Take a break and come back tomorrow!');
+          return;
+        }
+        
+        // Calculate P/L based on trade type and status
         let profitLoss = 0;
-        const tradeSize = store.state.riskManagement.adjustedTradeSize;
+        if (status === 'TARGET_HIT') {
+          profitLoss = trade.isLong ? 
+            trade.takeProfit - trade.entryPrice :
+            trade.entryPrice - trade.takeProfit;
+        } else if (status === 'STOPLOSS_HIT') {
+          profitLoss = trade.isLong ?
+            trade.stopLoss - trade.entryPrice :
+            trade.entryPrice - trade.stopLoss;
+        }
 
-        // Calculate absolute points difference
-        const points = trade.type === 'Long' 
-          ? (status === 'TARGET_HIT' ? trade.target - trade.entry : trade.stoploss - trade.entry)
-          : (status === 'TARGET_HIT' ? trade.entry - trade.target : trade.entry - trade.stoploss);
+        // Ensure we have a valid trade ID
+        const tradeId = trade._id || trade.id;
+        if (!tradeId) {
+          console.error('Trade is missing both _id and id:', trade);
+          await fetchTrades(); // Refresh trades to get proper IDs
+          return;
+        }
 
-        // Calculate profit/loss based on fixed points
-        profitLoss = Math.round(points * (tradeSize / trade.entry));
-
-        console.log('Trade result:', {
-          type: trade.type,
-          entry: trade.entry,
-          exit: status === 'TARGET_HIT' ? trade.target : trade.stoploss,
-          tradeSize,
-          profitLoss,
-          calculation: {
-            points,
-            tradeSize,
-            entry: trade.entry
-          }
+        // Update trade status
+        await store.dispatch('trades/updateTradeStatus', {
+          tradeId,
+          status,
+          profitLoss
         });
 
-        await store.dispatch('trades/updateTradeStatus', { tradeId, status });
-        await store.dispatch('riskManagement/updateAfterTrade', { status, profitLoss });
-        
-        emit('trade-status-update', { status, profitLoss });
+        // Refresh trades to ensure everything is in sync
         await fetchTrades();
       } catch (error) {
         console.error('Error updating trade status:', error);
+        await fetchTrades(); // Refresh trades in case of error
       }
     };
 
@@ -232,56 +276,144 @@ export default {
       editingTrade.value = { ...trade };
     };
 
-    const saveEdit = async () => {
-      try {
-        if (!editingTrade.value) return;
-        await store.dispatch('trades/updateTrade', {
-          ...editingTrade.value,
-          symbol: editingTrade.value.symbol
-        });
-        editingTrade.value = null;
-        await fetchTrades();
-      } catch (error) {
-        console.error('Error updating trade:', error);
-      }
-    };
-
     const cancelEdit = () => {
       editingTrade.value = null;
     };
-    
+
+    const saveEdit = async () => {
+      try {
+        await store.dispatch('trades/updateTrade', editingTrade.value);
+        await fetchTrades();
+        editingTrade.value = null;
+      } catch (error) {
+        console.error('Error saving trade:', error);
+      }
+    };
 
     const confirmDelete = async (tradeId) => {
       if (confirm('Are you sure you want to delete this trade?')) {
         try {
-          await store.dispatch('trades/deleteTrade', tradeId);
-          await fetchTrades();
+          await store.dispatch('trades/deleteTrade', tradeId.toString());
+          await fetchTrades(); // Refresh the list after deletion
         } catch (error) {
           console.error('Error deleting trade:', error);
         }
       }
     };
 
-    const formatDate = (timestamp) => {
-      return new Date(timestamp).toLocaleString();
+    const confirmClearHistory = async () => {
+      if (confirm('Are you sure you want to clear your trade history?\nThis will hide all closed trades but keep them in the database for statistics.')) {
+        try {
+          await store.dispatch('trades/clearTradeHistory');
+        } catch (error) {
+          console.error('Error clearing trade history:', error);
+        }
+      }
     };
 
-    onMounted(fetchTrades);
+    const confirmNukePositions = async () => {
+      if (confirm('ARE YOU SURE YOU WANT TO CLOSE ALL YOUR POSITIONS AT MARKET PRICE?')) {
+        try {
+          await store.dispatch('trades/nukePositions');
+          await fetchTrades(); // Refresh the list after nuking
+        } catch (error) {
+          console.error('Error nuking positions:', error);
+        }
+      }
+    };
 
-    
+    onMounted(async () => {
+      await fetchTrades();
+    });
 
     return {
       trades,
       loading,
       editingTrade,
-      updateTradeStatus,
-      startEdit,
-      saveEdit,
-      cancelEdit,
-      confirmDelete,
+      getStatusText,
       formatDate,
-      getStatusText
+      updateTradeStatus,
+      fetchTrades,
+      startEdit,
+      cancelEdit,
+      saveEdit,
+      confirmDelete,
+      confirmClearHistory,
+      confirmNukePositions
     };
   }
-}
+};
 </script>
+
+<style scoped>
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  position: relative;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.close-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #eee;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.close-button:hover {
+  color: #ff4757;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.action-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-history {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.clear-history:hover {
+  color: #ffe44d;
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+  transform: scale(1.05);
+}
+
+.nuke-positions {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.2);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.nuke-positions:hover {
+  color: #ff6b7a;
+  background: rgba(255, 71, 87, 0.3);
+  border-color: rgba(255, 71, 87, 0.5);
+  transform: scale(1.05);
+}
+</style>

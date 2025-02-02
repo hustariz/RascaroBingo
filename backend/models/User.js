@@ -40,22 +40,59 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'BingoCard'
   },
+  tradeHistory: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Trade'
+  }],
   riskManagement: {
     accountSize: { type: Number, default: 10000 },
     baseTradeSize: { type: Number, default: 1000 },
     adjustedTradeSize: { type: Number, default: 1000 },
     currentPercentage: { type: Number, default: 10 }, 
-    tradeStreak: { type: Number, default: 0, min: -3, max: 3 },
+    tradeStreak: { type: Number, default: 0, min: -3 },
     slTaken: { type: Number, default: 0, min: 0, max: 3 },
     dailyStats: {
       lastTradeDate: Date,
-      dailyTradeCount: { type: Number, default: 0 },
-      dailyProfit: { type: Number, default: 0 }, 
+      trades: { type: Number, default: 0 },
+      wins: { type: Number, default: 0 },
+      losses: { type: Number, default: 0 },
+      dailyProfit: { type: Number, default: 0 },
       dailyLoss: { type: Number, default: 0 }
+    },
+    totalStats: {
+      trades: { type: Number, default: 0 },
+      wins: { type: Number, default: 0 },
+      losses: { type: Number, default: 0 },
+      totalGain: { type: Number, default: 0 }, // Total profit/loss in currency
+      totalRisk: { type: Number, default: 0 }, // Total risk taken
+      totalReward: { type: Number, default: 0 }, // Total reward gained
+      averageRR: { type: Number, default: 0 } // Average risk/reward ratio
     }
   },
   emailVerificationToken: String,
   emailVerificationExpires: Date
+}, {
+  toJSON: {
+    transform: function(doc, ret) {
+      ret.id = ret._id.toString();
+      if (ret.bingoCard) ret.bingoCard = ret.bingoCard.toString();
+      if (ret.tradeHistory) {
+        ret.tradeHistory = ret.tradeHistory.map(t => t.toString());
+      }
+      delete ret.password;
+      delete ret.refreshTokens;
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  }
+});
+
+// Virtual for calculating winrate
+UserSchema.virtual('winrate').get(function() {
+  const totalTrades = this.riskManagement.totalStats.trades;
+  if (totalTrades === 0) return 0;
+  return this.riskManagement.totalStats.wins / totalTrades;
 });
 
 // Add methods to handle bingo card

@@ -1,5 +1,13 @@
-const API_URL = process.env.VUE_APP_API_URL;
+const API_URL = process.env.VUE_APP_API_URL || 
+  (typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_URL : undefined) || 
+  'https://api.rascarobingo.com';
+
 console.log('🌍 Bingo using API URL:', API_URL);
+
+if (!API_URL) {
+  console.error('❌ No API URL defined in environment');
+}
+
 export default {
   namespaced: true,
 
@@ -266,7 +274,8 @@ export default {
         const stateToSave = {
           bingoPages: [defaultState],
           currentPageIndex: 0,
-          lastModified: new Date().toISOString()
+          lastModified: new Date().toISOString(),
+          version: '2.0'
         };
 
         commit('SET_PAGES', [defaultState]);
@@ -282,7 +291,7 @@ export default {
       }
     },
 
-    async saveCardState({ state}) {
+    async saveCardState({ state }) {
       console.log('📤 [SAVE] Starting saveCardState');
       try {
         // Format pages data

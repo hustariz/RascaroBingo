@@ -17,6 +17,9 @@
       <router-link to="/leaderboard" class="rb-navbar-item" @click="closeMenu">
         <font-awesome-icon icon="trophy" class="rb-icon" /> Leaderboard
       </router-link>
+      <router-link to="/trading" class="rb-navbar-item" @click="closeMenu">
+        <font-awesome-icon icon="chart-line" class="rb-icon" /> Trading
+      </router-link>
       <router-link to="/shop" class="rb-navbar-item" @click="closeMenu">
         <font-awesome-icon icon="store" class="rb-icon" /> Shop
       </router-link>
@@ -55,6 +58,7 @@
     <ContactForm :isOpen="isContactFormOpen" @close="closeContactForm" />
     <LoginForm 
       :isOpen="isLoginFormOpen" 
+      :prefillUsername="prefillUsername"
       @close="closeLoginForm" 
       @openRegister="showRegisterForm"
       @login-success="handleLoginSuccess"
@@ -63,6 +67,7 @@
       :isOpen="isRegisterFormOpen" 
       @close="closeRegisterForm"
       @register-success="handleLoginSuccess"
+      @email-exists="handleEmailExists"
     />
   </nav>
 </template>
@@ -92,6 +97,7 @@ export default {
     const isMenuOpen = ref(false);
     const username = ref('');
     const isAuthenticated = ref(false);
+    const prefillUsername = ref('');
 
     const checkAuth = async () => {
       try {
@@ -134,10 +140,22 @@ export default {
     const showContactForm = () => isContactFormOpen.value = true;
     const closeContactForm = () => isContactFormOpen.value = false;
     const showLoginForm = () => isLoginFormOpen.value = true;
-    const closeLoginForm = () => isLoginFormOpen.value = false;
+    const closeLoginForm = () => {
+      isLoginFormOpen.value = false;
+      prefillUsername.value = '';
+    };
     const showRegisterForm = () => isRegisterFormOpen.value = true;
     const closeRegisterForm = () => isRegisterFormOpen.value = false;
     const toggleDropdown = () => isDropdownOpen.value = !isDropdownOpen.value;
+
+    const handleEmailExists = ({ username: existingUsername }) => {
+      console.log('Email exists, username:', existingUsername);
+      prefillUsername.value = existingUsername;
+      // Close register form and open login form with prefilled username after the register form closes
+      setTimeout(() => {
+        isLoginFormOpen.value = true;
+      }, 3500); // Wait a bit longer than the register form close delay
+    };
 
     onMounted(() => {
       checkAuth();
@@ -151,6 +169,7 @@ export default {
       isMenuOpen,
       isAuthenticated,
       username,
+      prefillUsername,
       showContactForm,
       closeContactForm,
       showLoginForm,
@@ -161,7 +180,8 @@ export default {
       toggleMenu,
       closeMenu,
       handleLogout,
-      handleLoginSuccess
+      handleLoginSuccess,
+      handleEmailExists
     };
   }
 };
