@@ -65,6 +65,7 @@
         </div>
       </div>
     </div>
+    <p class="hero-subtitle">Get Addicted To Good Practices!</p>
 
     <div class="cta-section">
       <router-link to="/bingo" class="start-button"> 
