@@ -208,14 +208,3 @@ export default {
   }
 };
 </script>
-<style scoped>
-.register-form-input.error {
-  border-color: #ff4444;
-}
-
-.register-form-error-text {
-  color: #ff4444;
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-}
-</style>

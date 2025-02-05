@@ -38,6 +38,11 @@
   background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
   backdrop-filter: blur(5px);
   border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  position: relative;
 }
 
 .section-header h2 {
@@ -45,18 +50,67 @@
   margin: 0;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-right: 20px;
+}
+
 .close-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   background: none;
   border: none;
-  color: rgb(238, 175, 17);
+  color: #eee;
   font-size: 1.5rem;
   cursor: pointer;
-  padding: 0.5rem;
-  transition: color 0.2s ease;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 
 .close-button:hover {
-  color: crimson;
+  color: #ff4757;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.action-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-history {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.clear-history:hover {
+  color: #ffe44d;
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+  transform: scale(1.05);
+}
+
+.nuke-positions {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.2);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.nuke-positions:hover {
+  color: #ff6b7a;
+  background: rgba(255, 71, 87, 0.3);
+  border-color: rgba(255, 71, 87, 0.5);
+  transform: scale(1.05);
 }
 
 /* Content Area */
