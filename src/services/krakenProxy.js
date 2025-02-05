@@ -75,6 +75,50 @@ class KrakenProxy {
   cancelOrder(orderId) {
     return this.privateMethod('cancelOrder', { txid: orderId });
   }
+
+  // Futures API methods
+  async futuresTotalMethod(method, params = {}) {
+    try {
+      const response = await axios({
+        method: 'GET',
+        url: `${this.baseUrl}/api/kraken/futures/${method}`,
+        params
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Kraken Futures API error:', {
+        method,
+        error: error.message,
+        response: error.response?.data
+      });
+      throw error;
+    }
+  }
+
+  // Get futures positions
+  async getFuturesPositions() {
+    return this.futuresTotalMethod('positions');
+  }
+
+  // Get futures tickers
+  getFuturesTickers() {
+    return this.futuresTotalMethod('tickers');
+  }
+
+  // Get futures accounts
+  getFuturesAccounts() {
+    return this.futuresTotalMethod('accounts');
+  }
+
+  // Get futures orders
+  getFuturesOrders() {
+    return this.futuresTotalMethod('orders');
+  }
+
+  // Get futures orderbook
+  getFuturesOrderbook(symbol) {
+    return this.futuresTotalMethod('orderbook', { symbol });
+  }
 }
 
 export default new KrakenProxy();

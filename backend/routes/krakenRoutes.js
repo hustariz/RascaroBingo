@@ -166,18 +166,6 @@ router.post('/openOrders', async (req, res) => {
     }
 });
 
-router.post('/closedOrders', async (req, res) => {
-    try {
-        const kraken = initKrakenSpotClient();
-        console.log('Getting closed orders...');
-        const result = await kraken.api('ClosedOrders');
-        console.log('Closed orders result:', result);
-        res.json(result);
-    } catch (err) {
-        handleKrakenError(err, res);
-    }
-});
-
 router.post('/addOrder', async (req, res) => {
     try {
         const kraken = initKrakenSpotClient();
