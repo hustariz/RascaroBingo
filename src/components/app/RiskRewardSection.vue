@@ -43,7 +43,7 @@
   </div>
 </template>
 <script>
-import '../assets/styles/RiskRewardSection.css';
+import '@/assets/styles/RiskRewardSection.css';
 
 export default {
 name: 'RiskRewardSection',

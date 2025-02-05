@@ -106,7 +106,7 @@
 </template>
 
 <script>
-import '../assets/styles/TradeDetailsSection.css';
+import '@/assets/styles/TradeDetailsSection.css';
 import TradeHistorySection from './TradeHistorySection.vue';
 import { useAuth } from '@/composables/useAuth';
 

@@ -134,7 +134,7 @@
 </template>
 
 <script>
-import '../assets/styles/RiskManagementSidebar.css';
+import '@/assets/styles/RiskManagementSidebar.css';
 import { mapState } from 'vuex'
 
 export default {

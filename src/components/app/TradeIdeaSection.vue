@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import '../assets/styles/TradeIdeaSection.css'
+import '@/assets/styles/TradeIdeaSection.css'
 import PremiumLock from './PremiumLock.vue'
 import { usePremiumCheck } from '@/composables/usePremiumCheck'
 
