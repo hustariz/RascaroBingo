@@ -2,7 +2,12 @@
   <div class="kraken-test">
     <!-- Spot Trading Section -->
     <div class="spot-trading-section">
-      <h2>Spot Trading</h2>
+      <div class="section-header">
+        <h2>Spot Trading</h2>
+        <button @click="refreshData" class="refresh-button">
+          <span class="refresh-icon">↻</span> Refresh Data
+        </button>
+      </div>
       <div class="spot-cards">
         <!-- Account Balance Card -->
         <div class="card">
@@ -94,8 +99,13 @@
 
     <!-- Futures Trading Section -->
     <div class="futures-section">
-      <h2>Futures Trading</h2>
-      <KrakenFuturesPositions />
+      <div class="section-header">
+        <h2>Futures Trading</h2>
+        <button @click="refreshFuturesData" class="refresh-button">
+          <span class="refresh-icon">↻</span> Refresh Data
+        </button>
+      </div>
+      <KrakenFuturesPositions ref="futuresPositionsRef" />
     </div>
   </div>
 </template>
@@ -123,6 +133,8 @@ export default {
     const orders = ref(null);
     const ordersError = ref(null);
     const loadingOrders = ref(false);
+
+    const futuresPositionsRef = ref(null);
 
     // Computed properties for balance display
     const topBalances = computed(() => {
@@ -164,55 +176,56 @@ export default {
     });
 
     const fetchData = async () => {
-      await Promise.all([
-        fetchBalance(),
-        fetchTicker(),
-        fetchOrders()
-      ]);
-    };
-
-    const fetchBalance = async () => {
+      // Fetch balance
       loadingBalance.value = true;
       balanceError.value = null;
       try {
-        const response = await axios.post('/api/kraken/balance');
-        accountBalance.value = response.data.result;
+        const balanceResponse = await axios.post('/api/kraken/balance');
+        accountBalance.value = balanceResponse.data.result;
       } catch (error) {
-        balanceError.value = error.message;
+        balanceError.value = error.response?.data?.error || error.message;
       } finally {
         loadingBalance.value = false;
       }
-    };
 
-    const fetchTicker = async () => {
+      // Fetch ticker
       loadingTicker.value = true;
       tickerError.value = null;
       try {
-        const response = await axios.get('/api/kraken/public/ticker?pair=XBT/USD');
-        const result = response.data.result['XXBTZUSD'];
+        const tickerResponse = await axios.get('/api/kraken/public/ticker?pair=BTC/USD');
+        const result = tickerResponse.data.result['XXBTZUSD'];
         ticker.value = {
-          lastPrice: parseFloat(result.c[0]),
-          volume: parseFloat(result.v[1]),
-          high: parseFloat(result.h[1]),
-          low: parseFloat(result.l[1])
+          lastPrice: result.c[0],
+          volume: result.v[1],
+          high: result.h[1],
+          low: result.l[1]
         };
       } catch (error) {
-        tickerError.value = error.message;
+        tickerError.value = error.response?.data?.error || error.message;
       } finally {
         loadingTicker.value = false;
       }
-    };
 
-    const fetchOrders = async () => {
+      // Fetch orders
       loadingOrders.value = true;
       ordersError.value = null;
       try {
-        const response = await axios.post('/api/kraken/openOrders');
-        orders.value = response.data.result;
+        const ordersResponse = await axios.post('/api/kraken/openOrders');
+        orders.value = ordersResponse.data.result;
       } catch (error) {
-        ordersError.value = error.message;
+        ordersError.value = error.response?.data?.error || error.message;
       } finally {
         loadingOrders.value = false;
+      }
+    };
+
+    const refreshData = async () => {
+      await fetchData();
+    };
+
+    const refreshFuturesData = async () => {
+      if (futuresPositionsRef.value) {
+        await futuresPositionsRef.value.fetchPositions();
       }
     };
 
@@ -243,7 +256,10 @@ export default {
       orders,
       ordersError,
       loadingOrders,
-      formatNumber
+      formatNumber,
+      refreshData,
+      refreshFuturesData,
+      futuresPositionsRef
     };
   }
 };
@@ -418,6 +434,33 @@ h2 {
 
 .order-item:last-child {
   margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.refresh-button {
+  background: #2d2d2d;
+  border: 1px solid #3d3d3d;
+  color: #4a9eff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.2s;
+}
+
+.refresh-button:hover {
+  background: #353535;
+}
+
+.refresh-icon {
+  font-size: 1.2em;
+  margin-right: 4px;
 }
 
 /* Responsive layout */
