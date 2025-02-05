@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const history = require('connect-history-api-fallback');
+const http = require('http');
+const { Server } = require('socket.io');
 
 // Load environment variables
 const envPath = path.join(__dirname, '.env');
@@ -23,19 +25,7 @@ console.log('Environment Variables Status:', {
   krakenSecretLength: process.env.KRAKEN_API_SECRET?.length
 });
 
-// Initialize express app
-const app = express();
-const PORT = process.env.PORT || 3004;
-
-// Import routes
-const userRoutes = require('./routes/userRoutes');
-const bingoRoutes = require('./routes/bingo');
-const tradeRoutes = require('./routes/tradeRoutes');
-const emailVerificationRoutes = require('./routes/emailVerification');
-const krakenRoutes = require('./routes/krakenRoutes');
-const krakenFuturesRoutes = require('./routes/krakenFuturesRoutes');
-
-// CORS Configuration
+// Configure CORS options
 const corsOptions = {
   origin: [
     'http://localhost:8080',
@@ -45,18 +35,54 @@ const corsOptions = {
     'https://rascarobingo.com',
     'https://www.rascarobingo.com'
   ],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 200,
-  exposedHeaders: ['Authorization']
+  credentials: true
 };
 
-// Apply CORS first
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // enable pre-flight
+// Create Express app
+const app = express();
+const PORT = process.env.PORT || 3004;
 
-// Global Middleware
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO with CORS options
+const io = new Server(server, {
+  cors: corsOptions,
+  allowEIO3: true // Allow Engine.IO version 3 clients
+});
+
+// Store socket connections by user
+const socketConnections = new Map();
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+
+  socket.on('register', (userId) => {
+    console.log(`Registering socket for user ${userId}`);
+    socketConnections.set(userId, socket);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+    // Remove socket from connections
+    for (const [userId, s] of socketConnections.entries()) {
+      if (s.id === socket.id) {
+        socketConnections.delete(userId);
+        break;
+      }
+    }
+  });
+});
+
+// Make io available to routes
+app.set('io', io);
+app.set('socketConnections', socketConnections);
+
+// Enable CORS
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Logging middleware
@@ -99,17 +125,15 @@ mongoose.connect(process.env.MONGODB_URI, {
   process.exit(1);
 });
 
-// Routes Configuration (in order of priority)
-// 1. Health Check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date(),
-    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
-});
+// Import routes
+const userRoutes = require('./routes/userRoutes');
+const bingoRoutes = require('./routes/bingo');
+const tradeRoutes = require('./routes/tradeRoutes');
+const emailVerificationRoutes = require('./routes/emailVerification');
+const krakenRoutes = require('./routes/krakenRoutes');
+const krakenFuturesRoutes = require('./routes/krakenFuturesRoutes');
 
-// 1. API Routes first
+// API routes
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoRoutes);
 app.use('/api/trades', tradeRoutes);
@@ -117,7 +141,7 @@ app.use('/api/auth', emailVerificationRoutes);
 app.use('/api/kraken', krakenRoutes);
 app.use('/api/kraken/futures', krakenFuturesRoutes);
 
-// 2. API Info Route
+// API Info Route
 app.get('/api', (req, res) => {
   res.json({
     message: 'RascaroBingo API',
@@ -126,7 +150,7 @@ app.get('/api', (req, res) => {
   });
 });
 
-// 3. API 404 Handler - Only for /api routes that don't match any defined routes
+// API 404 Handler - Only for /api routes that don't match any defined routes
 app.all('/api/*', (req, res) => {
   console.log('API 404:', req.method, req.originalUrl);
   res.status(404).json({
@@ -135,10 +159,10 @@ app.all('/api/*', (req, res) => {
   });
 });
 
-// 4. History middleware (after API routes, before static files)
+// History middleware (after API routes, before static files)
 app.use(history());
 
-// 5. Static files and SPA routes
+// Static files and SPA routes
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, 'dist');
   console.log('📂 Production dist path:', distPath);
@@ -146,7 +170,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(distPath));
 }
 
-// 6. Global Error Handlers
+// Global Error Handlers
 app.use((req, res) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header('Access-Control-Allow-Credentials', true);
@@ -210,24 +234,11 @@ process.on('SIGTERM', async () => {
   }
 });
 
-const startServer = async () => {
-  try {
-    await new Promise((resolve, reject) => {
-      const server = app.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT}`);
-        console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-        console.log(`🔒 CORS enabled for:`, corsOptions.origin);
-        resolve(server);
-      });
-      server.on('error', reject);
-    });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
-};
-
 // Start Server
-startServer();
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🔒 CORS enabled for:`, corsOptions.origin);
+});
 
 module.exports = app;

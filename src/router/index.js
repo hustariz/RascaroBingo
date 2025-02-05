@@ -134,6 +134,15 @@ const routes = [
     component: ResetPassword
   },
   {
+    path: '/futures/positions',
+    name: 'KrakenFuturesPositions',
+    component: () => import('@/components/KrakenFuturesPositions.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Futures Positions'
+    }
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('@/components/AdminPanel.vue'),
