@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import '../assets/styles/HomePage.css';
+import '@/assets/styles/HomePage.css';
 
 export default {
   name: 'HomePage',

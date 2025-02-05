@@ -1,17 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomePage from '../components/HomePage.vue'
-import BingoPage from '../components/BingoPage.vue'
-import ProfilePage from '@/components/ProfilePage.vue'
-import AnalyticsPage from '@/components/AnalyticsPage.vue'
-import LoginForm from '@/components/LoginForm.vue'
-import LeaderboardPage from '@/components/LeaderboardPage.vue'
-import ShopPage from '@/components/ShopPage.vue'
-import AboutPage from '@/components/AboutPage.vue'
-import PaymentPage from '@/components/PaymentPage.vue'
-import EmailVerification from '@/components/EmailVerification.vue'
-import KrakenTradeSection from '@/components/KrakenTradeSection.vue';
-import KrakenTest from '@/components/KrakenTest.vue';
-import ResetPassword from '@/components/ResetPassword.vue';
+import HomePage from '@/components/app/HomePage.vue'
+import BingoPage from '@/components/app/BingoPage.vue'
+import ProfilePage from '@/components/app/ProfilePage.vue'
+import AnalyticsPage from '@/components/app/AnalyticsPage.vue'
+import LoginForm from '@/components/app/LoginForm.vue'
+import LeaderboardPage from '@/components/app/LeaderboardPage.vue'
+import ShopPage from '@/components/app/ShopPage.vue'
+import AboutPage from '@/components/app/AboutPage.vue'
+import PaymentPage from '@/components/app/PaymentPage.vue'
+import EmailVerification from '@/components/app/EmailVerification.vue'
+import KrakenTradeSection from '@/components/kraken/KrakenTradeSection.vue'
+import KrakenTest from '@/components/kraken/KrakenTest.vue'
+import ResetPassword from '@/components/app/ResetPassword.vue';
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -134,9 +134,9 @@ const routes = [
     component: ResetPassword
   },
   {
-    path: '/futures/positions',
+    path: '/futures',
     name: 'KrakenFuturesPositions',
-    component: () => import('@/components/KrakenFuturesPositions.vue'),
+    component: () => import('@/components/kraken/KrakenFuturesPositions.vue'),
     meta: {
       requiresAuth: true,
       title: 'Futures Positions'
@@ -144,8 +144,8 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'Admin',
-    component: () => import('@/components/AdminPanel.vue'),
+    name: 'AdminPanel',
+    component: () => import('@/components/app/AdminPanel.vue'),
     beforeEnter: [authGuard, adminGuard],
     meta: { requiresAuth: true, requiresAdmin: true }
   },

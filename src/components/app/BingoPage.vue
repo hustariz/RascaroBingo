@@ -119,12 +119,12 @@
 import { ref, defineComponent, computed, watch, onMounted } from 'vue';
 import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
 import draggable from 'vuedraggable';
-import BingoGrid from '@/components/BingoGrid.vue';
-import RiskManagementSidebar from '@/components/RiskManagementSidebar.vue';
-import RiskRewardSection from '@/components/RiskRewardSection.vue';
-import TradeIdeaSection from '@/components/TradeIdeaSection.vue';
-import TradeDetailsSection from '@/components/TradeDetailsSection.vue';
-import PremiumLock from '@/components/PremiumLock.vue';
+import BingoGrid from './BingoGrid.vue';
+import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
+import RiskRewardSection from '@/components/app/RiskRewardSection.vue';
+import TradeIdeaSection from '@/components/app/TradeIdeaSection.vue';
+import TradeDetailsSection from '@/components/app/TradeDetailsSection.vue';
+import PremiumLock from '@/components/app/PremiumLock.vue';
 import { useAuth } from '@/composables/useAuth';
 import { useStore } from 'vuex';
 
@@ -589,5 +589,5 @@ export default defineComponent({
 </script>
 
 <style>
-@import '../assets/styles/BingoPage.css';
+@import '@/assets/styles/BingoPage.css';
 </style>

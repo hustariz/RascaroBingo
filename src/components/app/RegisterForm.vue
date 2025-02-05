@@ -66,7 +66,7 @@
   </div>
 </template>
 <script>
-import '../assets/styles/RegisterForm.css';
+import '@/assets/styles/RegisterForm.css';
 import { ref, computed } from 'vue';
 import api from '@/services/api'; 
 
