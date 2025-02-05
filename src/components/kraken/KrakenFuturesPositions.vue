@@ -76,6 +76,7 @@ import axios from 'axios';
 
 export default {
   name: 'KrakenFuturesPositions',
+  expose: ['fetchPositions'],
   data() {
     return {
       positions: [],
@@ -121,7 +122,7 @@ export default {
     async fetchPositions() {
       try {
         this.loading = true;
-        const response = await axios.get('/api/kraken/futures/positions');
+        const response = await axios.post('/api/kraken/futures/positions');
         this.positions = response.data.openPositions;
         this.error = null;
       } catch (error) {
