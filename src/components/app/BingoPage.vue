@@ -49,6 +49,13 @@
                    @mousemove="updateWorkflowTooltipPosition($event)">
                 3
               </div>
+              <div v-if="element.component === 'TradeDetailsSection'" 
+                   class="workflow-number trade-details-workflow"
+                   @mouseenter="showWorkflowTooltip($event, 4)"
+                   @mouseleave="hideWorkflowTooltip"
+                   @mousemove="updateWorkflowTooltipPosition($event)">
+                4
+              </div>
               <div class="bingo-controls" v-if="element.component === 'BingoGrid'">
                 <div class="page-controls">
                   <input 
@@ -118,6 +125,7 @@
       <div v-if="workflowTooltipNumber === 1">First check your trading pair and write your trade idea 💭</div>
       <div v-if="workflowTooltipNumber === 2">Attribute points to your trading practices / indicators and then check the bingo case to increase your score! 🎯</div>
       <div v-if="workflowTooltipNumber === 3">The more points you earn, the more risk you can allocate to your trade, which can be a further target / stoploss or more size for the trade! 📈</div>
+      <div v-if="workflowTooltipNumber === 4">Now enter the stoploss of your trade first (where your idea is wrong) and your entry and we will calculate an estimation of target based of the points you earned previously! 🎯💰</div>
     </div>
 
     <!-- Edit Modal -->
