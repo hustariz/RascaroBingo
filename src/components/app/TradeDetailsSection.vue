@@ -52,13 +52,10 @@
             <div class="tradedetails-tooltip-icon">
               <span>i</span>
               <div class="tradedetails-tooltip-content">
-                Target will be calculated following the Risk/Reward you have access from the number of points you scored in the Bingo!
-                <div class="tradedetails-tooltip-action">
-                  <p>Would you like to set it?</p>
-                  <div class="tradedetails-tooltip-buttons">
-                    <button class="tradedetails-tooltip-btn check" @click.stop="enableTargetEdit">✓</button>
-                    <button class="tradedetails-tooltip-btn cross" @click.stop="disableTargetEdit">✗</button>
-                  </div>
+                Would you like to manually set it? 
+                <div class="tradedetails-tooltip-buttons">
+                  <div class="tradedetails-tooltip-btn check" @click.stop="enableTargetEdit">✓</div>
+                  <div class="tradedetails-tooltip-btn cross" @click.stop="disableTargetEdit">✗</div>
                 </div>
               </div>
             </div>
@@ -153,7 +150,10 @@ export default {
       isLong: false,
       isTargetEditable: false,
       showHistory: false,
-      actualRR: 0
+      actualRR: 0,
+      showTooltip: false,
+      tooltipX: 0,
+      tooltipY: 0
     }
   },
   computed: {
@@ -197,6 +197,14 @@ export default {
       // Default - 1R/R
       console.log('Using default 1R/R');
       return 1;
+    },
+    tooltipStyle() {
+      return {
+        position: 'fixed',
+        left: `${this.tooltipX + 25}px`,
+        top: `${this.tooltipY - 30}px`,
+        zIndex: 9999
+      }
     }
   },
   watch: {
@@ -374,6 +382,19 @@ export default {
       this.isTargetEditable = false;
       this.calculateTarget(); // Recalculate target when disabling manual edit
       console.log('Target input disabled');
+    },
+    showTargetTooltip(event) {
+      this.showTooltip = true;
+      this.updateTooltipPosition(event);
+    },
+    hideTargetTooltip() {
+      this.showTooltip = false;
+    },
+    updateTooltipPosition(event) {
+      if (this.showTooltip) {
+        this.tooltipX = event.clientX;
+        this.tooltipY = event.clientY;
+      }
     }
   }
 }

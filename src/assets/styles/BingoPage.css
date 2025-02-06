@@ -363,6 +363,82 @@ h2 {
   border-top: 5px solid rgba(25, 16, 5, 0.98);
 }
 
+.tradedetails-tooltip-content {
+  position: absolute; 
+  left: -260px;  
+  top: -10px; 
+  background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  color: rgb(238, 175, 17);
+  width: 240px;
+  z-index: 1500;
+  display: none;
+  box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
+}
+
+.tradedetails-tooltip-content::before {
+  content: '';
+  position: absolute;
+  left: 100%;  
+  top: 0;
+  width: 20px;
+  height: 100%;
+  background: transparent;
+}
+
+.tradedetails-tooltip-icon {
+  width: 19px;
+  height: 19px;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: rgb(255, 215, 0);
+  cursor: help;
+  background: rgba(25, 16, 5, 0.9);
+  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
+  position: relative;
+}
+
+.tradedetails-tooltip-icon:hover .tradedetails-tooltip-content {
+  display: block;
+}
+
+.tradedetails-tooltip-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+}
+
+.tradedetails-tooltip-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tradedetails-tooltip-btn.check {
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  color: rgb(0, 255, 0);
+}
+
+.tradedetails-tooltip-btn.cross {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.5);
+  color: rgb(255, 0, 0);
+}
+
 /* Desktop hover */
 @media (hover: hover) {
   .cell-info-zone:hover .tooltip {
@@ -460,7 +536,7 @@ h2 {
   border-radius: 4px !important;
   cursor: pointer !important;
   font-weight: 500 !important;
-  transition: all 0.2s !important;
+  transition: all 0.2s ease !important;
 }
 
 .save-button {
@@ -689,24 +765,82 @@ h2 {
   position: fixed;
   background: rgba(43, 24, 16, 0.98);
   color: #ffffff;
-  padding: 10px 15px;
+  padding: 12px 15px;
   border-radius: 6px;
-  font-family: Arial, sans-serif;
   font-size: 14px;
-  font-weight: normal;
-  line-height: 1.4;
-  width: 200px;
+  width: 280px;
   border: 1px solid rgba(238, 175, 17, 0.5);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   pointer-events: none;
   z-index: 9999;
-  letter-spacing: 0.3px;
+  white-space: normal;
+  line-height: 1.4;
 }
 
-.workflow-number:hover .workflow-tooltip {
-  opacity: 1;
-  visibility: visible;
-  top: -15px;
+.workflow-tooltip .tooltip-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+  z-index: 10000;
+}
+
+.workflow-tooltip .tooltip-button {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  background: rgba(43, 24, 16, 0.9);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  z-index: 10000;
+}
+
+.workflow-tooltip .tooltip-button:hover {
+  background: rgba(238, 175, 17, 0.2);
+}
+
+/* Common tooltip styles */
+.workflow-tooltip,
+.target-tooltip {
+  position: fixed;
+  background: rgba(43, 24, 16, 0.98);
+  color: #ffffff;
+  padding: 12px 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 280px;
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 9999;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.tooltip-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tooltip-button {
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  background: rgba(43, 24, 16, 0.9);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  min-width: 25px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.tooltip-button:hover {
+  background: rgba(238, 175, 17, 0.2);
 }
 
 /* Bingo page navigation controls */
@@ -906,4 +1040,74 @@ h2 {
 
 .btn-secondary:hover {
   background-color: #e8e8e8;
+}
+
+/* Target Tooltip */
+.target-tooltip-container {
+  position: relative;
+  display: inline-block;
+  z-index: 9999;
+}
+
+.target-tooltip-container span {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(238, 175, 17, 0.2);
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  color: #ffffff;
+  font-size: 12px;
+  font-style: italic;
+  cursor: help;
+}
+
+.target-tooltip {
+  position: absolute;
+  background: rgba(43, 24, 16, 0.98);
+  color: #ffffff;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  z-index: 9999;
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  top: -5px;
+  left: 25px;
+  transform: translateY(-100%);
+  transition: opacity 0.2s ease;
+  display: none;
+}
+
+.target-tooltip-container:hover .target-tooltip {
+  display: block;
+}
+
+.tooltip-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 10px;
+}
+
+.tooltip-button {
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  background: rgba(43, 24, 16, 0.9);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  min-width: 25px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tooltip-button:hover {
+  background: rgba(238, 175, 17, 0.2);
 }
