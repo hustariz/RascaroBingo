@@ -668,6 +668,12 @@ h2 {
   position: absolute;
 }
 
+.workflow-number.risk-reward-workflow {
+  top: -10px;
+  left: -10px;
+  z-index: 1004;
+}
+
 .workflow-number:hover {
   transform: scale(1.1);
   box-shadow: 0 0 15px rgba(238, 175, 17, 0.5);
