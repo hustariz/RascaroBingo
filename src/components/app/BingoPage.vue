@@ -28,7 +28,35 @@
                   {{ element.title }}
                 </template>
               </h2>
-              <div v-if="element.component === 'BingoGrid'" class="bingo-controls">
+              <div v-if="element.component === 'TradeIdeaSection'" 
+                   class="workflow-number"
+                   @mouseenter="showWorkflowTooltip($event, 1)"
+                   @mouseleave="hideWorkflowTooltip"
+                   @mousemove="updateWorkflowTooltipPosition($event)">
+                1
+              </div>
+              <div v-if="element.component === 'BingoGrid'" 
+                   class="workflow-number bingo-workflow"
+                   @mouseenter="showWorkflowTooltip($event, 2)"
+                   @mouseleave="hideWorkflowTooltip"
+                   @mousemove="updateWorkflowTooltipPosition($event)">
+                2
+              </div>
+              <div v-if="element.component === 'RiskRewardSection'" 
+                   class="workflow-number risk-reward-workflow"
+                   @mouseenter="showWorkflowTooltip($event, 3)"
+                   @mouseleave="hideWorkflowTooltip"
+                   @mousemove="updateWorkflowTooltipPosition($event)">
+                3
+              </div>
+              <div v-if="element.component === 'TradeDetailsSection'" 
+                   class="workflow-number trade-details-workflow"
+                   @mouseenter="showWorkflowTooltip($event, 4)"
+                   @mouseleave="hideWorkflowTooltip"
+                   @mousemove="updateWorkflowTooltipPosition($event)">
+                4
+              </div>
+              <div class="bingo-controls" v-if="element.component === 'BingoGrid'">
                 <div class="page-controls">
                   <input 
                     v-model="currentPageName" 
@@ -90,6 +118,14 @@
         </div>
       </template>
       </draggable>
+    </div>
+
+    <!-- Workflow Tooltip -->
+    <div class="workflow-tooltip" v-show="workflowTooltipVisible" :style="workflowTooltipStyle">
+      <div v-if="workflowTooltipNumber === 1">First check your trading pair and write your trade idea 💭</div>
+      <div v-if="workflowTooltipNumber === 2">Attribute points to your trading practices and check the bingo cases to increase your score! 🎯</div>
+      <div v-if="workflowTooltipNumber === 3">The more points you earn, the more risk you can allocate to your trade, which can be a further target / stoploss or more size for the trade! 📈</div>
+      <div v-if="workflowTooltipNumber === 4">Now enter the stoploss of your trade first (where your idea is wrong), then your entry and we will calculate a proposal of target based of the points you earned previously! 🎯💰</div>
     </div>
 
     <!-- Edit Modal -->
@@ -265,6 +301,10 @@ export default defineComponent({
         }))
       }],
       initialized: false,
+      workflowTooltipVisible: false,
+      workflowTooltipNumber: null,
+      workflowTooltipX: 0,
+      workflowTooltipY: 0,
     };
   },
 
@@ -313,6 +353,12 @@ export default defineComponent({
           return;
         }
         this.handlePageNameUpdate(newName);
+      }
+    },
+    workflowTooltipStyle() {
+      return {
+        left: `${this.workflowTooltipX + 20}px`,
+        top: `${this.workflowTooltipY - 10}px`
       }
     }
   },
@@ -573,6 +619,21 @@ export default defineComponent({
 
       const cell = currentPage.bingoCells[cellIndex];
       await this.editCell(cellIndex, { selected: !cell.selected });
+    },
+    showWorkflowTooltip(event, number) {
+      this.workflowTooltipVisible = true;
+      this.workflowTooltipNumber = number;
+      this.updateWorkflowTooltipPosition(event);
+    },
+    hideWorkflowTooltip() {
+      this.workflowTooltipVisible = false;
+      this.workflowTooltipNumber = null;
+    },
+    updateWorkflowTooltipPosition(event) {
+      if (this.workflowTooltipVisible) {
+        this.workflowTooltipX = event.clientX;
+        this.workflowTooltipY = event.clientY;
+      }
     },
   },
   async created() {
