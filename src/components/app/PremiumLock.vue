@@ -1,9 +1,9 @@
 <template>
-  <div class="premium-lock-overlay" v-if="show">
-    <div class="premium-lock-modal">
-      <button class="premium-lock-close" @click="$emit('close')">
+  <div class="premium-lock-overlay" v-if="show" @click="$emit('close')" style="visibility: visible;">
+    <div class="premium-lock-modal" @click.stop>
+      <div class="premium-lock-close" role="button" @click.stop="$emit('close')">
         <i class="fas fa-times"></i>
-      </button>
+      </div>
       <div class="premium-lock-header">
         <i class="fas fa-crown premium-lock-crown"></i>
         <h3>Premium Feature</h3>
@@ -22,11 +22,11 @@
           </div>
           <div class="premium-lock-feature">
             <i class="fas fa-comments"></i>
-            <span>Access to Live Chatbox</span>
+            <span>Live Chatbox</span>
           </div>
           <div class="premium-lock-feature">
-            <i class="fas fa-headset"></i>
-            <span>Priority Support</span>
+            <i class="fas fa-exchange-alt"></i>
+            <span>Live Exchange Trading (API)</span>
           </div>
           <div class="premium-lock-feature">
             <i class="fas fa-file-export"></i>

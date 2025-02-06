@@ -1,5 +1,14 @@
 <template>
   <div class="page-container">
+    <PremiumLock 
+      :show="showPremiumLock" 
+      :message="!isAuthenticated 
+        ? 'Sign in to save your Bingo progress and access premium features' 
+        : 'Upgrade to Premium to access multiple Bingo pages and custom page names'"
+      @upgradePremium="handleUpgradePremium"
+      @close="closePremiumLock"
+    />
+
     <RiskManagementSidebar 
       ref="riskSidebar"
       @save-settings="handleSaveSettings" 
@@ -103,15 +112,6 @@
                 @cell-click="handleCellClick" 
                 @cell-edit="openEditModal"
                 @update:modelValue="updateWidgetData(element.id, $event)"
-              />
-              <PremiumLock 
-                v-if="element.component === 'BingoGrid'"
-                :show="showPremiumLock" 
-                :message="!isAuthenticated 
-                  ? 'Sign in to save your Bingo progress and access premium features' 
-                  : 'Upgrade to Premium to access multiple Bingo pages and custom page names'"
-                @upgradePremium="handleUpgradePremium"
-                @close="closePremiumLock"
               />
             </div>
           </div>
@@ -282,6 +282,7 @@ export default defineComponent({
       isSidebarCollapsed: false,
       currentTradeIdea: null,
       currentSymbol: 'XRPusd',
+      initialized: false,
       localBingoCells: Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
         title: '',
@@ -300,7 +301,6 @@ export default defineComponent({
           selected: false
         }))
       }],
-      initialized: false,
       workflowTooltipVisible: false,
       workflowTooltipNumber: null,
       workflowTooltipX: 0,
@@ -340,8 +340,7 @@ export default defineComponent({
 
     currentPageName: {
       get() {
-        const page = this.getCurrentPage;
-        return page ? page.name : 'Default Board';
+        return this.getCurrentPage?.name || 'Board 1';
       },
       set(newName) {
         if (!this.isAuthenticated) {
@@ -369,14 +368,15 @@ export default defineComponent({
       'SET_PAGES',
       'SET_CURRENT_PAGE',
       'ADD_PAGE',
-      'DELETE_PAGE'
+      'DELETE_PAGE',
+      'saveCardState'
     ]),
     ...mapActions('bingo', [
-      'loadUserCard',
-      'saveCardState'
+      'loadUserCard'
     ]),
     
     closePremiumLock() {
+      console.log('Closing premium lock');
       this.showPremiumLock = false;
     },
 
@@ -465,7 +465,7 @@ export default defineComponent({
         this.SET_CURRENT_PAGE(this.getCurrentPageIndex + 1);
       } else {
         // Create new page
-        this.ADD_PAGE({
+        this.$store.commit('bingo/ADD_PAGE', {
           id: Date.now(),
           name: `Board ${this.getAllPages.length + 1}`,
           bingoCells: Array.from({ length: 25 }, (_, i) => ({
@@ -499,7 +499,7 @@ export default defineComponent({
       }
 
       if (confirm('Are you sure you want to delete this board? This action cannot be undone.')) {
-        this.DELETE_PAGE(this.getCurrentPageIndex);
+        this.$store.commit('bingo/DELETE_PAGE', this.getCurrentPageIndex);
         await this.saveCardState();
       }
     },
@@ -559,6 +559,17 @@ export default defineComponent({
     },
 
     async handleCellClick(cellIndex) {
+      // Check premium access for non-first board edits
+      const isEditingContent = true;
+      // Only show premium lock if:
+      // 1. User is editing content AND
+      // 2. User is not on the first board (getCurrentPageIndex > 0) AND
+      // 3. User is not authenticated or not premium
+      if (isEditingContent && this.getCurrentPageIndex > 0 && (!this.isAuthenticated || !this.isPremiumUser)) {
+        this.showPremiumLock = true;
+        return;
+      }
+
       const currentPage = this.getCurrentPage;
       if (currentPage && currentPage.bingoCells && currentPage.bingoCells[cellIndex]) {
         const cell = currentPage.bingoCells[cellIndex];
@@ -642,9 +653,6 @@ export default defineComponent({
   },
   async mounted() {
     console.log(' BingoPage component mounted');
-    if (!this.initialized) {
-      await this.initialize();
-    }
   }
 });
 </script>
