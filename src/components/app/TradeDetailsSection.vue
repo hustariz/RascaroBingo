@@ -52,10 +52,10 @@
             <div class="tradedetails-tooltip-icon">
               <span>i</span>
               <div class="tradedetails-tooltip-content">
-                Would you like to manually set it? 
-                <div class="tradedetails-tooltip-buttons">
-                  <div class="tradedetails-tooltip-btn check" @click.stop="enableTargetEdit">✓</div>
-                  <div class="tradedetails-tooltip-btn cross" @click.stop="disableTargetEdit">✗</div>
+                <div class="tooltip-content">
+                  Would you like to manually set it? 
+                  <span class="tooltip-button" @click.stop="enableTargetEdit">✓</span>
+                  <span class="tooltip-button" @click.stop="disableTargetEdit">✗</span>
                 </div>
               </div>
             </div>
