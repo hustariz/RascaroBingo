@@ -28,7 +28,21 @@
                   {{ element.title }}
                 </template>
               </h2>
-              <div v-if="element.component === 'BingoGrid'" class="bingo-controls">
+              <div v-if="element.component === 'TradeIdeaSection'" 
+                   class="workflow-number"
+                   @mouseenter="showWorkflowTooltip($event, 1)"
+                   @mouseleave="hideWorkflowTooltip"
+                   @mousemove="updateWorkflowTooltipPosition($event)">
+                1
+              </div>
+              <div v-if="element.component === 'BingoGrid'" 
+                   class="workflow-number bingo-workflow"
+                   @mouseenter="showWorkflowTooltip($event, 2)"
+                   @mouseleave="hideWorkflowTooltip"
+                   @mousemove="updateWorkflowTooltipPosition($event)">
+                2
+              </div>
+              <div class="bingo-controls" v-if="element.component === 'BingoGrid'">
                 <div class="page-controls">
                   <input 
                     v-model="currentPageName" 
@@ -90,6 +104,12 @@
         </div>
       </template>
       </draggable>
+    </div>
+
+    <!-- Workflow Tooltip -->
+    <div class="workflow-tooltip" v-show="workflowTooltipVisible" :style="workflowTooltipStyle">
+      <div v-if="workflowTooltipNumber === 1">First check your trading pair and write your trade idea</div>
+      <div v-if="workflowTooltipNumber === 2">Attribute points to your trading practices / indicators and then check the bingo case to increase your score! 🎯</div>
     </div>
 
     <!-- Edit Modal -->
@@ -265,6 +285,10 @@ export default defineComponent({
         }))
       }],
       initialized: false,
+      workflowTooltipVisible: false,
+      workflowTooltipNumber: null,
+      workflowTooltipX: 0,
+      workflowTooltipY: 0,
     };
   },
 
@@ -313,6 +337,12 @@ export default defineComponent({
           return;
         }
         this.handlePageNameUpdate(newName);
+      }
+    },
+    workflowTooltipStyle() {
+      return {
+        left: `${this.workflowTooltipX + 20}px`,
+        top: `${this.workflowTooltipY - 10}px`
       }
     }
   },
@@ -573,6 +603,21 @@ export default defineComponent({
 
       const cell = currentPage.bingoCells[cellIndex];
       await this.editCell(cellIndex, { selected: !cell.selected });
+    },
+    showWorkflowTooltip(event, number) {
+      this.workflowTooltipVisible = true;
+      this.workflowTooltipNumber = number;
+      this.updateWorkflowTooltipPosition(event);
+    },
+    hideWorkflowTooltip() {
+      this.workflowTooltipVisible = false;
+      this.workflowTooltipNumber = null;
+    },
+    updateWorkflowTooltipPosition(event) {
+      if (this.workflowTooltipVisible) {
+        this.workflowTooltipX = event.clientX;
+        this.workflowTooltipY = event.clientY;
+      }
     },
   },
   async created() {

@@ -43,6 +43,7 @@
   height: 100%;
   position: relative;
   overflow: visible !important;
+  z-index: 1;
 }
 
 /* Widget Title Specific Layout */
@@ -99,6 +100,8 @@
   height: 100%;
   width: 100%;
   overflow: visible !important;
+  position: relative;
+  z-index: 2;
 }
 
 .section-header {
@@ -626,6 +629,74 @@ h2 {
   }
 }
 
+/* Workflow Number Bubbles */
+.workflow-number {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 25px;
+  height: 25px;
+  background: rgb(238, 175, 17);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(43, 24, 16);
+  font-weight: bold;
+  font-family: 'Legendarie', sans-serif;
+  font-size: 1rem;
+  box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
+  cursor: help;
+  z-index: 1002;
+  transition: all 0.3s ease;
+}
+
+.workflow-number.bingo-workflow {
+  top: -10px;
+  left: -10px;
+  z-index: 1004;
+}
+
+.workflow-number.bingo-workflow .workflow-tooltip {
+  left: 35px;
+  top: 0;
+  transform: none;
+  white-space: normal;
+  width: 200px;
+  line-height: 1.3;
+  z-index: 1010;
+  position: absolute;
+}
+
+.workflow-number:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(238, 175, 17, 0.5);
+}
+
+.workflow-tooltip {
+  position: fixed;
+  background: rgba(43, 24, 16, 0.98);
+  color: #ffffff;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.4;
+  width: 200px;
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 9999;
+  letter-spacing: 0.3px;
+}
+
+.workflow-number:hover .workflow-tooltip {
+  opacity: 1;
+  visibility: visible;
+  top: -15px;
+}
+
 /* Bingo page navigation controls */
 .bingo-controls {
   display: flex;
@@ -711,6 +782,7 @@ h2 {
   position: relative;
   width: 100%;
   height: 100%;
+  z-index: 3;
 }
 
 .component-wrapper.has-premium-feature {
