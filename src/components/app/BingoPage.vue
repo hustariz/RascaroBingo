@@ -40,8 +40,8 @@
           :w="item.w"
           :h="item.h"
           :i="item.i"
-          :min-w="2"
-          :min-h="3"
+          :min-w="item.minW"
+          :min-h="item.minH"
           class="grid-item"
         >
           <div class="widget-header">
@@ -51,7 +51,8 @@
             </div>
           </div>
           <div class="widget-content">
-            Widget {{ item.i }}
+            <component :is="item.component" v-if="item.component" v-bind="item.props"></component>
+            <div v-else>Widget {{ item.i }}</div>
           </div>
         </GridItem>
       </GridLayout>
@@ -94,6 +95,9 @@ import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/app/PremiumLock.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
+import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
+import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
+import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
 import { useAuth } from '@/composables/useAuth';
 import { useStore } from 'vuex';
 
@@ -104,7 +108,10 @@ export default defineComponent({
     RiskManagementSidebar,
     PremiumLock,
     GridLayout,
-    GridItem
+    GridItem,
+    TradeIdeaWidget,
+    TradeDetailsWidget,
+    RiskRewardWidget
   },
 
   setup() {
@@ -166,14 +173,44 @@ export default defineComponent({
       {
         x: 0,
         y: 0,
-        w: 4,
+        w: 3,
         h: 6,
-        i: "0",
-        title: "Test Widget",
-        draggable: true,
-        resizable: true,
+        i: "trade-idea",
+        title: "Trade's Idea",
+        component: TradeIdeaWidget,
+        minW: 3,
+        minH: 6,
+        maxW: 12,
+        maxH: 12
+      },
+      {
+        x: 3,
+        y: 0,
+        w: 3,
+        h: 6,
+        i: "trade-details",
+        title: "Trade's Details",
+        component: TradeDetailsWidget,
+        minW: 3,
+        minH: 6,
+        maxW: 12,
+        maxH: 12
+      },
+      {
+        x: 6,
+        y: 0,
+        w: 3,
+        h: 7,
+        i: "risk-reward",
+        title: "Points Bingo: Risk/Reward",
+        component: RiskRewardWidget,
+        props: {
+          score: 0
+        },
         minW: 2,
-        minH: 3
+        minH: 7,
+        maxW: 12,
+        maxH: 12
       }
     ]);
 
