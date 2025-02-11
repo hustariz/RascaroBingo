@@ -8,7 +8,9 @@
     <div class="hero-section">
       <h2 class="welcome-title" data-text="Welcome to RascaroBingo">Welcome to RascaroBingo</h2>
     </div>
-    <p class="hero-subtitle">Transform Your Trading Journey<br>with Fun and Discipline</p>
+    <div class="subtitle-container">
+      <p class="hero-subtitle">Transform Your Trading Journey<br>with Fun and Discipline</p>
+    </div>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">
@@ -64,8 +66,9 @@
         </div>
       </div>
     </div>
-    <p class="hero-subtitle">Get Addicted To Good Practices!</p>
-
+    <div class="subtitle-container">
+      <p class="hero-subtitle">Get Addicted To Good Practices!</p>
+    </div>
 
     <div class="cta-section">
       <router-link to="/bingo" class="start-button"> 
