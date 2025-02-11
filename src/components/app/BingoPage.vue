@@ -16,106 +16,45 @@
     />
     
     <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
-      <draggable 
-        v-model="widgets" 
-        :animation="300"
+      <GridLayout
+        v-model:layout="layout"
+        :col-num="12"
+        :row-height="50"
+        :is-draggable="true"
+        :is-resizable="true"
+        :vertical-compact="false"
+        :margin="[10, 10]"
+        :use-css-transforms="true"
+        :width="gridWidth"
+        :height="gridHeight"
+        :auto-size="true"
+        :prevent-collision="false"
         class="dashboard-layout"
-        handle=".widget-handle"
-        item-key="id"
+        @layout-updated="onLayoutUpdated"
       >
-      <template #item="{ element }">
-        <div class="widget-container" :class="element.size">
-          <div class="section-container">
-            <div class="section-header widget-title">
-              <h2>
-                <template v-if="element.component === 'RiskRewardSection'">
-                  Points&nbsp;Bingo:<br/>Risk/Reward
-                </template>
-                <template v-else>
-                  {{ element.title }}
-                </template>
-              </h2>
-              <div v-if="element.component === 'TradeIdeaSection'" 
-                   class="workflow-number"
-                   @mouseenter="showWorkflowTooltip($event, 1)"
-                   @mouseleave="hideWorkflowTooltip"
-                   @mousemove="updateWorkflowTooltipPosition($event)">
-                1
-              </div>
-              <div v-if="element.component === 'BingoGrid'" 
-                   class="workflow-number bingo-workflow"
-                   @mouseenter="showWorkflowTooltip($event, 2)"
-                   @mouseleave="hideWorkflowTooltip"
-                   @mousemove="updateWorkflowTooltipPosition($event)">
-                2
-              </div>
-              <div v-if="element.component === 'RiskRewardSection'" 
-                   class="workflow-number risk-reward-workflow"
-                   @mouseenter="showWorkflowTooltip($event, 3)"
-                   @mouseleave="hideWorkflowTooltip"
-                   @mousemove="updateWorkflowTooltipPosition($event)">
-                3
-              </div>
-              <div v-if="element.component === 'TradeDetailsSection'" 
-                   class="workflow-number trade-details-workflow"
-                   @mouseenter="showWorkflowTooltip($event, 4)"
-                   @mouseleave="hideWorkflowTooltip"
-                   @mousemove="updateWorkflowTooltipPosition($event)">
-                4
-              </div>
-              <div class="bingo-controls" v-if="element.component === 'BingoGrid'">
-                <div class="page-controls">
-                  <input 
-                    v-model="currentPageName" 
-                    placeholder="Page Name" 
-                    class="page-name-input"
-                    @focus="checkPremiumAccess"
-                    @input="handlePageNameUpdate($event.target.value)"
-                  >
-                  <div class="page-navigation">
-                    <button 
-                      @click="previousPage" 
-                      class="nav-button"
-                    >←</button>
-                    <span>Page {{ getCurrentPageIndex + 1 }}</span>
-                    <button 
-                      @click="nextPage" 
-                      class="nav-button"
-                    >→</button>
-                    <button 
-                      v-if="getAllPages.length > 1" 
-                      @click="deletePage" 
-                      class="delete-button"
-                      title="Delete current board"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="widget-handle">⋮⋮</div>
-            </div>
-            <div class="component-wrapper" :class="{ 'has-premium-feature': element.component === 'BingoGrid' }">
-              <component 
-                :is="element.component" 
-                :cells="element.component === 'BingoGrid' ? activeCells : undefined"
-                :score="element.component === 'RiskRewardSection' ? activeScore : undefined"
-                :rrChecks="element.component === 'TradeDetailsSection' ? rrChecks : undefined"
-                :tradeIdea="element.component === 'TradeDetailsSection' ? currentTradeIdea : undefined"
-                :tradingSymbol="element.component === 'TradeDetailsSection' ? currentSymbol : undefined"
-                :isSidebarCollapsed="isSidebarCollapsed"
-                @trade-status-update="handleTradeStatusUpdate"
-                @trade-idea-update="updateTradeIdea"
-                @symbol-update="updateTradingSymbol"
-                @cell-click="handleCellClick" 
-                @cell-edit="openEditModal"
-                @update:modelValue="updateWidgetData(element.id, $event)"
-              />
+        <GridItem
+          v-for="item in layout"
+          :key="item.i"
+          :x="item.x"
+          :y="item.y"
+          :w="item.w"
+          :h="item.h"
+          :i="item.i"
+          :min-w="2"
+          :min-h="3"
+          class="grid-item"
+        >
+          <div class="widget-header">
+            <div class="widget-title">{{ item.title }}</div>
+            <div class="widget-controls">
+              <button class="control-button" @click="removeWidget(item.i)">×</button>
             </div>
           </div>
-        </div>
-      </template>
-      </draggable>
+          <div class="widget-content">
+            Widget {{ item.i }}
+          </div>
+        </GridItem>
+      </GridLayout>
     </div>
 
     <!-- Workflow Tooltip -->
@@ -150,15 +89,11 @@
 </template>
 
 <script>
-import { ref, defineComponent, computed, watch, onMounted } from 'vue';
+import { ref, defineComponent, computed, watch, onMounted, onUnmounted } from 'vue';
 import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
-import draggable from 'vuedraggable';
-import BingoGrid from './BingoGrid.vue';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
-import RiskRewardSection from '@/components/app/RiskRewardSection.vue';
-import TradeIdeaSection from '@/components/app/TradeIdeaSection.vue';
-import TradeDetailsSection from '@/components/app/TradeDetailsSection.vue';
 import PremiumLock from '@/components/app/PremiumLock.vue';
+import { GridLayout, GridItem } from 'vue3-grid-layout';
 import { useAuth } from '@/composables/useAuth';
 import { useStore } from 'vuex';
 
@@ -166,13 +101,10 @@ export default defineComponent({
   name: 'BingoPage',
   
   components: {
-    draggable,
-    BingoGrid,
     RiskManagementSidebar,
-    RiskRewardSection,
-    TradeIdeaSection,
-    TradeDetailsSection,
-    PremiumLock
+    PremiumLock,
+    GridLayout,
+    GridItem
   },
 
   setup() {
@@ -230,44 +162,58 @@ export default defineComponent({
       await store.dispatch('bingo/loadUserCard');
     });
 
-    const widgets = ref([
+    const layout = ref([
       {
-        id: 1,
-        title: 'Bingo Section',
-        component: 'BingoGrid',
-        size: 'extra-large',
-        props: {
-          cells: []
-        }
-      },
-      {
-        id: 2,
-        title: 'Points Bingo: Risk/Reward',
-        component: 'RiskRewardSection',
-        size: 'small',
-        props: {
-          score: 0
-        }
-      },
-      {
-        id: 3,
-        title: "Trade's Idea",
-        component: 'TradeIdeaSection',
-        size: 'medium'
-      },
-      {
-        id: 4,
-        title: "Trade's Details",
-        component: 'TradeDetailsSection',
-        size: 'large'
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 6,
+        i: "0",
+        title: "Test Widget",
+        draggable: true,
+        resizable: true,
+        minW: 2,
+        minH: 3
       }
     ]);
+
+    const gridWidth = ref(2000);
+    const gridHeight = ref(1200);
+
+    const updateGridSize = () => {
+      const container = document.querySelector('.dashboard-layout');
+      if (container) {
+        gridWidth.value = container.clientWidth;
+        gridHeight.value = container.clientHeight;
+      }
+    };
+
+    onMounted(() => {
+      updateGridSize();
+      window.addEventListener('resize', updateGridSize);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', updateGridSize);
+    });
+
+    const onLayoutUpdated = (newLayout) => {
+      layout.value = newLayout;
+    };
+
+    const removeWidget = (i) => {
+      layout.value = layout.value.filter(item => item.i !== i);
+    };
 
     return {
       auth,
       isPremiumUser,
       isAuthenticated,
-      widgets
+      layout,
+      gridWidth,
+      gridHeight,
+      onLayoutUpdated,
+      removeWidget
     };
   },
 
@@ -363,11 +309,9 @@ export default defineComponent({
   methods: {
     ...mapMutations('bingo', [
       'UPDATE_CELL',
+      'UPDATE_PAGE',
       'SET_PAGES',
-      'SET_CURRENT_PAGE',
-      'ADD_PAGE',
-      'DELETE_PAGE',
-      'saveCardState'
+      'DELETE_PAGE'
     ]),
     ...mapActions('bingo', [
       'loadUserCard'
@@ -643,6 +587,17 @@ export default defineComponent({
         this.workflowTooltipX = event.clientX;
         this.workflowTooltipY = event.clientY;
       }
+    },
+    handlePositionChange({ x, y }) {
+      console.log('Widget position changed:', x, y);
+    },
+
+    handleSizeChange({ width, height }) {
+      console.log('Widget size changed:', width, height);
+    },
+
+    handleCloseWidget() {
+      console.log('Widget closed');
     },
   },
   async created() {

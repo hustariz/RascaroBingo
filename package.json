@@ -24,6 +24,8 @@
     "util": "^0.12.5",
     "vue": "^3.3.4",
     "vue-router": "^4.2.0",
+    "vue3-draggable-resizable": "^1.6.5",
+    "vue3-grid-layout": "^1.0.0",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.1.0",
     "webpack": "^5.97.1"
