@@ -6,10 +6,9 @@
     </div>
 
     <div class="hero-section">
-      <h2 class="welcome-title">{{ welcomeMessage }}</h2>
-      <p class="hero-subtitle">Transform Your Trading Journey with <br> Fun and Discipline</p>
+      <h2 class="welcome-title" data-text="Welcome to RascaroBingo">Welcome to RascaroBingo</h2>
     </div>
-
+    <p class="hero-subtitle">Transform Your Trading Journey<br>with Fun and Discipline</p>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">
@@ -66,6 +65,7 @@
       </div>
     </div>
     <p class="hero-subtitle">Get Addicted To Good Practices!</p>
+
 
     <div class="cta-section">
       <router-link to="/bingo" class="start-button"> 
