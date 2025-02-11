@@ -57,9 +57,9 @@
   background: rgb(0, 0, 0);
   border: 1px solid transparent;
   border-radius: 10px;
-  padding: 1.5rem;
+  padding: 1rem;
   max-width: 800px;
-  margin: 0.8rem auto;
+  margin: 1.5rem auto;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   background-image: 
     linear-gradient(to right, black, black),
@@ -291,40 +291,11 @@
   margin: 1rem auto;
   padding: 0.8rem 1.5rem;
   position: relative;
-  background: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgb(238, 175, 17);
   border-radius: 12px;
-  box-shadow: 
-    0 0 20px rgba(0, 0, 0, 0.4),
-    inset 0 0 10px rgba(238, 175, 17, 0.1);
   width: fit-content;
-  border: 1px solid transparent;
-  background-image: 
-    linear-gradient(to right, black, black),
-    linear-gradient(
-      90deg,
-      rgb(238, 175, 17) 0%,
-      rgb(214, 158, 15) 50%,
-      rgb(238, 175, 17) 100%
-    );
-  background-clip: padding-box, border-box;
-  background-origin: padding-box, border-box;
-  animation: borderFlow 4s linear infinite;
-}
-
-.subtitle-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(238, 175, 17, 0.03),
-    rgba(214, 158, 15, 0.03)
-  );
-  border-radius: 12px;
-  z-index: 1;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
 }
 
 .hero-subtitle {
