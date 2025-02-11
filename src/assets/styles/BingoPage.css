@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;500&display=swap');
+
 /* Dashboard Grid Layout */
 .dashboard-layout {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  grid-auto-rows: minmax(300px, auto);
-  gap: 15px;
-  padding: 15px;
+  grid-auto-rows: minmax(18.75rem, auto);
+  gap: 0.75rem;
+  padding: 0.75rem;
   width: 100%;
   min-width: 0; 
   overflow: hidden; 
@@ -14,24 +16,25 @@
 .page-container {
   display: flex;
   min-height: 100vh;
-  max-width: 1200px;
+  max-width: 75rem;
   margin: 0 auto;
-  padding: 35px 20px 20px 20px;
+  padding: 1.875rem 1.25rem 0.9375rem 1.25rem;
   position: relative;
   isolation: isolate;
 }
 
 .main-content {
   flex-grow: 1;
-  padding: 15px;
-  margin-left: 270px;
+  padding: 0.75rem;
+  margin-left: 16.875rem;
+  margin-top: 0.7rem;
   transition: margin-left 0.3s ease;
   min-width: 0; 
   overflow: hidden; 
 }
 
 .main-content.expanded {
-  margin-left: 40px;
+  margin-left: 2.5rem;
 }
 
 .widget-container {
@@ -40,7 +43,7 @@
   box-shadow: 
     inset 0 0 15px rgba(255, 215, 0, 0.1),
     0 4px 12px rgba(0, 0, 0, 0.2);
-  min-height: 300px;
+  min-height: 18.75rem;
   width: 100%;
   height: 100%;
   position: relative;
@@ -67,6 +70,12 @@
   max-width: calc(100% - 4rem); /* Leave space for handle */
   line-height: 1.3;
   white-space: nowrap;
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+  color: rgb(238, 175, 17);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .widget-container .widget-title h2 br {
@@ -150,15 +159,15 @@
 .widget-container.medium {
   grid-column: span 2;
   grid-row: span 1;
-  min-height: 250px;
-  max-height: 350px; 
+  min-height: 15.625rem;
+  max-height: 21.875rem; 
 }
 
 .widget-container.large {
   grid-column: span 3;
   grid-row: span 1;
-  min-height: 250px; /* Add this specific height for medium widgets */
-  max-height: 350px; /* Add this to limit the height */
+  min-height: 15.625rem; /* Add this specific height for medium widgets */
+  max-height: 21.875rem; /* Add this to limit the height */
 }
 
 .widget-container.extra-large {
@@ -566,7 +575,7 @@ h2 {
 }
 
 /* Responsive Design */
-@media (max-width: 1400px) {
+@media (max-width: 87.5rem) {
   .dashboard-layout {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -576,7 +585,7 @@ h2 {
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 64rem) {
   .dashboard-layout {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -587,7 +596,7 @@ h2 {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
   .dashboard-layout {
     grid-template-columns: 1fr;
   }
@@ -599,7 +608,7 @@ h2 {
 }
 
 /* Update your existing responsive section */
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
   .page-container {
     padding: 20px 10px;
     flex-direction: column;
@@ -662,7 +671,7 @@ h2 {
 }
 
 /* Small phones */
-@media (max-width: 380px) {
+@media (max-width: 23.75rem) {
   .bingo-grid {
     gap: 3px;
     padding: 3px;
@@ -677,14 +686,14 @@ h2 {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
   .widget-container {
     grid-column: span 1 !important;
     grid-row: span 1 !important;
   }
   
   .widget-container.large {
-    min-height: 600px !important; /* Increase height significantly */
+    min-height: 37.5rem !important; /* Increase height significantly */
     height: auto;
   }
 
@@ -940,7 +949,7 @@ h2 {
 }
 
 .component-wrapper.has-premium-feature {
-  min-height: 400px;
+  min-height: 25rem;
 }
 
 /* Section Header Layout */

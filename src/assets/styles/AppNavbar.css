@@ -6,7 +6,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 0.4rem 1rem;
   background-image: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(255,255,255,0));
   position: fixed;
   top: 0;
@@ -135,7 +135,7 @@
 @media only screen and (max-width: 768px) {
   .rb-navbar {
     justify-content: space-between;
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 1rem;
     background-color: rgba(0, 0, 0, 0.95);
     height: 60px;
   }

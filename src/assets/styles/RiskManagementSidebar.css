@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;500&display=swap');
+
 .sidebar {
   width: 300px;
   background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98));
-  padding: 50px 20px 20px 28px; /* Reduced top padding */
+  padding: 2.5rem 1.25rem 1.25rem 1.75rem;
   color: white;
   border-right: 1px solid rgba(255, 215, 0, 0.5);
   height: 100vh;
@@ -100,15 +102,27 @@
 }
 
 .setting-item label {
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 1.1rem;
+  letter-spacing: 0.3px;
+  color: white;
   display: block;
-  margin-bottom: 4px; /* Reduced from 5px */
-  color: #ffffff;
-  font-family: 'Legendarie', sans-serif;
-  font-size: 1.4rem; /* Reduced from 1.5rem */
+  margin-bottom: 6px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .setting-item:last-of-type {
   margin-bottom: 0;
+}
+
+.streak-info label {
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 1.1rem;
+  letter-spacing: 0.3px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Streak Styles */
@@ -119,6 +133,7 @@
 }
 
 .streak-value {
+  font-family:'Montserrat', 'Roboto', sans-serif;
   font-size: 1.1rem;
   font-weight: bold;
   transition: all 0.3s ease;
@@ -720,14 +735,14 @@
 }
 
 h2 {
-  font-family: 'Legendarie', sans-serif;
+  font-family: Arial, sans-serif;
   color: rgb(238, 175, 17);
   margin: 18px 0 2px 0; /* Reduced bottom margin from 4px to 2px */
   font-size: 1.3rem;
 }
 
 .sidebar > h2:first-of-type {
-  margin-top: 8px;
+  margin-top: 0.5rem;
 }
 
 h2 + .setting-item,
@@ -938,4 +953,22 @@ h2 + .wins-losses-row {
 @keyframes grassWave {
   0%, 100% { transform: translateY(-50%) rotate(-5deg); }
   50% { transform: translateY(-50%) rotate(5deg); }
+}
+
+/* Title Styles */
+.sidebar h2 {
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+  color: rgb(238, 175, 17);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(238, 175, 17, 0.3);
+}
+
+.sidebar h2:first-of-type {
+  margin-top: 1rem;
 }
