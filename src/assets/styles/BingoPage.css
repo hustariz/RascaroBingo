@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;500&display=swap');
+
 /* Dashboard Grid Layout */
 .dashboard-layout {
   display: grid;
@@ -25,6 +27,7 @@
   flex-grow: 1;
   padding: 15px;
   margin-left: 270px;
+  margin-top: 0.5rem;
   transition: margin-left 0.3s ease;
   min-width: 0; 
   overflow: hidden; 
@@ -67,6 +70,12 @@
   max-width: calc(100% - 4rem); /* Leave space for handle */
   line-height: 1.3;
   white-space: nowrap;
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+  color: rgb(238, 175, 17);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .widget-container .widget-title h2 br {

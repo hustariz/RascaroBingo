@@ -16,8 +16,6 @@
     />
     
     <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
-      <h1 class="page-title">Here we cooking</h1>
-      
       <draggable 
         v-model="widgets" 
         :animation="300"

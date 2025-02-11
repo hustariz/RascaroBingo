@@ -52,7 +52,7 @@
           </div>
         </div>
         <div class="setting-item">
-          <label>Number of Stoploss Taken:</label>
+          <label>Stoploss's Streak:</label>
           <div class="streak-slider-container">
             <div class="streak-info">
               <div 
