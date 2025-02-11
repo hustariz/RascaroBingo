@@ -83,8 +83,10 @@
   background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
   border: 1px solid rgba(238, 175, 17, 0.6);
   color: rgb(255, 215, 0);
-  font-size: 1.6rem;
-  font-family: 'Legendarie', sans-serif;
+  font-size: 1.3rem;
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.3px;
   padding: 0 1.5rem;
   border-radius: 0px 0px 6px 6px;
   cursor: pointer;
@@ -96,6 +98,7 @@
   height: 55px;
   width: 100%;
   margin-top: -2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .tradeidea-chart-button:hover {
