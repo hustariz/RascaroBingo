@@ -74,26 +74,26 @@
 
 .widget-container.small {
   grid-column: span 1;
-  grid-row: span 1;
+  grid-row: span 6;  /* Changed from 7 to 6 for RiskRewardSection */
 }
 
 .widget-container.medium {
-  grid-column: span 2;
-  grid-row: span 1;
+  grid-column: span 3;  /* Changed from 4 to 3 for TradeIdeaSection */
+  grid-row: span 4;    /* TradeIdeaSection height */
   min-height: 15.625rem;
   max-height: 21.875rem; 
 }
 
 .widget-container.large {
-  grid-column: span 3;
-  grid-row: span 1;
+  grid-column: span 4;  /* Changed from 3 to 4 for TradeDetailsSection */
+  grid-row: span 4;    /* Changed from 1 to 4 for TradeDetailsSection */
   min-height: 15.625rem;
   max-height: 21.875rem;
 }
 
 .widget-container.extra-large {
   grid-column: span 4;
-  grid-row: span 1;
+  grid-row: span 6;  /* BingoSection height */
 }
 
 .widget-container.extra-extra-large {
