@@ -88,24 +88,28 @@
 import '@/assets/styles/LoginForm.css';
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import api from '@/services/api';
-import { useAuth } from '@/composables/useAuth';  // Import the composable
 
 export default {
   name: 'LoginForm',
   props: {
+    prefillUsername: {
+      type: String,
+      default: ''
+    },
     isOpen: {
       type: Boolean,
       required: true
     },
-    prefillUsername: {
-      type: String,
-      default: ''
+    onClose: {
+      type: Function,
+      default: () => {}
     }
   },
   setup(props, { emit }) {
     const router = useRouter();
-    const auth = useAuth();  // Call the composable to get the auth methods
+    const auth = useAuth();  
     const username = ref(props.prefillUsername);
     const password = ref('');
     const isLoading = ref(false);
@@ -160,6 +164,7 @@ export default {
 
     const closeForm = () => {
       emit('close');
+      props.onClose();
       username.value = '';
       password.value = '';
       errorMessage.value = '';

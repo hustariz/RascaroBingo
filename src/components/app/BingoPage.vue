@@ -2,9 +2,7 @@
   <div class="page-container">
     <PremiumLock 
       :show="showPremiumLock" 
-      :message="!isAuthenticated 
-        ? 'Sign in to save your Bingo progress and access premium features' 
-        : 'Upgrade to Premium to access multiple Bingo pages and custom page names'"
+      :message="'Upgrade to Premium to access multiple Bingo pages and custom page names'"
       @upgradePremium="handleUpgradePremium"
       @close="closePremiumLock"
     />
@@ -95,8 +93,8 @@
 </template>
 
 <script>
-import { ref, defineComponent, computed, watch, onMounted, onUnmounted } from 'vue';
-import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
+import { defineComponent, computed } from 'vue';
+import { mapState, mapGetters, useStore } from 'vuex';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/app/PremiumLock.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
@@ -104,8 +102,6 @@ import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
 import BingoWidget from '@/components/widgets/BingoWidget.vue';
-import { useAuth } from '@/composables/useAuth';
-import { useStore } from 'vuex';
 
 export default defineComponent({
   name: 'BingoPage',
@@ -122,7 +118,6 @@ export default defineComponent({
   },
 
   setup() {
-    const auth = useAuth();
     const store = useStore();
     
     // Get premium status directly from store
@@ -131,185 +126,84 @@ export default defineComponent({
       return status;
     });
 
-    // Create computed property for isAuthenticated
-    const isAuthenticated = computed(() => {
-      const status = auth.isAuthenticated.value;
-      return status;
-    });
-
-    // Watch for authentication changes
-    watch(() => auth.isAuthenticated.value, async (newValue, oldValue) => {
-      console.log(' Auth status changed:', { 
-        newValue, 
-        oldValue,
-        token: localStorage.getItem('token')
-      });
-      
-      if (newValue && localStorage.getItem('token')) {
-        // Wait a bit to ensure token is set
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // User just logged in, get their data and load their card
-        try {
-          console.log(' Fetching user data...');
-          await store.dispatch('user/getCurrentUser');
-          console.log(' Loading bingo card...');
-          await store.dispatch('bingo/loadUserCard');
-        } catch (error) {
-          if (error.response?.status === 401) {
-            console.log(' Not authenticated, using local state');
-          } else {
-            console.error(' Error loading user data:', error);
-          }
-        }
-      } else {
-        // User logged out or token expired, load from localStorage
-        console.log(' Loading bingo card from localStorage...');
-        await store.dispatch('bingo/loadUserCard');
-      }
-    }, { immediate: true });
-
-    // Ensure bingo card is loaded on component mount
-    onMounted(async () => {
-      console.log(' BingoPage component mounted');
-      console.log(' Initializing BingoPage...');
-      await store.dispatch('bingo/loadUserCard');
-    });
-
-    const layout = ref([
-      {
-        x: 0,
-        y: 0,
-        w: 3,
-        h: 6,
-        i: "trade-idea",
-        title: "Trade's Idea",
-        workflowNumber: 1,
-        component: TradeIdeaWidget,
-        minW: 3,
-        minH: 6,
-        maxW: 12,
-        maxH: 12
-      },
-      {
-        x: 3,
-        y: 0,
-        w: 3,
-        h: 6,
-        i: "trade-details",
-        title: "Trade's Details",
-        workflowNumber: 3,
-        component: TradeDetailsWidget,
-        minW: 3,
-        minH: 6,
-        maxW: 12,
-        maxH: 12
-      },
-      {
-        x: 6,
-        y: 0,
-        w: 3,
-        h: 7,
-        i: "risk-reward",
-        title: "Points Bingo: Risk/Reward",
-        workflowNumber: 4,
-        component: RiskRewardWidget,
-        props: {
-          score: 0
-        },
-        minW: 2,
-        minH: 7,
-        maxW: 12,
-        maxH: 12
-      },
-      {
-        x: 9,
-        y: 0,
-        w: 3,
-        h: 8,
-        i: "bingo",
-        title: "Bingo Grid",
-        workflowNumber: 2,
-        component: BingoWidget,
-        minW: 3,
-        minH: 8,
-        maxW: 12,
-        maxH: 12
-      }
-    ]);
-
-    const gridWidth = ref(2000);
-    const gridHeight = ref(1200);
-
-    const updateGridSize = () => {
-      const container = document.querySelector('.dashboard-layout');
-      if (container) {
-        gridWidth.value = container.clientWidth;
-        gridHeight.value = container.clientHeight;
-      }
-    };
-
-    onMounted(() => {
-      updateGridSize();
-      window.addEventListener('resize', updateGridSize);
-    });
-
-    onUnmounted(() => {
-      window.removeEventListener('resize', updateGridSize);
-    });
-
-    const onLayoutUpdated = (newLayout) => {
-      layout.value = newLayout;
-    };
-
-    const removeWidget = (i) => {
-      layout.value = layout.value.filter(item => item.i !== i);
-    };
-
     return {
-      auth,
       isPremiumUser,
-      isAuthenticated,
-      layout,
-      gridWidth,
-      gridHeight,
-      onLayoutUpdated,
-      removeWidget
     };
   },
 
   data() {
     return {
-      showEditModal: false,
-      editingCell: null,
-      editingCellIndex: null,
-      showPremiumLock: false,
-      isSidebarCollapsed: false,
-      currentTradeIdea: null,
-      currentSymbol: 'XRPusd',
-      initialized: false,
-      localBingoCells: Array.from({ length: 25 }, (_, i) => ({
-        id: i + 1,
-        title: '',
-        points: 0,
-        selected: false
-      })),
-      localTotalScore: 0,
-      currentPageIndex: 0,
-      localPages: [{
-        id: 1,
-        name: 'Default Board',
-        bingoCells: Array.from({ length: 25 }, (_, i) => ({
-          id: i + 1,
-          title: '',
-          points: 0,
-          selected: false
-        }))
-      }],
       workflowTooltipVisible: false,
       workflowTooltipNumber: null,
       workflowTooltipX: 0,
       workflowTooltipY: 0,
+      showEditModal: false,
+      editingCell: null,
+      showPremiumLock: false,
+      isSidebarCollapsed: false,
+      gridWidth: 1200,
+      gridHeight: 800,
+      layout: [
+        {
+          x: 0,
+          y: 0,
+          w: 3,
+          h: 6,
+          i: "trade-idea",
+          title: "Trade's Idea",
+          workflowNumber: 1,
+          component: TradeIdeaWidget,
+          minW: 3,
+          minH: 6,
+          maxW: 12,
+          maxH: 12
+        },
+        {
+          x: 3,
+          y: 0,
+          w: 3,
+          h: 6,
+          i: "trade-details",
+          title: "Trade's Details",
+          workflowNumber: 3,
+          component: TradeDetailsWidget,
+          minW: 3,
+          minH: 6,
+          maxW: 12,
+          maxH: 12
+        },
+        {
+          x: 6,
+          y: 0,
+          w: 3,
+          h: 8,
+          i: "risk-reward",
+          title: "Points Bingo: Risk/Reward",
+          workflowNumber: 4,
+          component: RiskRewardWidget,
+          props: {
+            score: 0
+          },
+          minW: 3,
+          minH: 8,
+          maxW: 12,
+          maxH: 12
+        },
+        {
+          x: 9,
+          y: 0,
+          w: 3,
+          h: 8,
+          i: "bingo",
+          title: "Bingo Grid",
+          workflowNumber: 2,
+          component: BingoWidget,
+          minW: 3,
+          minH: 8,
+          maxW: 12,
+          maxH: 12
+        }
+      ]
     };
   },
 
@@ -348,10 +242,6 @@ export default defineComponent({
         return this.getCurrentPage?.name || 'Board 1';
       },
       set(newName) {
-        if (!this.isAuthenticated) {
-          this.showPremiumLock = true;
-          return;
-        }
         if (!this.isPremiumUser) {
           this.showPremiumLock = true;
           return;
@@ -368,73 +258,14 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapMutations('bingo', [
-      'UPDATE_CELL',
-      'UPDATE_PAGE',
-      'SET_PAGES',
-      'DELETE_PAGE'
-    ]),
-    ...mapActions('bingo', [
-      'loadUserCard'
-    ]),
-    
     closePremiumLock() {
       console.log('Closing premium lock');
       this.showPremiumLock = false;
     },
 
     handleUpgradePremium() {
-      if (!this.isAuthenticated) {
-        // Redirect to login page with return URL
-        const returnUrl = encodeURIComponent(window.location.pathname);
-        this.$router.push(`/login?returnUrl=${returnUrl}`);
-      } else {
-        // Redirect to premium upgrade page
-        this.$router.push('/premium');
-      }
+      this.$router.push('/premium');
       this.showPremiumLock = false;
-    },
-
-    checkPremiumAccess() {
-      const isPaidUser = this.$store.getters['user/isPaidUser'];
-      const authStatus = this.isAuthenticated;
-      
-      if (authStatus) {
-        console.log(' Premium Access Check:', {
-          isPaidUser,
-          isAuthenticated: authStatus,
-          storeState: this.$store.state.user
-        });
-      }
-
-      // Check if user has premium access
-      const hasPremiumAccess = authStatus && isPaidUser;
-      
-      if (!hasPremiumAccess) {
-        this.showPremiumLock = true;
-      }
-    },
-
-    async initialize() {
-      console.log(' Initializing BingoPage...');
-      if (!this.initialized) {
-        try {
-          if (this.isAuthenticated) {
-            await this.loadUserCard();
-          } else {
-            // Load from localStorage for non-authenticated users
-            const savedState = localStorage.getItem('bingoState');
-            if (savedState) {
-              const parsedState = JSON.parse(savedState);
-              this.$store.commit('bingo/SET_PAGES', parsedState.pages || []);
-              this.$store.commit('bingo/SET_CURRENT_PAGE', parsedState.currentPageIndex || 0);
-            }
-          }
-          this.initialized = true;
-        } catch (error) {
-          console.error('Error initializing BingoPage:', error);
-        }
-      }
     },
 
     handleSidebarToggle() {
@@ -446,95 +277,6 @@ export default defineComponent({
       console.log('Saving settings:', settings);
     },
 
-    handleTradeStatusUpdate(status) {
-      this.rrChecks = { ...status };
-    },
-
-    updateTradeIdea(idea) {
-      this.currentTradeIdea = idea;
-    },
-
-    updateTradingSymbol(symbol) {
-      this.currentSymbol = symbol;
-    },
-
-    async nextPage() {
-      if (!this.isAuthenticated || !this.isPremiumUser) {
-        this.showPremiumLock = true;
-        return;
-      }
-
-      if (this.getCurrentPageIndex < this.getAllPages.length - 1) {
-        this.SET_CURRENT_PAGE(this.getCurrentPageIndex + 1);
-      } else {
-        // Create new page
-        this.$store.commit('bingo/ADD_PAGE', {
-          id: Date.now(),
-          name: `Board ${this.getAllPages.length + 1}`,
-          bingoCells: Array.from({ length: 25 }, (_, i) => ({
-            id: i + 1,
-            title: '',
-            points: 0,
-            selected: false
-          }))
-        });
-        this.SET_CURRENT_PAGE(this.getAllPages.length - 1);
-      }
-      await this.saveCardState();
-    },
-
-    async previousPage() {
-      if (!this.isAuthenticated || !this.isPremiumUser) {
-        this.showPremiumLock = true;
-        return;
-      }
-
-      if (this.getCurrentPageIndex > 0) {
-        this.SET_CURRENT_PAGE(this.getCurrentPageIndex - 1);
-        await this.saveCardState();
-      }
-    },
-
-    async deletePage() {
-      if (!this.isAuthenticated || !this.isPremiumUser) {
-        this.showPremiumLock = true;
-        return;
-      }
-
-      if (confirm('Are you sure you want to delete this board? This action cannot be undone.')) {
-        this.$store.commit('bingo/DELETE_PAGE', this.getCurrentPageIndex);
-        await this.saveCardState();
-      }
-    },
-
-    handlePageNameUpdate(newName) {
-      if (!this.isAuthenticated || !this.isPremiumUser) {
-        this.showPremiumLock = true;
-        return;
-      }
-      
-      this.$store.commit('bingo/UPDATE_PAGE_NAME', { 
-        pageIndex: this.getCurrentPageIndex, 
-        name: newName 
-      });
-      this.saveCardState();
-    },
-    updateWidgetData(widgetId, ) {
-      const widget = this.widgets.find(w => w.id === widgetId);
-      if (widget) {
-        if (widget.component === 'BingoGrid') {
-          widget.props = { ...widget.props, cells: this.activeCells };
-        } else if (widget.component === 'RiskRewardSection') {
-          widget.props = { ...widget.props, score: this.activeScore };
-        } else if (widget.component === 'TradeDetailsSection') {
-          widget.props = { ...widget.props,
-            tradeIdea: this.currentTradeIdea,
-            tradingSymbol: this.currentSymbol,
-            rrChecks: this.rrChecks
-          };
-        }
-      }
-    },
     openEditModal(cellIndex) {
       const currentPage = this.getCurrentPage;
       if (!currentPage || !currentPage.bingoCells) return;
@@ -562,17 +304,6 @@ export default defineComponent({
     },
 
     async handleCellClick(cellIndex) {
-      // Check premium access for non-first board edits
-      const isEditingContent = true;
-      // Only show premium lock if:
-      // 1. User is editing content AND
-      // 2. User is not on the first board (getCurrentPageIndex > 0) AND
-      // 3. User is not authenticated or not premium
-      if (isEditingContent && this.getCurrentPageIndex > 0 && (!this.isAuthenticated || !this.isPremiumUser)) {
-        this.showPremiumLock = true;
-        return;
-      }
-
       const currentPage = this.getCurrentPage;
       if (currentPage && currentPage.bingoCells && currentPage.bingoCells[cellIndex]) {
         const cell = currentPage.bingoCells[cellIndex];
@@ -581,21 +312,13 @@ export default defineComponent({
           cellIndex,
           cell: { ...cell, selected: !cell.selected }
         });
-        await this.$store.dispatch('bingo/saveCardState');
       } else {
         console.warn('Invalid cell index or cells not loaded:', { cellIndex, currentPage });
       }
     },
 
     async editCell(cellIndex, newData) {
-      // Check if trying to edit cell content (title or points)
-      const isEditingContent = newData.title !== undefined || newData.points !== undefined;
-      
-      // Only require premium if:
-      // 1. User is editing content (title/points) AND
-      // 2. User is not on the first board (getCurrentPageIndex > 0) AND
-      // 3. User is not authenticated or not premium
-      if (isEditingContent && this.getCurrentPageIndex > 0 && (!this.isAuthenticated || !this.isPremiumUser)) {
+      if (!this.isPremiumUser) {
         this.showPremiumLock = true;
         return;
       }
@@ -614,25 +337,9 @@ export default defineComponent({
           cellIndex,
           cell
         });
-
-        if (this.isAuthenticated) {
-          await this.$store.dispatch('bingo/saveCardState');
-        } else {
-          // Save to localStorage for non-authenticated users
-          const bingoState = JSON.stringify(this.$store.state.bingo);
-          localStorage.setItem('bingoState', bingoState);
-        }
       } catch (error) {
         console.error('Error updating cell:', error);
       }
-    },
-
-    async toggleCell(cellIndex) {
-      const currentPage = this.getCurrentPage;
-      if (!currentPage || !currentPage.bingoCells) return;
-
-      const cell = currentPage.bingoCells[cellIndex];
-      await this.editCell(cellIndex, { selected: !cell.selected });
     },
     showWorkflowTooltip(event, number) {
       this.workflowTooltipVisible = true;
@@ -649,25 +356,7 @@ export default defineComponent({
         this.workflowTooltipY = event.clientY;
       }
     },
-    handlePositionChange({ x, y }) {
-      console.log('Widget position changed:', x, y);
-    },
-
-    handleSizeChange({ width, height }) {
-      console.log('Widget size changed:', width, height);
-    },
-
-    handleCloseWidget() {
-      console.log('Widget closed');
-    },
   },
-  async created() {
-    console.log(' BingoPage component created');
-    await this.initialize();
-  },
-  async mounted() {
-    console.log(' BingoPage component mounted');
-  }
 });
 </script>
 
@@ -686,7 +375,7 @@ export default defineComponent({
   border-top: 1px solid rgba(255, 215, 0, 0.3);
   border-left: 1px solid rgba(255, 215, 0, 0.3);
   border-right: 1px solid rgba(255, 215, 0, 0.3);
-  border-bottom: 1px solid rgba(255, 215, 0, 0.8);  
+  border-bottom: 1px solid rgba(255, 215, 0, 1);  
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
   box-shadow: 0 1px 3px -1px rgba(255, 215, 0, 0.3);
@@ -705,6 +394,7 @@ export default defineComponent({
   border-top: 1px solid rgba(255, 215, 0, 0.15);
   border-left: 1px solid rgba(255, 215, 0, 0.15);
   border-right: 1px solid rgba(255, 215, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 215, 0, 0.5);  
   z-index: -1;
 }
 

@@ -1,0 +1,54 @@
+/* Bingo Widget Styles */
+.bingo-widget {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: 1px solid rgba(255, 215, 0, 0.3) !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.bingo-section {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 1rem !important;
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98)) !important;
+  border: 1px solid rgba(255, 215, 0, 0.3) !important;
+  border-radius: 4px !important;
+  border-top: 2px solid rgba(255, 215, 0, 1) !important;  /* Force golden line */
+}
+
+.bingo-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 0.5rem !important;
+  padding: 0.5rem !important;
+}
+
+.bingo-cell {
+  aspect-ratio: 1 !important;
+  border: 1px solid rgba(255, 215, 0, 0.3) !important;
+  border-radius: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.5rem !important;
+  text-align: center !important;
+  font-size: 0.9rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.bingo-cell:hover {
+  border-color: rgba(255, 215, 0, 0.6) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.bingo-cell.active {
+  background: rgba(255, 215, 0, 0.15) !important;
+  border-color: rgba(255, 215, 0, 0.8) !important;
+}

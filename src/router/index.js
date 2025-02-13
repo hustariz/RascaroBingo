@@ -66,7 +66,8 @@ const routes = [
   { 
     path: '/bingo', 
     name: 'Bingo',
-    component: BingoPage
+    component: BingoPage,
+    meta: { requiresAuth: false }
   },
   { 
     path: '/trading', 
@@ -99,7 +100,11 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: LoginForm
+    component: LoginForm,
+    props: {
+      isOpen: true,
+      onClose: () => router.back()
+    }
   },
   {
     path: '/leaderboard',
@@ -164,7 +169,8 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   console.log(' Route navigation:', { to: to.path, requiresAuth: to.meta.requiresAuth })
   
-  if (to.meta.requiresAuth && !token) {
+  // Only check auth for routes that explicitly require it
+  if (to.meta.requiresAuth === true && !token) {
     console.log(' Auth required, redirecting to home')
     next({ 
       name: 'Home',
