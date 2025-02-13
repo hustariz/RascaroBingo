@@ -23,7 +23,7 @@
         :is-draggable="true"
         :is-resizable="true"
         :vertical-compact="false"
-        :margin="[10, 10]"
+        :margin="[10, 5]"
         :use-css-transforms="true"
         :width="gridWidth"
         :height="gridHeight"
@@ -45,6 +45,11 @@
           class="grid-item"
         >
           <div class="widget-header">
+            <div class="workflow-number" v-if="item.workflowNumber"
+              @mouseover="showWorkflowTooltip($event, item.workflowNumber)"
+              @mousemove="updateWorkflowTooltipPosition($event)"
+              @mouseleave="hideWorkflowTooltip"
+            >{{ item.workflowNumber }}</div>
             <div class="widget-title">{{ item.title }}</div>
             <div class="widget-controls">
               <button class="control-button" @click="removeWidget(item.i)">×</button>
@@ -62,8 +67,8 @@
     <div class="workflow-tooltip" v-show="workflowTooltipVisible" :style="workflowTooltipStyle">
       <div v-if="workflowTooltipNumber === 1">First check your trading pair and write your trade idea 💭</div>
       <div v-if="workflowTooltipNumber === 2">Attribute points to your trading practices and check the bingo cases to increase your score! 🎯</div>
-      <div v-if="workflowTooltipNumber === 3">The more points you earn, the more risk you can allocate to your trade, which can be a further target / stoploss or more size for the trade! 📈</div>
-      <div v-if="workflowTooltipNumber === 4">Now enter the stoploss of your trade first (where your idea is wrong), then your entry and we will calculate a proposal of target based of the points you earned previously! 🎯💰</div>
+      <div v-if="workflowTooltipNumber === 3">Check your Risk/Reward ratio and make sure it aligns with your trading plan 📊</div>
+      <div v-if="workflowTooltipNumber === 4">Review your trade details and make final adjustments before executing 📝</div>
     </div>
 
     <!-- Edit Modal -->
@@ -98,6 +103,7 @@ import { GridLayout, GridItem } from 'vue3-grid-layout';
 import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
+import BingoWidget from '@/components/widgets/BingoWidget.vue';
 import { useAuth } from '@/composables/useAuth';
 import { useStore } from 'vuex';
 
@@ -111,7 +117,8 @@ export default defineComponent({
     GridItem,
     TradeIdeaWidget,
     TradeDetailsWidget,
-    RiskRewardWidget
+    RiskRewardWidget,
+    BingoWidget
   },
 
   setup() {
@@ -177,6 +184,7 @@ export default defineComponent({
         h: 6,
         i: "trade-idea",
         title: "Trade's Idea",
+        workflowNumber: 1,
         component: TradeIdeaWidget,
         minW: 3,
         minH: 6,
@@ -190,6 +198,7 @@ export default defineComponent({
         h: 6,
         i: "trade-details",
         title: "Trade's Details",
+        workflowNumber: 3,
         component: TradeDetailsWidget,
         minW: 3,
         minH: 6,
@@ -203,12 +212,27 @@ export default defineComponent({
         h: 7,
         i: "risk-reward",
         title: "Points Bingo: Risk/Reward",
+        workflowNumber: 4,
         component: RiskRewardWidget,
         props: {
           score: 0
         },
         minW: 2,
         minH: 7,
+        maxW: 12,
+        maxH: 12
+      },
+      {
+        x: 9,
+        y: 0,
+        w: 3,
+        h: 8,
+        i: "bingo",
+        title: "Bingo Grid",
+        workflowNumber: 2,
+        component: BingoWidget,
+        minW: 3,
+        minH: 8,
         maxW: 12,
         maxH: 12
       }
@@ -649,4 +673,69 @@ export default defineComponent({
 
 <style>
 @import '@/assets/styles/BingoPage.css';
+
+.widget-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  padding-left: 2.5rem;
+  border-bottom: 1px solid #eee;
+  position: relative;
+  z-index: 10;
+}
+
+.widget-title {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding-top: 0.125rem;
+  text-align: left;
+}
+
+.workflow-number {
+  width: 1.5rem;
+  height: 1.5rem;
+  background: #ffd700;
+  border: 1px solid #ffd700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: help;
+  transition: all 0.2s ease;
+  position: absolute;
+  z-index: 20;
+  left: 0.5rem;
+  top: 0.375rem;
+}
+
+.workflow-number:hover {
+  background: #ffed4a;
+  border-color: #ffed4a;
+}
+
+.widget-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.control-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: #666;
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.control-button:hover {
+  color: #000;
+}
 </style>
