@@ -1,56 +1,30 @@
 <template>
-  <div class="widget-content">
-    <div class="risk-reward-section">
-      <RiskRewardSection :score="score" />
-    </div>
+  <div class="risk-reward-widget">
+    <RiskRewardSection />
   </div>
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import RiskRewardSection from '@/components/app/RiskRewardSection.vue';
-import { mapMutations } from 'vuex';
 
-export default {
+export default defineComponent({
   name: 'RiskRewardWidget',
   components: {
     RiskRewardSection
-  },
-  props: {
-    score: {
-      type: Number,
-      default: 0
-    }
-  },
-  methods: {
-    ...mapMutations('workflow', ['SET_TOOLTIP_VISIBLE', 'SET_TOOLTIP_NUMBER', 'SET_TOOLTIP_POSITION']),
-    showWorkflowTooltip(event, workflowNumber) {
-      this.SET_TOOLTIP_VISIBLE(true)
-      this.SET_TOOLTIP_NUMBER(workflowNumber)
-      this.updateWorkflowTooltipPosition(event)
-    },
-    updateWorkflowTooltipPosition(event) {
-      this.SET_TOOLTIP_POSITION({
-        x: event.clientX + 10,
-        y: event.clientY + 10
-      })
-    },
-    hideWorkflowTooltip() {
-      this.SET_TOOLTIP_VISIBLE(false)
-    }
   }
-}
+});
 </script>
 
 <style scoped>
-.widget-content {
+.risk-reward-widget {
+  width: 100%;
   height: 100%;
-  padding: 10px;
-}
-
-.risk-reward-section {
-  height: 100%;
-  overflow: auto;
-  padding: 1rem;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 </style>

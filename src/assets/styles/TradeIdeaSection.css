@@ -1,30 +1,25 @@
-/* Trade Idea Section Container */
-.tradeidea-section-container {
+/* Trade Idea Section Content */
+.tradeidea-section-content {
   width: 100%;
   height: 100%;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
   background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
-  border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-.tradeidea-section-content {
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  padding: 1rem;
+  gap: 1rem;
+  position: relative;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
-  height: 100%;
-  gap: 0;
-  position: relative;
-  min-width: 0;
-  overflow: hidden;
 }
 
 /* Textarea Wrapper */
 .tradeidea-textarea-wrapper {
   height: 66%;
-  margin-bottom: 1rem;
   position: relative;
   width: 100%;
 }
@@ -38,11 +33,12 @@
   border: 1px solid rgba(255, 215, 0, 0.5);
   box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
   color: rgb(255, 215, 0);
-  border-radius: 6px;
+  border-radius: 0.25rem;
   font-family: 'Montserrat', 'Roboto', sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   resize: none;
+  transition: all 0.3s ease;
 }
 
 .tradeidea-section-input:focus {
@@ -51,25 +47,25 @@
   box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
-/* Controls Group */
+/* Controls */
 .tradeidea-controls {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-top: auto;
+  gap: 1rem;
+  padding: 0.5rem;
 }
 
 /* Symbol Input */
 .tradeidea-symbol-input {
   width: 100%;
   height: 35px;
-  padding: 0 1rem;
+  padding: 0.5rem 1rem;
   background: rgba(25, 16, 5, 0.9);
   border: 1px solid rgba(255, 215, 0, 0.5);
   box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
   color: rgb(255, 215, 0);
-  border-radius: 6px 6px 0px 0px;
+  border-radius: 0.25rem 0.25rem 0 0;
   font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 .tradeidea-symbol-input:focus {
@@ -87,8 +83,8 @@
   font-family: 'Montserrat', 'Roboto', sans-serif;
   font-weight: 600;
   letter-spacing: 0.3px;
-  padding: 0 1.5rem;
-  border-radius: 0px 0px 6px 6px;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0 0 0.25rem 0.25rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -126,23 +122,11 @@
   user-select: none;
 }
 
-.tradeidea-chart-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: #1e222d;
-  border-radius: 8px;
-  border: 1px solid rgba(238, 175, 17, 0.4);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-}
-
 .drag-handle {
   position: relative;
   height: 30px;
   background: #1e222d;
-  border-radius: 8px 8px 0 0;
+  border-radius: 0.25rem 0.25rem 0 0;
   cursor: move;
   display: flex;
   justify-content: flex-end;
@@ -198,7 +182,7 @@
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
-  .tradeidea-section-container {
+  .tradeidea-section-content {
     padding: 1rem;
   }
 
@@ -207,12 +191,12 @@
   }
 
   .tradeidea-symbol-input {
-    border-radius: 6px;
+    border-radius: 0.25rem;
     border-bottom: 1px solid rgba(255, 215, 0, 0.5);
   }
 
   .tradeidea-chart-button {
-    border-radius: 6px;
+    border-radius: 0.25rem;
     margin-top: 0;
   }
 

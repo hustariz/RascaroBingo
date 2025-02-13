@@ -1,52 +1,30 @@
 <template>
-  <div class="widget-content">
-    <div class="trade-details-section">
-      <div class="trade-details-content">
-        <TradeDetailsSection />
-      </div>
-    </div>
+  <div class="trade-details-widget">
+    <TradeDetailsSection />
   </div>
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import TradeDetailsSection from '@/components/app/TradeDetailsSection.vue';
-import { mapMutations } from 'vuex';
 
-export default {
+export default defineComponent({
   name: 'TradeDetailsWidget',
   components: {
     TradeDetailsSection
-  },
-  methods: {
-    ...mapMutations('workflow', ['SET_TOOLTIP_VISIBLE', 'SET_TOOLTIP_NUMBER', 'SET_TOOLTIP_POSITION']),
-    showWorkflowTooltip(event, workflowNumber) {
-      this.SET_TOOLTIP_VISIBLE(true)
-      this.SET_TOOLTIP_NUMBER(workflowNumber)
-      this.updateWorkflowTooltipPosition(event)
-    },
-    updateWorkflowTooltipPosition(event) {
-      this.SET_TOOLTIP_POSITION({
-        x: event.clientX + 10,
-        y: event.clientY + 10
-      })
-    },
-    hideWorkflowTooltip() {
-      this.SET_TOOLTIP_VISIBLE(false)
-    }
   }
-}
+});
 </script>
 
 <style scoped>
-.widget-content {
+.trade-details-widget {
+  width: 100%;
   height: 100%;
-  padding: 10px;
-}
-
-.trade-details-section {
-  height: 100%;
-  overflow: auto;
-  padding: 1rem;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 </style>

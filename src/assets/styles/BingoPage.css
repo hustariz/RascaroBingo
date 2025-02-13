@@ -70,17 +70,27 @@
   position: relative;
   overflow: visible !important;
   z-index: 0;
-  isolation: isolate;  
+  isolation: isolate;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  border: 1px solid rgba(255, 215, 0, 0.3);  /* Subtle golden border */
+  border-radius: 4px;  /* Slight rounding */
+  overflow: hidden;  /* Keep the contents within the border */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);  /* Subtle shadow */
 }
 
 .grid-item {
-  background: linear-gradient(145deg, rgba(43, 24, 16, 0.7), rgba(25, 16, 5, 0.9));
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  border-radius: 0.25rem;
   overflow: hidden;
-  transition: all 0.2s ease;
-  z-index: 1;
 }
 
 .grid-item:hover {
@@ -113,16 +123,38 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background: rgba(43, 24, 16, 0.9);
-  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
-  cursor: move;
+  padding: 0.25rem 0.5rem;
+  background: rgba(25, 16, 5, 0.35);  
+  border-bottom: 1px solid rgba(255, 215, 0, 0.08);  
+  z-index: 1;
 }
 
 .widget-title {
-  color: rgb(238, 175, 17);
-  font-weight: 600;
-  font-size: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;  
+  color: rgba(255, 215, 0, 1);  
+  text-transform: uppercase;
+  letter-spacing: 0.1em;  
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);  
+}
+
+.widget-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background: transparent;
+}
+
+/* Section Backgrounds */
+.tradeidea-section-content,
+.tradedetails-content,
+.riskreward-area {
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+  border: 1px solid rgba(255, 215, 0, 0.15);
 }
 
 .widget-controls {
@@ -143,11 +175,6 @@
 
 .control-button:hover {
   background-color: rgba(238, 175, 17, 0.2);
-}
-
-.widget-content {
-  padding: 12px;
-  color: #fff;
 }
 
 /* Widget Title Specific Layout */

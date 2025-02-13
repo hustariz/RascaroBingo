@@ -1,57 +1,30 @@
 <template>
-  <div class="widget-content">
-    <div class="trade-idea-section">
-      <TradeIdeaSection />
-    </div>
+  <div class="trade-idea-widget">
+    <TradeIdeaSection />
   </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue';
-import { useStore } from 'vuex';
 import TradeIdeaSection from '@/components/app/TradeIdeaSection.vue';
 
 export default defineComponent({
   name: 'TradeIdeaWidget',
   components: {
     TradeIdeaSection
-  },
-  setup() {
-    const store = useStore();
-
-    const showWorkflowTooltip = (event, number) => {
-      event.stopPropagation();
-      store.commit('workflow/SHOW_TOOLTIP', { event, number });
-    };
-
-    const hideWorkflowTooltip = () => {
-      store.commit('workflow/HIDE_TOOLTIP');
-    };
-
-    const updateWorkflowTooltipPosition = (event) => {
-      event.stopPropagation();
-      store.commit('workflow/UPDATE_TOOLTIP_POSITION', event);
-    };
-
-    return {
-      showWorkflowTooltip,
-      hideWorkflowTooltip,
-      updateWorkflowTooltipPosition
-    };
   }
 });
 </script>
 
 <style scoped>
-.widget-content {
+.trade-idea-widget {
+  width: 100%;
   height: 100%;
-  padding: 10px;
-}
-
-.trade-idea-section {
-  height: 100%;
-  overflow: auto;
-  padding: 1rem;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="widget-content">
+  <div class="bingo-widget widget-content">
     <div class="bingo-section">
       <div class="bingo-grid">
         <div 
@@ -73,6 +73,17 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.bingo-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
 .widget-content {
   height: 100%;
   padding: 10px;

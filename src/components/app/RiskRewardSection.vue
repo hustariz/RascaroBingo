@@ -1,45 +1,43 @@
 <template>
-  <div class="riskreward-section-container">
-    <div class="riskreward-area">
-      <div class="riskreward-checkboxes">
-        <label class="riskreward-checkbox">
-          <input 
-            type="checkbox" 
-            :checked="score >= 6 && score < 11"
-            disabled
-          >
-          <span class="riskreward-checkbox-text">6/20 : 2R/R</span>
-        </label>
-        <label class="riskreward-checkbox">
-          <input 
-            type="checkbox" 
-            :checked="score >= 11 && score < 16"
-            disabled
-          >
-          <span class="riskreward-checkbox-text">11/20 : 3R/R</span>
-        </label>
-        <label class="riskreward-checkbox">
-          <input 
-            type="checkbox" 
-            :checked="score >= 16 && score < 20"
-            disabled
-          >
-          <span class="riskreward-checkbox-text">16/20 : 4R/R</span>
-        </label>
+  <div class="riskreward-area">
+    <div class="riskreward-checkboxes">
+      <label class="riskreward-checkbox">
+        <input 
+          type="checkbox" 
+          :checked="score >= 6 && score < 11"
+          disabled
+        >
+        <span class="riskreward-checkbox-text">6/20 : 2R/R</span>
+      </label>
+      <label class="riskreward-checkbox">
+        <input 
+          type="checkbox" 
+          :checked="score >= 11 && score < 16"
+          disabled
+        >
+        <span class="riskreward-checkbox-text">11/20 : 3R/R</span>
+      </label>
+      <label class="riskreward-checkbox">
+        <input 
+          type="checkbox" 
+          :checked="score >= 16 && score < 20"
+          disabled
+        >
+        <span class="riskreward-checkbox-text">16/20 : 4R/R</span>
+      </label>
+    </div>
+  </div>
+  
+  <div class="riskreward-score">
+    <h3>Total Score: <br>
+      <span class="riskreward-score-value">{{ score }}</span>
+    </h3>
+  </div>
+  <div v-if="score >= 20" class="riskreward-bingo">
+      Bingo!
+      <div class="riskreward-bingo-tooltip">
+          Hidden Bingo! <br> 5R/R Maximum risk allowed!
       </div>
-    </div>
-    
-    <div class="riskreward-score">
-      <h3>Total Score: <br>
-        <span class="riskreward-score-value">{{ score }}</span>
-      </h3>
-    </div>
-    <div v-if="score >= 20" class="riskreward-bingo">
-        Bingo!
-        <div class="riskreward-bingo-tooltip">
-            Hidden Bingo! <br> 5R/R Maximum risk allowed!
-        </div>
-    </div>
   </div>
 </template>
 <script>

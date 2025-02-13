@@ -1,103 +1,101 @@
 <template>
-  <div class="tradedetails-section-container" :class="{ 'long-mode': isLong }">
-    <div class="tradedetails-content">
-      <!-- Long/Short Toggle -->
-      <div class="tradedetails-type-toggle">
-        <button 
-          class="tradedetails-toggle-button" 
-          :class="{ active: isLong }"
-          @click="isLong = true"
-        >
-          Long
-        </button>
-        <button 
-          class="tradedetails-toggle-button" 
-          :class="{ active: !isLong }"
-          @click="isLong = false"
-        >
-          Short
-        </button>
-      </div>
+  <div class="tradedetails-content" :class="{ 'long-mode': isLong }">
+    <!-- Long/Short Toggle -->
+    <div class="tradedetails-type-toggle">
+      <button 
+        class="tradedetails-toggle-button" 
+        :class="{ active: isLong }"
+        @click="isLong = true"
+      >
+        Long
+      </button>
+      <button 
+        class="tradedetails-toggle-button" 
+        :class="{ active: !isLong }"
+        @click="isLong = false"
+      >
+        Short
+      </button>
+    </div>
 
-      <div class="tradedetails-price-inputs">
-        <div class="tradedetails-input-group">
-          <h4>Stoploss:</h4>
-          <div class="tradedetails-input-wrapper">
-            <span class="tradedetails-input-prefix">$</span>
-            <input
-              class="tradedetails-input"
-              type="number"
-              v-model="stoploss"
-              step="1"
-              placeholder="0"
-            >
-          </div>
+    <div class="tradedetails-price-inputs">
+      <div class="tradedetails-input-group">
+        <h4>Stoploss:</h4>
+        <div class="tradedetails-input-wrapper">
+          <span class="tradedetails-input-prefix">$</span>
+          <input
+            class="tradedetails-input"
+            type="number"
+            v-model="stoploss"
+            step="1"
+            placeholder="0"
+          >
         </div>
-        <div class="tradedetails-input-group">
-          <h4>Entry:</h4>
-          <div class="tradedetails-input-wrapper">
-            <span class="tradedetails-input-prefix">$</span>
-            <input
-              class="tradedetails-input"
-              type="number"
-              v-model="entry"
-              step="1"
-              placeholder="0"
-            >
-          </div>
+      </div>
+      <div class="tradedetails-input-group">
+        <h4>Entry:</h4>
+        <div class="tradedetails-input-wrapper">
+          <span class="tradedetails-input-prefix">$</span>
+          <input
+            class="tradedetails-input"
+            type="number"
+            v-model="entry"
+            step="1"
+            placeholder="0"
+          >
         </div>
-        <div class="tradedetails-input-group">
-          <div class="tradedetails-label-tooltip">
-            <h4>Target:</h4>
-            <div class="tradedetails-tooltip-icon">
-              <span>i</span>
-              <div class="tradedetails-tooltip-content">
-                <div class="tooltip-content">
-                  Would you like to manually set it? 
-                  <span class="tooltip-button" @click.stop="enableTargetEdit">✓</span>
-                  <span class="tooltip-button" @click.stop="disableTargetEdit">✗</span>
-                </div>
+      </div>
+      <div class="tradedetails-input-group">
+        <div class="tradedetails-label-tooltip">
+          <h4>Target:</h4>
+          <div class="tradedetails-tooltip-icon">
+            <span>i</span>
+            <div class="tradedetails-tooltip-content">
+              <div class="tooltip-content">
+                Would you like to manually set it? 
+                <span class="tooltip-button" @click.stop="enableTargetEdit">✓</span>
+                <span class="tooltip-button" @click.stop="disableTargetEdit">✗</span>
               </div>
             </div>
           </div>
-          <div class="tradedetails-input-wrapper">
-            <span class="tradedetails-input-prefix">$</span>
-            <input
-              class="tradedetails-input"
-              :class="{ 'editable': isTargetEditable }"
-              type="number"
-              v-model="target"
-              step="1"
-              placeholder="0"
-              :readonly="!isTargetEditable"
-            >
-          </div>
+        </div>
+        <div class="tradedetails-input-wrapper">
+          <span class="tradedetails-input-prefix">$</span>
+          <input
+            class="tradedetails-input"
+            :class="{ 'editable': isTargetEditable }"
+            type="number"
+            v-model="target"
+            step="1"
+            placeholder="0"
+            :readonly="!isTargetEditable"
+          >
         </div>
       </div>
+    </div>
 
-      <!-- Trade History Section -->
-      <TradeHistorySection 
-        v-if="showHistory"
-        :is-visible="showHistory"
-        :is-sidebar-collapsed="isSidebarCollapsed"
-        @close="showHistory = false"
-      />
+    <!-- Trade History Section -->
+    <TradeHistorySection 
+      v-if="showHistory"
+      :is-visible="showHistory"
+      :is-sidebar-collapsed="isSidebarCollapsed"
+      @close="showHistory = false"
+    />
 
-      <div class="tradedetails-buttons">
-        <button 
-          class="tradedetails-save-button" 
-          :class="{ 'long': isLong, 'short': !isLong }"
-          @click="saveTrade"
-        >
-          {{ isLong ? 'Long' : 'Short' }}
-        </button>
-        
-        <button class="tradedetails-history-button" @click="checkTradeHistory">
-          <span class="tradedetails-history-icon">📊</span>
-          Trade History
-          <span v-if="openTradesCount > 0" class="trade-count-bubble">{{ openTradesCount }}</span>
-        </button>
-      </div>
+    <div class="tradedetails-buttons">
+      <button 
+        class="tradedetails-save-button" 
+        :class="{ 'long': isLong, 'short': !isLong }"
+        @click="saveTrade"
+      >
+        {{ isLong ? 'Long' : 'Short' }}
+      </button>
+      
+      <button class="tradedetails-history-button" @click="checkTradeHistory">
+        <span class="tradedetails-history-icon">📊</span>
+        Trade History
+        <span v-if="openTradesCount > 0" class="trade-count-bubble">{{ openTradesCount }}</span>
+      </button>
     </div>
   </div>
 </template>

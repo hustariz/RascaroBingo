@@ -1,46 +1,44 @@
 <template>
-  <div class="tradeidea-section-container">
-    <div class="tradeidea-section-content">
-      <!-- Textarea takes 2/3 of space -->
-      <div class="tradeidea-textarea-wrapper">
-        <textarea
-          v-model="tradeIdea"
-          placeholder="Enter your trade ideas here..."
-          class="tradeidea-section-input"
-          @input="emitTradeIdea"
-        ></textarea>
-        <PremiumLock 
-          :show="showPremiumLock" 
-          :message="premiumMessage"
-          @upgradePremium="handleUpgradePremium"
-        />
-      </div>
-
-      <!-- Controls at bottom with no gap -->
-      <div class="tradeidea-controls">
-        <input
-          v-model="currentSymbol"
-          placeholder="Enter trading pair (e.g BTCUSD)"
-          class="tradeidea-symbol-input"
-          type="text"
-          @input="updateSymbol"
-        >
-        <button class="tradeidea-chart-button" @click="checkChart">
-          <span class="tradeidea-chart-icon">📈</span>
-          Check Chart
-        </button>
-      </div>
+  <div class="tradeidea-section-content">
+    <!-- Textarea takes 2/3 of space -->
+    <div class="tradeidea-textarea-wrapper">
+      <textarea
+        v-model="tradeIdea"
+        placeholder="Enter your trade ideas here..."
+        class="tradeidea-section-input"
+        @input="emitTradeIdea"
+      ></textarea>
+      <PremiumLock 
+        :show="showPremiumLock" 
+        :message="premiumMessage"
+        @upgradePremium="handleUpgradePremium"
+      />
     </div>
-    
-    <!-- TradingView Chart Modal -->
-    <div v-if="showChart" class="tradeidea-chart-modal" ref="chartModal">
-      <div class="tradeidea-chart-container">
-        <div class="drag-handle" @mousedown="startDragging">
-          <button class="tradeidea-close-button" @click="closeChart">×</button>
-        </div>
-        <div id="tradingview_widget"></div>
-        <div class="resize-handle resize-handle-se" @mousedown="startResizing"></div>
+
+    <!-- Controls at bottom with no gap -->
+    <div class="tradeidea-controls">
+      <input
+        v-model="currentSymbol"
+        placeholder="Enter trading pair (e.g BTCUSD)"
+        class="tradeidea-symbol-input"
+        type="text"
+        @input="updateSymbol"
+      >
+      <button class="tradeidea-chart-button" @click="checkChart">
+        <span class="tradeidea-chart-icon">📈</span>
+        Check Chart
+      </button>
+    </div>
+  </div>
+  
+  <!-- TradingView Chart Modal -->
+  <div v-if="showChart" class="tradeidea-chart-modal" ref="chartModal">
+    <div class="tradeidea-chart-container">
+      <div class="drag-handle" @mousedown="startDragging">
+        <button class="tradeidea-close-button" @click="closeChart">×</button>
       </div>
+      <div id="tradingview_widget"></div>
+      <div class="resize-handle resize-handle-se" @mousedown="startResizing"></div>
     </div>
   </div>
 </template>

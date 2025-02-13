@@ -1,24 +1,16 @@
-/* Container */
-.riskreward-section-container {
-
+/* Risk Reward Area */
+.riskreward-area {
   width: 100%;
-
   height: 100%;
-
-  padding: 0.8rem;
-
+  padding: 1rem;
   display: flex;
-
   flex-direction: column;
-
   background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
-
   border: 1px solid rgba(255, 215, 0, 0.3);
-
-  box-shadow: 0 8px 32px rgba(255, 215, 0, 0.15);
-
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  overflow: auto;
 }
-
 
 
 /* Checkboxes Area */
@@ -29,12 +21,11 @@
 
   flex-direction: column;
 
-  gap: 0.8rem;
+  gap: 1rem;
 
   padding: 0.5rem;
 
 }
-
 
 
 .riskreward-checkbox {
@@ -43,24 +34,30 @@
 
   align-items: center;
 
-  gap: 0.8rem;
+  gap: 1rem;
 
   width: 100%;
 
-  padding: 0.5rem 0;
+  padding: 0.5rem;
 
-  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  background: rgba(25, 16, 5, 0.6);
 
-}
+  border: 1px solid rgba(255, 215, 0, 0.2);
 
+  border-radius: 0.25rem;
 
-
-.riskreward-checkbox:last-child {
-
-  border-bottom: none;
+  transition: all 0.3s ease;
 
 }
 
+
+.riskreward-checkbox:hover {
+
+  background: rgba(25, 16, 5, 0.8);
+
+  border-color: rgba(255, 215, 0, 0.4);
+
+}
 
 
 .riskreward-checkbox input[type="checkbox"] {
@@ -84,7 +81,6 @@
 }
 
 
-
 .riskreward-checkbox input[type="checkbox"]:checked {
 
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(205, 127, 50, 0.15));
@@ -94,7 +90,6 @@
   box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
 
 }
-
 
 
 .riskreward-checkbox input[type="checkbox"]:checked::after {
@@ -118,7 +113,6 @@
 }
 
 
-
 .riskreward-checkbox-text {
 
   font-size: 1.1rem;
@@ -136,7 +130,6 @@
 }
 
 
-
 /* Score Display */
 
 .riskreward-score {
@@ -150,7 +143,6 @@
   border-top: 1px solid rgba(255, 215, 0, 0.2);
 
 }
-
 
 
 .riskreward-score h3 {
@@ -174,7 +166,6 @@
 }
 
 
-
 .riskreward-score-value {
 
   font-weight: bold;
@@ -188,7 +179,6 @@
   text-align: center;
 
 }
-
 
 
 /* Hidden Bingo Feature */
@@ -218,7 +208,6 @@
   z-index: 5;
 
 }
-
 
 
 .riskreward-bingo-tooltip {
@@ -254,13 +243,11 @@
 }
 
 
-
 .riskreward-bingo:hover .riskreward-bingo-tooltip {
 
   display: block;
 
 }
-
 
 
 @keyframes riskrewardGlowPulse {

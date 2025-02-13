@@ -1,32 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;500&display=swap');
 
-/* Container */
-.tradedetails-section-container {
+/* Content */
+.tradedetails-content {
   width: 100%;
   height: 100%;
-  max-height: 350px;
   padding: 1rem;
   background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
   border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 4px;
   transition: all 0.3s ease;
-}
-
-.tradedetails-section-container.long-mode {
-  background: linear-gradient(145deg, rgba(76, 175, 80, 0.4), rgba(0, 43, 16, 0.98));
-  border: 1px solid rgba(0, 255, 0, 0.3);
-}
-
-.tradedetails-content {
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.tradedetails-content.long-mode {
+  background: linear-gradient(145deg, rgba(76, 175, 80, 0.4), rgba(0, 43, 16, 0.98));
+  border: 1px solid rgba(0, 255, 0, 0.3);
 }
 
 /* Long/Short Toggle */
 .tradedetails-type-toggle {
   display: flex;
   justify-content: center;
-  gap: 0.8rem;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Make Long toggle always green */
@@ -37,25 +37,25 @@
 }
 
 /* Short toggle button in long mode */
-.tradedetails-section-container.long-mode .tradedetails-toggle-button:last-child {
+.tradedetails-content.long-mode .tradedetails-toggle-button:last-child {
   background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
   border: 1px solid rgba(238, 175, 17, 0.6);
   color: rgba(238, 175, 17, 1);
 }
 
 /* Trade history button in long mode */
-.tradedetails-section-container.long-mode .tradedetails-history-button {
+.tradedetails-content.long-mode .tradedetails-history-button {
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(0, 127, 50, 0.05));
   border: 1px solid rgba(238, 175, 17, 0.6);
   color: rgba(238, 175, 17, 1);
 }
 
 /* Hover states in long mode */
-.tradedetails-section-container.long-mode .tradedetails-toggle-button:last-child:hover{
+.tradedetails-content.long-mode .tradedetails-toggle-button:last-child:hover{
   border: 1px solid rgba(238, 175, 17, 1);
   transform: translateY(-1px);
 }
-.tradedetails-section-container.long-mode .tradedetails-history-button:hover {
+.tradedetails-content.long-mode .tradedetails-history-button:hover {
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(0, 127, 50, 0.05));
   border: 1px solid rgba(238, 175, 17, 1);
   transform: translateY(-1px);
@@ -97,13 +97,13 @@
 .tradedetails-price-inputs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .tradedetails-input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .tradedetails-input-group h4 {
@@ -249,7 +249,7 @@
 /* Buttons */
 .tradedetails-buttons {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   margin-top: 0.6rem;
 }
 
@@ -340,19 +340,11 @@
 }
 
 @media (max-width: 768px) {
-  .tradedetails-section-container {
-    max-height: none;
+  .tradedetails-content {
     height: auto;
     min-height: 500px; /* Add minimum height to ensure content fits */
     display: flex;
     flex-direction: column;
-  }
-
-  .tradedetails-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
   }
 
   /* Type toggle buttons */
@@ -422,7 +414,7 @@
 
 /* Extra small devices */
 @media (max-width: 380px) {
-  .tradedetails-section-container {
+  .tradedetails-content {
     padding: 0.6rem;
   }
 
