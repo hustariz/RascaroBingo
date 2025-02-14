@@ -20,7 +20,13 @@ export default defineComponent({
   components: {
     BingoGrid
   },
-  emits: ['workflow-tooltip'],
+  props: {
+    score: {
+      type: Number,
+      default: 0
+    }
+  },
+  emits: ['score-updated'],
   setup() {
     const store = useStore();
 
@@ -39,27 +45,10 @@ export default defineComponent({
       console.log('Edit cell:', index);
     };
 
-    const showWorkflowTooltip = (event, number) => {
-      event.stopPropagation();
-      store.commit('workflow/SHOW_TOOLTIP', { event, number });
-    };
-
-    const hideWorkflowTooltip = () => {
-      store.commit('workflow/HIDE_TOOLTIP');
-    };
-
-    const updateWorkflowTooltipPosition = (event) => {
-      event.stopPropagation();
-      store.commit('workflow/UPDATE_TOOLTIP_POSITION', event);
-    };
-
     return {
       cells,
       handleCellClick,
-      handleCellEdit,
-      showWorkflowTooltip,
-      hideWorkflowTooltip,
-      updateWorkflowTooltipPosition
+      handleCellEdit
     };
   }
 });

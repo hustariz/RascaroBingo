@@ -28,6 +28,7 @@
         :auto-size="true"
         :prevent-collision="false"
         class="dashboard-layout"
+        style="overflow: visible !important;"
         @layout-updated="onLayoutUpdated"
       >
         <GridItem
@@ -42,20 +43,31 @@
           :min-h="item.minH"
           class="grid-item"
         >
-          <div class="widget-header">
-            <div class="workflow-number" v-if="item.workflowNumber"
-              @mouseover="showWorkflowTooltip($event, item.workflowNumber)"
-              @mousemove="updateWorkflowTooltipPosition($event)"
-              @mouseleave="hideWorkflowTooltip"
-            >{{ item.workflowNumber }}</div>
-            <div class="widget-title">{{ item.title }}</div>
-            <div class="widget-controls">
-              <button class="control-button" @click="removeWidget(item.i)">×</button>
-            </div>
+          <div 
+            class="workflow-number" 
+            v-if="item.workflowNumber"
+            :key="'workflow-' + item.i"
+            @mouseenter="showWorkflowTooltip($event, item.workflowNumber)"
+            @mouseleave="hideWorkflowTooltip"
+          >
+            {{ item.workflowNumber }}
           </div>
-          <div class="widget-content">
-            <component :is="item.component" v-if="item.component" v-bind="item.props" @open-trade-history="$emit('open-trade-history')"></component>
-            <div v-else>Widget {{ item.i }}</div>
+          <div class="widget-container">
+            <div class="widget-header">
+              <div class="widget-title">{{ item.title }}</div>
+              <div class="widget-controls">
+                <button class="control-button" @click="removeWidget(item.i)">×</button>
+              </div>
+            </div>
+            <div class="widget-content">
+              <component 
+                :is="item.component" 
+                v-if="item.component" 
+                v-bind="item.props" 
+                @open-trade-history="$emit('open-trade-history')"
+              ></component>
+              <div v-else>Widget {{ item.i }}</div>
+            </div>
           </div>
         </GridItem>
       </GridLayout>
@@ -65,8 +77,8 @@
     <div class="workflow-tooltip" v-show="workflowTooltipVisible" :style="workflowTooltipStyle">
       <div v-if="workflowTooltipNumber === 1">First check your trading pair and write your trade idea 💭</div>
       <div v-if="workflowTooltipNumber === 2">Attribute points to your trading practices and check the bingo cases to increase your score! 🎯</div>
-      <div v-if="workflowTooltipNumber === 3">Check your Risk/Reward ratio and make sure it aligns with your trading plan 📊</div>
-      <div v-if="workflowTooltipNumber === 4">Review your trade details and make final adjustments before executing 📝</div>
+      <div v-if="workflowTooltipNumber === 3">The more points you earn, the more risk you can allocate to your trade, which can be a further target / stoploss or more size for the trade! 📈</div>
+      <div v-if="workflowTooltipNumber === 4">Now enter the stoploss of your trade first (where your idea is wrong), then your entry and we will calculate a proposal of target based of the points you earned previously! 🎯💰</div>
     </div>
 
     <!-- Edit Modal -->
@@ -95,13 +107,14 @@
 <script>
 import { defineComponent, computed } from 'vue';
 import { mapState, mapGetters, useStore } from 'vuex';
+import { markRaw } from 'vue';
+import BingoWidget from '@/components/widgets/BingoWidget.vue';
+import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
+import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
+import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/app/PremiumLock.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
-import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
-import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
-import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
-import BingoWidget from '@/components/widgets/BingoWidget.vue';
 
 export default defineComponent({
   name: 'BingoPage',
@@ -111,10 +124,10 @@ export default defineComponent({
     PremiumLock,
     GridLayout,
     GridItem,
-    TradeIdeaWidget,
-    TradeDetailsWidget,
+    BingoWidget,
     RiskRewardWidget,
-    BingoWidget
+    TradeIdeaWidget,
+    TradeDetailsWidget
   },
 
   setup() {
@@ -152,7 +165,7 @@ export default defineComponent({
           i: "bingo",
           title: "Bingo Grid",
           workflowNumber: 2,
-          component: BingoWidget,
+          component: markRaw(BingoWidget),
           minW: 4,
           minH: 9,
           maxW: 12,
@@ -165,8 +178,8 @@ export default defineComponent({
           h: 9,  // Match Bingo Grid height
           i: "risk-reward",
           title: "Points Bingo: Risk/Reward",
-          workflowNumber: 4,
-          component: RiskRewardWidget,
+          workflowNumber: 3,
+          component: markRaw(RiskRewardWidget),
           props: {
             score: 0
           },
@@ -183,7 +196,7 @@ export default defineComponent({
           i: "trade-idea",
           title: "Trade's Idea",
           workflowNumber: 1,
-          component: TradeIdeaWidget,
+          component: markRaw(TradeIdeaWidget),
           minW: 3,
           minH: 6,
           maxW: 12,
@@ -196,8 +209,8 @@ export default defineComponent({
           h: 6,
           i: "trade-details",
           title: "Trade's Details",
-          workflowNumber: 3,
-          component: TradeDetailsWidget,
+          workflowNumber: 4,
+          component: markRaw(TradeDetailsWidget),
           props: {
             score: 0
           },
@@ -231,7 +244,6 @@ export default defineComponent({
 
     rrChecks() {
       const score = this.activeScore;
-      console.log('Computing R/R checks for score:', score);
       return {
         sixPoints: score >= 6 && score < 11,      // 2R/R
         elevenPoints: score >= 11 && score < 16,  // 3R/R
@@ -254,15 +266,17 @@ export default defineComponent({
     },
     workflowTooltipStyle() {
       return {
-        left: `${this.workflowTooltipX + 20}px`,
-        top: `${this.workflowTooltipY - 10}px`
+        left: `${this.workflowTooltipX}px`,
+        top: `${this.workflowTooltipY}px`,
+        transform: 'translate(0, 20px)',
+        opacity: this.workflowTooltipVisible ? 1 : 0,
+        visibility: this.workflowTooltipVisible ? 'visible' : 'hidden'
       }
     }
   },
 
   methods: {
     closePremiumLock() {
-      console.log('Closing premium lock');
       this.showPremiumLock = false;
     },
 
@@ -275,9 +289,8 @@ export default defineComponent({
       this.isSidebarCollapsed = !this.isSidebarCollapsed;
     },
 
-    handleSaveSettings(settings) {
+    handleSaveSettings() {
       // Handle saving risk management settings
-      console.log('Saving settings:', settings);
     },
 
     openEditModal(cellIndex) {
@@ -302,7 +315,7 @@ export default defineComponent({
         await this.editCell(this.editingCellIndex, this.editingCell);
         this.closeEditModal();
       } catch (error) {
-        console.error('Error saving edited cell:', error);
+        // Handle error
       }
     },
 
@@ -316,7 +329,7 @@ export default defineComponent({
           cell: { ...cell, selected: !cell.selected }
         });
       } else {
-        console.warn('Invalid cell index or cells not loaded:', { cellIndex, currentPage });
+        // Handle invalid cell index or cells not loaded
       }
     },
 
@@ -329,7 +342,7 @@ export default defineComponent({
       try {
         const currentPage = this.getCurrentPage;
         if (!currentPage || !currentPage.bingoCells) {
-          console.error('Invalid page structure:', currentPage);
+          // Handle invalid page structure
           return;
         }
 
@@ -341,23 +354,32 @@ export default defineComponent({
           cell
         });
       } catch (error) {
-        console.error('Error updating cell:', error);
+        // Handle error
       }
     },
     showWorkflowTooltip(event, number) {
-      this.workflowTooltipVisible = true;
+      event.stopPropagation();  // Prevent event bubbling
+      
+      // Only show if not already visible with same number
+      if (this.workflowTooltipVisible && this.workflowTooltipNumber === number) {
+        return;
+      }
+      
+      const workflowNumber = event.target;
+      const rect = workflowNumber.getBoundingClientRect();
+      
+      this.workflowTooltipX = rect.left;
+      this.workflowTooltipY = rect.bottom;
       this.workflowTooltipNumber = number;
-      this.updateWorkflowTooltipPosition(event);
+      this.workflowTooltipVisible = true;
     },
-    hideWorkflowTooltip() {
+
+    hideWorkflowTooltip(event) {
+      if (event) {
+        event.stopPropagation();  // Prevent event bubbling
+      }
       this.workflowTooltipVisible = false;
       this.workflowTooltipNumber = null;
-    },
-    updateWorkflowTooltipPosition(event) {
-      if (this.workflowTooltipVisible) {
-        this.workflowTooltipX = event.clientX;
-        this.workflowTooltipY = event.clientY;
-      }
     },
   },
 });
@@ -432,7 +454,7 @@ export default defineComponent({
   position: absolute;
   z-index: 20;
   left: 0.5rem;
-  top: 0.375rem;
+  top: -1.75rem;
 }
 
 .workflow-number:hover {
