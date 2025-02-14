@@ -320,5 +320,4 @@ export default defineComponent({
 </script>
 
 <style>
-@import '@/assets/styles/widgets/TradeDetailsWidget.css';
 </style>

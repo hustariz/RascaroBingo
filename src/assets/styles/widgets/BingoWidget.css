@@ -1,25 +1,30 @@
 /* Bingo Widget Styles */
 .bingo-widget {
-  position: relative !important;
-  width: 100% !important;
   height: 100% !important;
+  width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 1rem !important;
-  padding: 1rem !important;
-  background: rgba(25, 16, 5, 0.5) !important;
-  border-radius: 10px !important;
-  overflow: hidden !important;
+  border-top: 1px solid rgba(255, 215, 0, 1);
+}
+
+.bingo-section {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
 }
 
 .bingo-grid {
   display: grid !important;
   grid-template-columns: repeat(5, 1fr) !important;
-  gap: 0.5rem !important;
-  padding: 0.5rem !important;
+  grid-template-rows: repeat(5, 1fr) !important;
+  gap: 0.15rem !important;
+  padding: 0.15rem !important;
   background: rgba(25, 16, 5, 0.5) !important;
   border-radius: 4px !important;
-  height: calc(100% - 1rem) !important;  /* Subtract padding */
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 !important;
   align-items: stretch !important;
   align-content: stretch !important;
   overflow: hidden !important;
@@ -27,52 +32,56 @@
 
 .bingo-cell {
   position: relative !important;
-  aspect-ratio: 1 !important;
-  border: 1px solid rgba(255, 215, 0, 0.3) !important;
-  border-radius: 4px !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 3.3rem !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  border-radius: 2px !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
   transition: all 0.2s ease !important;
   background: rgba(43, 24, 16, 0.7) !important;
-  min-height: 0 !important;  /* Allow cell to shrink */
-  height: 100% !important;
 }
 
 .bingo-cell:hover {
-  border-color: rgba(255, 215, 0, 0.6) !important;
+  border-color: rgba(255, 215, 0, 0.7) !important;
   background: rgba(43, 24, 16, 0.8) !important;
 }
 
 .bingo-cell.selected {
   background: rgba(255, 215, 0, 0.15) !important;
-  border-color: rgba(255, 215, 0, 0.8) !important;
+  border-color: rgba(255, 215, 0, 0.9) !important;
   box-shadow: 
     inset 0 0 15px rgba(255, 215, 0, 0.1),
     0 0 10px rgba(255, 215, 0, 0.2) !important;
 }
 
 .cell-info-zone {
-  height: 20% !important;
-  background: rgba(25, 16, 5, 0.9) !important;  /* Match prod color */
+  height: 1.15rem !important;
+  min-height: 1.15rem !important;
+  background: rgba(25, 16, 5, 0.9) !important;
   cursor: help !important;
   border-bottom: 1px solid rgba(255, 215, 0, 0.2) !important;
 }
 
 .cell-content {
-  height: 60% !important;
+  flex: 1 !important;
+  min-height: 1.9rem !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 1.2em !important;
+  font-size: clamp(0.68rem, 1.15vw, 1.05rem) !important;
   color: rgba(255, 215, 0, 0.8) !important;
   cursor: pointer !important;
   font-family: 'Montserrat', sans-serif !important;
+  padding: 0.1rem !important;
 }
 
 .cell-edit-zone {
-  height: 20% !important;
-  background: rgba(25, 16, 5, 0.9) !important;  /* Match prod color */
+  height: 1.15rem !important;
+  min-height: 1.15rem !important;
+  background: rgba(25, 16, 5, 0.9) !important;
   cursor: pointer !important;
   border-top: 1px solid rgba(255, 215, 0, 0.2) !important;
 }

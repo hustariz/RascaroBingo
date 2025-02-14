@@ -46,6 +46,7 @@
 <script>
 import { defineComponent } from 'vue';
 import PremiumLock from '@/components/app/PremiumLock.vue';
+import '@/assets/styles/widgets/TradeIdeaWidget.css';
 
 export default defineComponent({
   name: 'TradeIdeaWidget',
@@ -218,5 +219,5 @@ export default defineComponent({
 </script>
 
 <style>
-@import '@/assets/styles/widgets/TradeIdeaWidget.css';
+
 </style>

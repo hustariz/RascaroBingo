@@ -177,7 +177,7 @@ export default defineComponent({
           w: 2,
           h: 9,  // Match Bingo Grid height
           i: "risk-reward",
-          title: "Points Bingo: Risk/Reward",
+          title: "Score: Risk/Reward",
           workflowNumber: 3,
           component: markRaw(RiskRewardWidget),
           props: {
@@ -387,99 +387,4 @@ export default defineComponent({
 
 <style>
 @import '@/assets/styles/BingoPage.css';
-
-.widget-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  padding-left: 2.5rem;
-  background: rgba(25, 16, 5, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(255, 215, 0, 0.3);
-  border-left: 1px solid rgba(255, 215, 0, 0.3);
-  border-right: 1px solid rgba(255, 215, 0, 0.3);
-  border-bottom: 1px solid rgba(255, 215, 0, 1);  
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  box-shadow: 0 1px 3px -1px rgba(255, 215, 0, 0.3);
-  position: relative;
-  z-index: 10;
-}
-
-.widget-header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, 
-    rgba(89, 0, 0, 0.2),
-    rgba(43, 24, 16, 0.15)
-  );
-  border-top: 1px solid rgba(255, 215, 0, 0.15);
-  border-left: 1px solid rgba(255, 215, 0, 0.15);
-  border-right: 1px solid rgba(255, 215, 0, 0.15);
-  border-bottom: 1px solid rgba(255, 215, 0, 0.5);  
-  z-index: -1;
-}
-
-.widget-title {
-  flex: 1;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: rgba(255, 215, 0, 1);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  padding-top: 0.125rem;
-  text-align: left;
-}
-
-.workflow-number {
-  width: 1.5rem;
-  height: 1.5rem;
-  background: rgba(255, 215, 0, 0.9);
-  border: 1px solid rgba(255, 215, 0, 0.6);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(0, 0, 0, 0.8);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: help;
-  transition: all 0.2s ease;
-  position: absolute;
-  z-index: 20;
-  left: 0.5rem;
-  top: -1.75rem;
-}
-
-.workflow-number:hover {
-  background: rgba(255, 215, 0, 1);
-  border-color: rgba(255, 215, 0, 0.8);
-}
-
-.widget-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.control-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  color: rgba(255, 215, 0, 0.7);
-  font-size: 1.2rem;
-  line-height: 1;
-  transition: color 0.2s ease;
-}
-
-.control-button:hover {
-  color: rgba(255, 215, 0, 1);
-}
 </style>
