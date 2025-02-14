@@ -11,7 +11,9 @@
            @mouseenter="showTooltip($event, index)"
            @mouseleave="hideTooltip"
            @mousemove="updateTooltipPosition($event)">
-        <div class="tooltip" v-show="tooltipVisible === index">
+        <div class="tooltip" 
+             v-show="tooltipVisible === index"
+             :style="tooltipStyle">
           <strong>{{ cell.title || 'Not set' }}</strong>
           <br>
           Points: <span class="points">{{ cell.points || '0' }}</span>
@@ -47,9 +49,13 @@ export default {
   },
   computed: {
     tooltipStyle() {
+      // Convert pixels to rem (1rem = 16px)
+      const leftRem = (this.tooltipX - 200) / 16;
+      const topRem = (this.tooltipY - 10) / 16;
+      
       return {
-        left: `${this.tooltipX}px`,
-        top: `${this.tooltipY}px`
+        left: `${leftRem}rem`,
+        top: `${topRem}rem`
       }
     }
   },

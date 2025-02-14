@@ -52,7 +52,7 @@
   height: 1.25rem;
   border: 0.1rem solid rgb(255, 215, 0);
   border-radius: 0.25rem;
-  background: rgba(25, 16, 5, 0.9);
+  background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98));
   position: relative;
   cursor: default;
 }

@@ -14,7 +14,6 @@
 import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import BingoGrid from '@/components/app/BingoGrid.vue';
-import '@/assets/styles/widgets/BingoWidget.css';
 
 export default defineComponent({
   name: 'BingoWidget',
@@ -56,4 +55,6 @@ export default defineComponent({
 </script>
 
 <style>
+@import '@/assets/styles/widgets/common.css';
+@import '@/assets/styles/widgets/BingoWidget.css';
 </style>

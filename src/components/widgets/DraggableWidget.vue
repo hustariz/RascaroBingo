@@ -82,6 +82,9 @@ export default {
 </script>
 
 <style scoped>
+@import '@/assets/styles/widgets/common.css';
+@import '@/assets/styles/widgets/DraggableWidget.css';
+
 .widget {
   background: linear-gradient(145deg, rgba(43, 24, 16, 0.7), rgba(25, 16, 5, 0.9));
   border: 1px solid rgba(255, 215, 0, 0.5);
