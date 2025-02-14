@@ -21,7 +21,7 @@
         :is-draggable="true"
         :is-resizable="true"
         :vertical-compact="false"
-        :margin="[10, 5]"
+        :margin="[5, 5]"
         :use-css-transforms="true"
         :width="gridWidth"
         :height="gridHeight"
@@ -145,8 +145,39 @@ export default defineComponent({
       gridHeight: 800,
       layout: [
         {
-          x: 0,
+          x: 0,  // Bingo Grid starts first
           y: 0,
+          w: 4,
+          h: 9,
+          i: "bingo",
+          title: "Bingo Grid",
+          workflowNumber: 2,
+          component: BingoWidget,
+          minW: 4,
+          minH: 9,
+          maxW: 12,
+          maxH: 12
+        },
+        {
+          x: 4,  // Risk/Reward next to Bingo Grid
+          y: 0,
+          w: 2,
+          h: 9,  // Match Bingo Grid height
+          i: "risk-reward",
+          title: "Points Bingo: Risk/Reward",
+          workflowNumber: 4,
+          component: RiskRewardWidget,
+          props: {
+            score: 0
+          },
+          minW: 2,
+          minH: 9,  // Match Bingo Grid min height
+          maxW: 12,
+          maxH: 12
+        },
+        {
+          x: 0,  // Trade's Idea on second row
+          y: 9,
           w: 3,
           h: 6,
           i: "trade-idea",
@@ -159,9 +190,9 @@ export default defineComponent({
           maxH: 12
         },
         {
-          x: 3,
-          y: 0,
-          w: 5,
+          x: 3,  // Trade's Details next to Trade's Idea
+          y: 9,
+          w: 4,  /* Set to match minW */
           h: 6,
           i: "trade-details",
           title: "Trade's Details",
@@ -170,39 +201,8 @@ export default defineComponent({
           props: {
             score: 0
           },
-          minW: 5,
+          minW: 4,
           minH: 6,
-          maxW: 12,
-          maxH: 12
-        },
-        {
-          x: 8,
-          y: 0,
-          w: 2,
-          h: 8,
-          i: "risk-reward",
-          title: "Points Bingo: Risk/Reward",
-          workflowNumber: 4,
-          component: RiskRewardWidget,
-          props: {
-            score: 0
-          },
-          minW: 2,
-          minH: 8,
-          maxW: 12,
-          maxH: 12
-        },
-        {
-          x: 10,
-          y: 0,
-          w: 3,
-          h: 8,
-          i: "bingo",
-          title: "Bingo Grid",
-          workflowNumber: 2,
-          component: BingoWidget,
-          minW: 3,
-          minH: 8,
           maxW: 12,
           maxH: 12
         }

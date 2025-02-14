@@ -1,13 +1,11 @@
 /* Bingo Widget Styles */
-.bingo-widget {
+.bingo-widget.widget-content {
   width: 100% !important;
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  border: 1px solid rgba(255, 215, 0, 0.3) !important;
-  border-radius: 4px !important;
   overflow: hidden !important;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) !important;
+  border: none !important;  /* Override widget-content border */
 }
 
 .bingo-section {
@@ -16,9 +14,7 @@
   flex-direction: column !important;
   padding: 1rem !important;
   background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98)) !important;
-  border: 1px solid rgba(255, 215, 0, 0.3) !important;
-  border-radius: 4px !important;
-  border-top: 2px solid rgba(255, 215, 0, 1) !important;  /* Force golden line */
+  overflow: hidden !important;
 }
 
 .bingo-grid {
@@ -26,29 +22,84 @@
   grid-template-columns: repeat(5, 1fr) !important;
   gap: 0.5rem !important;
   padding: 0.5rem !important;
+  background: rgba(25, 16, 5, 0.5) !important;
+  border-radius: 4px !important;
+  height: calc(100% - 1rem) !important;  /* Subtract padding */
+  align-items: stretch !important;
+  align-content: stretch !important;
+  overflow: hidden !important;
 }
 
 .bingo-cell {
+  position: relative !important;
   aspect-ratio: 1 !important;
   border: 1px solid rgba(255, 215, 0, 0.3) !important;
   border-radius: 4px !important;
   display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0.5rem !important;
-  text-align: center !important;
-  font-size: 0.9rem !important;
-  cursor: pointer !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
   transition: all 0.2s ease !important;
-  background: rgba(0, 0, 0, 0.2) !important;
+  background: rgba(43, 24, 16, 0.7) !important;
+  min-height: 0 !important;  /* Allow cell to shrink */
+  height: 100% !important;
 }
 
 .bingo-cell:hover {
   border-color: rgba(255, 215, 0, 0.6) !important;
-  background: rgba(0, 0, 0, 0.3) !important;
+  background: rgba(43, 24, 16, 0.8) !important;
 }
 
-.bingo-cell.active {
+.bingo-cell.selected {
   background: rgba(255, 215, 0, 0.15) !important;
   border-color: rgba(255, 215, 0, 0.8) !important;
+  box-shadow: 
+    inset 0 0 15px rgba(255, 215, 0, 0.1),
+    0 0 10px rgba(255, 215, 0, 0.2) !important;
+}
+
+.cell-info-zone {
+  height: 20% !important;
+  background: rgba(25, 16, 5, 0.9) !important;  /* Match prod color */
+  cursor: help !important;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2) !important;
+}
+
+.cell-content {
+  height: 60% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.2em !important;
+  color: rgba(255, 215, 0, 0.8) !important;
+  cursor: pointer !important;
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+.cell-edit-zone {
+  height: 20% !important;
+  background: rgba(25, 16, 5, 0.9) !important;  /* Match prod color */
+  cursor: pointer !important;
+  border-top: 1px solid rgba(255, 215, 0, 0.2) !important;
+}
+
+.cell-edit-zone:hover {
+  background: rgba(255, 215, 0, 0.1) !important;
+}
+
+.tooltip {
+  position: fixed !important;
+  background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98)) !important;
+  color: #ffffff !important;
+  padding: 8px !important;
+  border-radius: 4px !important;
+  font-size: 0.9em !important;
+  pointer-events: none !important;
+  z-index: 1000 !important;
+  border: 1px solid rgba(255, 215, 0, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.tooltip .points {
+  color: rgba(255, 215, 0, 0.8) !important;
+  font-weight: bold !important;
 }

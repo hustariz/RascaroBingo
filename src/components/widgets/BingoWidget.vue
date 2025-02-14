@@ -1,26 +1,11 @@
 <template>
   <div class="bingo-widget widget-content">
     <div class="bingo-section">
-      <div class="bingo-grid">
-        <div 
-          v-for="(cell, index) in cells" 
-          :key="index"
-          class="bingo-cell"
-          :class="{ 
-            'active': cell.selected,
-            'has-points': cell.points > 0
-          }"
-          @click="handleCellClick(index)"
-          @mouseover="showWorkflowTooltip($event, 2)"
-          @mousemove="updateWorkflowTooltipPosition($event)"
-          @mouseleave="hideWorkflowTooltip"
-        >
-          <div class="cell-content">
-            <div class="cell-title">{{ cell.title }}</div>
-            <div v-if="cell.points > 0" class="cell-points">{{ cell.points }} pts</div>
-          </div>
-        </div>
-      </div>
+      <BingoGrid 
+        :cells="cells" 
+        @cell-click="handleCellClick"
+        @cell-edit="handleCellEdit"
+      />
     </div>
   </div>
 </template>
@@ -28,23 +13,30 @@
 <script>
 import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
+import BingoGrid from '@/components/app/BingoGrid.vue';
 
 export default defineComponent({
   name: 'BingoWidget',
-
+  components: {
+    BingoGrid
+  },
   emits: ['workflow-tooltip'],
-
   setup() {
     const store = useStore();
 
-    const cells = computed(() => {
-      const currentPage = store.getters['bingo/getCurrentPage'];
-      return currentPage ? currentPage.bingoCells : [];
-    });
+    // Load initial data
+    store.dispatch('bingo/loadUserCard');
+
+    const cells = computed(() => store.getters['bingo/getCurrentPageCells']);
 
     const handleCellClick = (index) => {
       store.commit('bingo/TOGGLE_CELL', { index });
-      store.dispatch('bingo/saveUserCard');
+      store.dispatch('bingo/saveCardState');
+    };
+
+    const handleCellEdit = (index) => {
+      // We'll implement this in the next step
+      console.log('Edit cell:', index);
     };
 
     const showWorkflowTooltip = (event, number) => {
@@ -64,6 +56,7 @@ export default defineComponent({
     return {
       cells,
       handleCellClick,
+      handleCellEdit,
       showWorkflowTooltip,
       hideWorkflowTooltip,
       updateWorkflowTooltipPosition
