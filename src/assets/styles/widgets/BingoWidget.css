@@ -1,19 +1,14 @@
 /* Bingo Widget Styles */
-.bingo-widget.widget-content {
+.bingo-widget {
+  position: relative !important;
   width: 100% !important;
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: hidden !important;
-  border: none !important;  /* Override widget-content border */
-}
-
-.bingo-section {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
+  gap: 1rem !important;
   padding: 1rem !important;
-  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98)) !important;
+  background: rgba(25, 16, 5, 0.5) !important;
+  border-radius: 10px !important;
   overflow: hidden !important;
 }
 
@@ -87,19 +82,17 @@
 }
 
 .tooltip {
-  position: fixed !important;
-  background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98)) !important;
-  color: #ffffff !important;
-  padding: 8px !important;
-  border-radius: 4px !important;
-  font-size: 0.9em !important;
-  pointer-events: none !important;
-  z-index: 1000 !important;
-  border: 1px solid rgba(255, 215, 0, 0.3) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-}
-
-.tooltip .points {
-  color: rgba(255, 215, 0, 0.8) !important;
-  font-weight: bold !important;
+  position: fixed;
+  transform: translate(-50%, -100%);
+  padding: 10px 15px;
+  background: rgba(25, 16, 5, 0.95);
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 9999;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  pointer-events: none;
+  margin-top: -10px;
+  display: none;
 }

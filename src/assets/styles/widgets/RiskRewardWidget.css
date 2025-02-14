@@ -146,6 +146,50 @@
   display: block;
 }
 
+/* Target Tooltip */
+.target-tooltip {
+  position: fixed;
+  background: rgba(43, 24, 16, 0.98);
+  color: #ffffff;
+  padding: 12px 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 280px;
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 9999;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.tooltip-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tooltip-button {
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(238, 175, 17, 0.5);
+  background: rgba(43, 24, 16, 0.9);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  min-width: 25px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  box-shadow: 0 0 5px rgba(238, 175, 17, 0.1);
+}
+
+.tooltip-button:hover {
+  background: rgba(238, 175, 17, 0.2);
+}
+
 @keyframes riskrewardGlowPulse {
   0% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.8; transform: scale(1.1); }
