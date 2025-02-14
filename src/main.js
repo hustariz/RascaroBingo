@@ -70,7 +70,8 @@ app.use(router);
 if (api.isAuthenticated()) {
     api.checkAuth().catch(error => {
         console.error('Auth check failed:', error);
-        store.dispatch('auth/logout');
+        // Only clear token, don't force logout
+        localStorage.removeItem('token');
     });
 }
 

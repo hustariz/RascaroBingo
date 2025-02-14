@@ -1,5 +1,5 @@
 <template>
-  <div class="riskreward-section-container">
+  <div class="risk-reward-widget">
     <div class="riskreward-area">
       <div class="riskreward-checkboxes">
         <label class="riskreward-checkbox">
@@ -19,6 +19,7 @@
           <span class="riskreward-checkbox-text">11/20 : 3R/R</span>
         </label>
         <label class="riskreward-checkbox">
+
           <input 
             type="checkbox" 
             :checked="score >= 16 && score < 20"
@@ -42,31 +43,36 @@
     </div>
   </div>
 </template>
-<script>
-import '@/assets/styles/RiskRewardSection.css';
 
-export default {
-name: 'RiskRewardSection',
-props: {
-  score: {
-    type: Number,
-    required: true,
-    default: 0
-  }
-},
-watch: {
-  score: {
-    immediate: true,
-    handler(newScore) {
-      // Update rrChecks based on new score ranges
-      this.$emit('update:rrChecks', {
-        sixPoints: newScore >= 6 && newScore < 11,    // 2R/R
-        elevenPoints: newScore >= 11 && newScore < 16, // 3R/R
-        sixteenPoints: newScore >= 16 && newScore < 20, // 4R/R
-        twentyPoints: newScore >= 20  // 5R/R (Hidden Bingo)
-      });
+<script>
+import { defineComponent } from 'vue';
+import '@/assets/styles/widgets/RiskRewardWidget.css';
+
+export default defineComponent({
+  name: 'RiskRewardWidget',
+  props: {
+    score: {
+      type: Number,
+      required: true,
+      default: 0
+    }
+  },
+  watch: {
+    score: {
+      immediate: true,
+      handler(newScore) {
+        // Update rrChecks based on new score ranges
+        this.$emit('update:rrChecks', {
+          sixPoints: newScore >= 6 && newScore < 11,    // 2R/R
+          elevenPoints: newScore >= 11 && newScore < 16, // 3R/R
+          sixteenPoints: newScore >= 16 && newScore < 20, // 4R/R
+          twentyPoints: newScore >= 20  // 5R/R (Hidden Bingo)
+        });
+      }
     }
   }
-}
-}
+});
 </script>
+
+<style>
+</style>

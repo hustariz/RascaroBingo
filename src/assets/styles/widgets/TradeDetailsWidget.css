@@ -1,0 +1,375 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;500&display=swap');
+
+/* Base Widget */
+.trade-details-widget {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+  border: 0.0625rem solid rgba(255, 215, 0, 0.3);
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.2);
+  grid-column: span 5;
+  grid-row: span 2;
+  min-width: 0;
+  min-height: 20rem;
+}
+
+/* Content */
+.tradedetails-content {
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: auto;
+  transition: all 0.3s ease;
+}
+
+.tradedetails-content.long-mode {
+  background: linear-gradient(145deg, rgba(76, 175, 80, 0.4), rgba(0, 43, 16, 0.98));
+}
+
+.tradedetails-content:not(.long-mode) {
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+}
+
+/* Header Layout */
+.tradedetails-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+  position: relative;
+}
+
+/* Long/Short Toggle */
+.tradedetails-type-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.tradedetails-toggle-button {
+  padding: 0.5rem 1rem;
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.0188rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  min-width: 4rem;
+  transition: all 0.3s ease;
+  text-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.3);
+}
+
+.tradedetails-toggle-button:hover {
+  transform: translateY(-0.0625rem);
+}
+
+.tradedetails-toggle-button.active {
+  background: rgba(238, 175, 17, 0.1);
+  border: 0.0625rem solid rgb(238, 175, 17);
+  color: rgb(238, 175, 17);
+}
+
+.tradedetails-toggle-button.active.long {
+  background: rgba(0, 255, 0, 0.1);
+  border: 0.0625rem solid rgb(0, 255, 0);
+  color: rgb(0, 255, 0);
+}
+
+.tradedetails-toggle-button.active.short {
+  background: rgba(255, 0, 0, 0.1);
+  border: 0.0625rem solid rgb(255, 0, 0);
+  color: rgb(255, 0, 0);
+}
+
+.tradedetails-toggle-button:not(.active) {
+  background: rgba(255, 215, 0, 0.1);
+  border: 0.0625rem solid rgba(255, 215, 0, 0.3);
+  color: rgba(255, 215, 0, 0.7);
+}
+
+/* R:R Display */
+.tradedetails-rr-display {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 4rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(25, 16, 5, 0.9);
+  border: 0.0625rem solid rgba(255, 215, 0, 0.5);
+  border-radius: 0.375rem;
+  box-shadow: inset 0 0 0.5rem rgba(255, 215, 0, 0.2);
+  padding: 0.25rem;
+}
+
+.tradedetails-rr-display span {
+  color: rgb(255, 215, 0);
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-align: center;
+  line-height: 1;
+  letter-spacing: -0.02rem;
+  word-spacing: -0.05rem;
+}
+
+/* Price Inputs */
+.tradedetails-price-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.tradedetails-input-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.tradedetails-input-group h4 {
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.0188rem;
+  color: rgb(238, 175, 17);
+  text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+  margin: 0;
+}
+
+.tradedetails-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.tradedetails-input-prefix {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgb(255, 215, 0);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.tradedetails-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 1.75rem;
+  background: rgba(25, 16, 5, 0.9);
+  border: 0.0625rem solid rgba(255, 215, 0, 0.3);
+  border-radius: 0.375rem;
+  color: rgb(255, 215, 0);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.tradedetails-input:focus {
+  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow: 0 0 0.5rem rgba(255, 215, 0, 0.1);
+}
+
+.tradedetails-input.editable {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+input[readonly]:not(.editable) {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.tradedetails-input::-webkit-inner-spin-button,
+.tradedetails-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tradedetails-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.tradedetails-label-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.tradedetails-tooltip-icon {
+  position: relative;
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 215, 0, 0.2);
+  border: 0.0625rem solid rgba(255, 215, 0, 0.5);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.tradedetails-tooltip-icon span {
+  color: rgb(255, 215, 0);
+  font-size: 0.75rem;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.tradedetails-tooltip-icon:hover .tradedetails-tooltip-content {
+  display: block;
+}
+
+.tradedetails-tooltip-content {
+  display: none;
+  position: absolute;
+  top: -0.5rem;
+  left: 1.5rem;
+  background: rgba(25, 16, 5, 0.95);
+  border: 0.0625rem solid rgba(255, 215, 0, 0.5);
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  width: max-content;
+  z-index: 10;
+}
+
+.tooltip-content {
+  color: rgb(255, 215, 0);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tooltip-button {
+  cursor: pointer;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  background: rgba(255, 215, 0, 0.1);
+  border: 0.0625rem solid rgba(255, 215, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.tooltip-button:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+/* Action Buttons */
+.tradedetails-actions {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  margin-top: auto;
+  min-width: 0;
+}
+
+.tradedetails-save-button,
+.tradedetails-history-button {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1.1rem;
+  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.0188rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.3);
+  min-width: 0;
+}
+
+.tradedetails-save-button {
+  background: rgba(238, 175, 17, 0.1);
+  border: 0.0625rem solid rgb(238, 175, 17);
+  color: rgb(238, 175, 17);
+}
+
+.tradedetails-save-button:hover {
+  background: rgba(238, 175, 17, 0.2);
+  transform: translateY(-0.0625rem);
+}
+
+.tradedetails-history-button {
+  background: rgba(255, 215, 0, 0.1);
+  border: 0.0625rem solid rgba(255, 215, 0, 0.5);
+  color: rgba(255, 215, 0, 0.7);
+}
+
+.tradedetails-history-button:hover {
+  background: rgba(255, 215, 0, 0.2);
+  transform: translateY(-0.0625rem);
+}
+
+.tradedetails-history-button.long {
+  background: rgba(0, 255, 0, 0.1);
+  border: 0.0625rem solid rgb(0, 255, 0);
+  color: rgb(0, 255, 0);
+}
+
+.tradedetails-history-button.short {
+  background: rgba(255, 0, 0, 0.1);
+  border: 0.0625rem solid rgb(255, 0, 0);
+  color: rgb(255, 0, 0);
+}
+
+/* Trade History Section */
+.trade-details-widget-wrapper {
+  position: relative;
+}
+
+.trade-history-section {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 64rem) {
+  .tradedetails-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .tradedetails-type-toggle {
+    flex-direction: column;
+  }
+
+  .tradedetails-actions {
+    flex-direction: column;
+  }
+
+  .tradedetails-save-button,
+  .tradedetails-history-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 48rem) {
+  .tradedetails-price-inputs {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}

@@ -78,12 +78,14 @@ export default {
       };
 
       // Save to localStorage
-      localStorage.setItem('bingoState', JSON.stringify({
-        bingoPages: state.bingoPages,
-        currentPageIndex: state.currentPageIndex,
-        lastModified: new Date().toISOString(),
-        version: '2.0'
-      }));
+      this.dispatch('bingo/saveCardState');
+    },
+
+    TOGGLE_CELL(state, { index }) {
+      const currentPage = state.bingoPages[state.currentPageIndex];
+      if (currentPage && currentPage.bingoCells[index]) {
+        currentPage.bingoCells[index].selected = !currentPage.bingoCells[index].selected;
+      }
     },
 
     SET_CURRENT_PAGE(state, index) {
