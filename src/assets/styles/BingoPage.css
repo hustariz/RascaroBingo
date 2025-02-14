@@ -89,6 +89,11 @@
   padding: 0;
 }
 
+.grid-item.trade-details {
+  min-width: 37.5rem; /* 5 columns * 7.5rem per column */
+  min-height: calc(2 * var(--grid-row-height, 100px));
+}
+
 .grid-item:hover {
   z-index: 2;
 }
@@ -103,12 +108,15 @@
 }
 
 .grid-item .vue-resizable-handle {
+  position: absolute;
   background: rgba(255, 215, 0, 0.8);
   border-radius: 2px;
   width: 12px;
   height: 12px;
   right: 2px;
   bottom: 2px;
+  cursor: se-resize;
+  z-index: 100;
 }
 
 .grid-item .vue-resizable-handle::after {
@@ -147,7 +155,6 @@
 
 /* Section Backgrounds */
 .tradeidea-section-content,
-.tradedetails-content,
 .riskreward-area,
 .bingo-section {
   background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));

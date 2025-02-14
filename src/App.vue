@@ -1,18 +1,37 @@
 <template>
   <div id="app">
     <Navbar />
+    <TradeHistorySection 
+      v-if="showTradeHistory"
+      :is-visible="showTradeHistory"
+      :is-sidebar-collapsed="false"
+      @close="showTradeHistory = false"
+    />
     <router-view 
       @open-login-form="showLoginForm = true"
       @open-register-form="showRegisterForm = true"
+      @open-trade-history="showTradeHistory = true"
     ></router-view>
   </div>
 </template>
 
 <script>
 import Navbar from '@/components/app/AppNavbar.vue'
+import TradeHistorySection from '@/components/app/TradeHistorySection.vue'
 
 export default {
   name: 'App',
+  components: {
+    Navbar,
+    TradeHistorySection
+  },
+  data() {
+    return {
+      showTradeHistory: false,
+      showLoginForm: false,
+      showRegisterForm: false
+    }
+  },
   async beforeMount() {
     // Check if auth state exists before accessing token
     if (this.$store.state.auth?.token) {
@@ -23,9 +42,6 @@ export default {
         console.error('Error loading risk management data:', error);
       }
     }
-  },
-  components: {
-    Navbar
   }
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container" @open-trade-history="$emit('open-trade-history')">
     <PremiumLock 
       :show="showPremiumLock" 
       :message="'Upgrade to Premium to access multiple Bingo pages and custom page names'"
@@ -54,7 +54,7 @@
             </div>
           </div>
           <div class="widget-content">
-            <component :is="item.component" v-if="item.component" v-bind="item.props"></component>
+            <component :is="item.component" v-if="item.component" v-bind="item.props" @open-trade-history="$emit('open-trade-history')"></component>
             <div v-else>Widget {{ item.i }}</div>
           </div>
         </GridItem>
@@ -161,21 +161,24 @@ export default defineComponent({
         {
           x: 3,
           y: 0,
-          w: 3,
+          w: 5,
           h: 6,
           i: "trade-details",
           title: "Trade's Details",
           workflowNumber: 3,
           component: TradeDetailsWidget,
-          minW: 3,
+          props: {
+            score: 0
+          },
+          minW: 5,
           minH: 6,
           maxW: 12,
           maxH: 12
         },
         {
-          x: 6,
+          x: 8,
           y: 0,
-          w: 3,
+          w: 2,
           h: 8,
           i: "risk-reward",
           title: "Points Bingo: Risk/Reward",
@@ -184,13 +187,13 @@ export default defineComponent({
           props: {
             score: 0
           },
-          minW: 3,
+          minW: 2,
           minH: 8,
           maxW: 12,
           maxH: 12
         },
         {
-          x: 9,
+          x: 10,
           y: 0,
           w: 3,
           h: 8,
