@@ -3,7 +3,7 @@
 @import './shared/modals.css';
 
 /* Dashboard Grid Layout */
-.page-container .dashboard-layout {
+.dashboard-layout {
   background: rgba(43, 24, 16, 0.45) !important;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -16,8 +16,8 @@
   padding: 0.25rem;
   overflow: visible !important;
   box-sizing: border-box;
-  z-index: auto;
-  isolation: auto;
+  z-index: 1;
+  isolation: isolate;
   border-top: 1px solid rgba(255, 215, 0, 0.3);
   border-left: 1px solid rgba(255, 215, 0, 0.3);
   scrollbar-width: none;
@@ -38,7 +38,7 @@
   width: 1px;
   background: rgba(255, 215, 0, 0.3);
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Bottom border */
@@ -51,7 +51,7 @@
   height: 1px;
   background: rgba(255, 215, 0, 0.3);
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Page Layout */
@@ -63,13 +63,14 @@
   padding: 0.5rem;
   position: relative;
   isolation: isolate;
+  overflow: visible !important;
 }
 
 .main-content {
   flex: 1;
   position: relative;
   padding: 0.5rem;
-  overflow: hidden;
+  overflow: visible !important;
   transition: margin-left 0.3s ease;
   min-width: 0;
   height: calc(100vh - 4rem);
@@ -81,6 +82,27 @@
   margin-left: 0;
 }
 
+/* Grid Layout */
+.vue-grid-layout {
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 1;
+}
+
+.vue-grid-item {
+  overflow: visible !important;
+  z-index: 1;
+}
+
+.vue-grid-item:hover {
+  z-index: 2;
+}
+
+.grid-item {
+  overflow: visible !important;
+  z-index: inherit;
+}
+
 /* Z-index Management */
 .page-container {
   position: relative;
@@ -88,7 +110,16 @@
 }
 
 .widget-container {
+  background: linear-gradient(145deg, rgba(43, 24, 16, 0.7), rgba(25, 16, 5, 0.9));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: 
+    inset 0 0 15px rgba(255, 215, 0, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+  min-height: 18.75rem;
+  width: 100%;
+  height: 100%;
   position: relative;
+  overflow: visible !important;
   z-index: 0;
   isolation: isolate;
 }
@@ -107,12 +138,14 @@
   z-index: 1;
 }
 
-/* Grid Layout */
-.vue-grid-layout {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: calc(100vh - 6rem) !important;
-  background: rgba(255, 215, 0, 0.05);
+.section-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: visible !important;
+  position: relative;
+  z-index: 2;
 }
 
 /* Typography */
@@ -255,9 +288,7 @@ h1, h2 {
   position: relative;
   width: 100%;
   height: 100%;
-  z-index: 3;
-  position: relative;
-  z-index: 0;
+  z-index: 1;
   isolation: isolate;
 }
 
@@ -549,11 +580,6 @@ h1, h2 {
 
   .bingo-cell.selected .cell-edit-zone::after {
     display: none; /* Hide the pencil icon */
-  }
-
-  /* Hide tooltip when cell is selected */
-  .bingo-cell.selected .tooltip {
-    display: none;
   }
 
   /* Make the cell zones blend with the golden background */
