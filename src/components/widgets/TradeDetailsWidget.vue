@@ -91,13 +91,14 @@
           @click="saveTrade"
           :disabled="!validateTrade()"
         >
-          Save Trade
+          {{ isLong ? 'Long' : 'Short' }}
         </button>
         <button 
           class="tradedetails-history-button"
           :class="{ 'long': isLong, 'short': !isLong }"
           @click="$emit('open-trade-history')"
         >
+          <span class="tradedetails-history-icon">📊</span>
           Trade History
         </button>
       </div>
@@ -107,6 +108,7 @@
 </template>
 
 <script>
+import '@/assets/styles/widgets/TradeDetailsWidget.css';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -318,5 +320,4 @@ export default defineComponent({
 </script>
 
 <style>
-@import '@/assets/styles/widgets/TradeDetailsWidget.css';
 </style>

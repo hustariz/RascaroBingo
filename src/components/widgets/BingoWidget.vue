@@ -14,13 +14,20 @@
 import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import BingoGrid from '@/components/app/BingoGrid.vue';
+import '@/assets/styles/widgets/BingoWidget.css';
 
 export default defineComponent({
   name: 'BingoWidget',
   components: {
     BingoGrid
   },
-  emits: ['workflow-tooltip'],
+  props: {
+    score: {
+      type: Number,
+      default: 0
+    }
+  },
+  emits: ['score-updated'],
   setup() {
     const store = useStore();
 
@@ -39,32 +46,14 @@ export default defineComponent({
       console.log('Edit cell:', index);
     };
 
-    const showWorkflowTooltip = (event, number) => {
-      event.stopPropagation();
-      store.commit('workflow/SHOW_TOOLTIP', { event, number });
-    };
-
-    const hideWorkflowTooltip = () => {
-      store.commit('workflow/HIDE_TOOLTIP');
-    };
-
-    const updateWorkflowTooltipPosition = (event) => {
-      event.stopPropagation();
-      store.commit('workflow/UPDATE_TOOLTIP_POSITION', event);
-    };
-
     return {
       cells,
       handleCellClick,
-      handleCellEdit,
-      showWorkflowTooltip,
-      hideWorkflowTooltip,
-      updateWorkflowTooltipPosition
+      handleCellEdit
     };
   }
 });
 </script>
 
 <style>
-@import '@/assets/styles/widgets/BingoWidget.css';
 </style>

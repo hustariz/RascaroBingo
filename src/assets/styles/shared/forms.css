@@ -1,0 +1,96 @@
+/* Form Styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  color: rgb(238, 175, 17);
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(238, 175, 17);
+  border-radius: 4px;
+  color: white;
+  width: 100%;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: rgb(238, 175, 17);
+  box-shadow: 0 0 5px rgba(238, 175, 17, 0.3);
+}
+
+/* Modal Buttons */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.modal-buttons button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.save-button {
+  background-color: rgba(238, 175, 17, 0.1);
+  color: white;
+  border: 1px solid rgb(238, 175, 17);
+}
+
+.save-button:hover {
+  background-color: rgba(238, 175, 17, 0.2);
+}
+
+.cancel-button {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.cancel-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Form Layout */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Form Validation */
+.form-group.error input {
+  border-color: #ff4444;
+}
+
+.form-group .error-message {
+  color: #ff4444;
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
+/* Form Responsiveness */
+@media (max-width: 768px) {
+  .form-group input {
+    font-size: 16px; /* Prevent zoom on mobile */
+  }
+  
+  .modal-buttons {
+    flex-direction: column;
+  }
+  
+  .modal-buttons button {
+    width: 100%;
+  }
+}

@@ -1,8 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;500&display=swap');
+@import './shared/forms.css';
+@import './shared/modals.css';
 
 /* Dashboard Grid Layout */
 .page-container .dashboard-layout {
-  background: rgba(43, 24, 16, 0.45) !important;  /* Original brown color and opacity */
+  background: rgba(43, 24, 16, 0.45) !important;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-radius: 10px;
@@ -12,10 +14,10 @@
   right: 0.75rem;
   bottom: 0.75rem;
   padding: 0.25rem;
-  overflow-y: scroll;
-  overflow-x: hidden;
+  overflow: visible !important;
   box-sizing: border-box;
-  z-index: 1;
+  z-index: auto;
+  isolation: auto;
   border-top: 1px solid rgba(255, 215, 0, 0.3);
   border-left: 1px solid rgba(255, 215, 0, 0.3);
   scrollbar-width: none;
@@ -30,7 +32,7 @@
 .dashboard-layout::after {
   content: '';
   position: fixed;
-  top: 0;  /* Make flush with top */
+  top: 0;
   right: 0.75rem;
   bottom: 0.5rem;
   width: 1px;
@@ -44,35 +46,12 @@
   content: '';
   position: fixed;
   left: 0;
-  right: 0;  /* Match the grid layout's right margin */
+  right: 0;
   bottom: 0.5rem;
   height: 1px;
   background: rgba(255, 215, 0, 0.3);
   pointer-events: none;
   z-index: 2;
-}
-
-/* Media queries for responsive layout */
-@media (max-width: 87.5rem) {
-  .dashboard-layout {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 64rem) {
-  .dashboard-layout {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 48rem) {
-  .dashboard-layout {
-    grid-template-columns: 1fr;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-  }
 }
 
 /* Page Layout */
@@ -99,47 +78,185 @@
 }
 
 .main-content.expanded {
-  margin-left: 0.75rem;  /* When sidebar is collapsed */
+  margin-left: 0;
+}
+
+/* Z-index Management */
+.page-container {
+  position: relative;
+  isolation: isolate;
+}
+
+.widget-container {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+.component-wrapper {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+.section-container,
+.section-header,
+.widget-title,
+.widget-handle {
+  position: relative;
+  z-index: 1;
+}
+
+/* Grid Layout */
+.vue-grid-layout {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: calc(100vh - 6rem) !important;
+  background: rgba(255, 215, 0, 0.05);
+}
+
+/* Typography */
+h1, h2 {
+  font-family: 'Legendarie', sans-serif;
+  color: rgb(238, 175, 17);
+}
+
+/* Responsive Design */
+@media (max-width: 87.5rem) {
+  .dashboard-layout {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 64rem) {
+  .dashboard-layout {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .widget-title h2 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .widget-container {
+    grid-column: span 1 !important;
+    grid-row: span 1 !important;
+  }
+  
+  .widget-container.large {
+    min-height: 37.5rem !important;
+    height: auto;
+  }
+
+  .widget-title h2 {
+    font-size: 1rem;
+  }
 }
 
 /* Widget Base Styles */
 .widget-container {
-  background: linear-gradient(145deg, rgba(43, 24, 16, 0.7), rgba(25, 16, 5, 0.9));
+  position: relative;
   box-shadow: 
     inset 0 0 15px rgba(255, 215, 0, 0.1),
     0 4px 12px rgba(0, 0, 0, 0.2);
   min-height: 18.75rem;
   width: 100%;
   height: 100%;
-  position: relative;
-  overflow: visible !important;
-  z-index: 0;
-  isolation: isolate;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   border-radius: 4px;
   padding: 0;
+  border: 1px solid rgba(255, 215, 0, 0.4);
 }
 
-.widget-header {
+.grid-item .widget-container .widget-header {
+  position: relative;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.25rem 0.5rem;
-  background: rgba(25, 16, 5, 0.35);  
-  border-bottom: 1px solid rgba(255, 215, 0, 0.08);  
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  background: rgba(25, 16, 5, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 215, 0, 0.05);
   z-index: 1;
 }
 
-.widget-title {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 700;  
-  color: rgba(255, 215, 0, 1);  
-  text-transform: uppercase;
-  letter-spacing: 0.1em;  
-  margin: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);  
+.grid-item .widget-container .widget-header .widget-controls {
+  padding-right: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.grid-item .widget-container .widget-header .control-button {
+  background: transparent;
+  color: rgba(255, 215, 0, 0.7);
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.grid-item .widget-container .widget-header .control-button:hover {
+  color: rgba(255, 215, 0, 1);
+}
+
+.page-container .dashboard-layout .grid-item .widget-container .widget-header,
+.page-container .dashboard-layout .grid-item .trade-idea-widget .widget-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
+  box-shadow: 0 1px 0 rgba(255, 215, 0, 0.05);
+  z-index: 1;
+}
+
+.page-container .dashboard-layout .grid-item .widget-container .widget-header .widget-title {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  padding-left: 0.75rem;
+  text-align: left;
+  max-width: calc(100% - 4rem);
+  line-height: 1.3;
+  font-family: Montserrat, Roboto, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+  color: rgb(238, 175, 17);
+  text-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px;
+  margin: 0px;
+  white-space: nowrap;
+}
+
+.page-container .dashboard-layout .grid-item .widget-container .widget-header .widget-controls {
+  padding-right: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.page-container .dashboard-layout .grid-item .widget-container .widget-header .control-button {
+  background: transparent;
+  color: rgba(255, 215, 0, 0.7);
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-container .dashboard-layout .grid-item .widget-container .widget-header .control-button:hover {
+  color: rgba(255, 215, 0, 1);
 }
 
 .widget-content {
@@ -160,12 +277,14 @@
   flex-direction: column;
   background: transparent;
   border-radius: 0.25rem;
-  overflow: hidden;
+  overflow: visible !important;
   padding: 0;
+  isolation: auto;
+  z-index: 1;
 }
 
 .grid-item:hover {
-  z-index: 2;
+  z-index: 3;
 }
 
 .grid-item.vue-draggable-dragging {
@@ -179,7 +298,7 @@
 
 .grid-item .vue-resizable-handle {
   position: absolute;
-  background: rgba(255, 215, 0, 0.8);
+  background: rgba(238, 175, 17, 0.9);
   border-radius: 2px;
   width: 12px;
   height: 12px;
@@ -190,130 +309,10 @@
 }
 
 .grid-item .vue-resizable-handle::after {
-  border-color: rgba(255, 215, 0, 0.8);
+  border-color: rgba(238, 175, 17, 0.9);
 }
 
-/* Section Backgrounds */
-.tradeidea-section-content,
-.riskreward-area,
-.bingo-section {
-  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  border-radius: 4px;
-}
-
-.widget-controls {
-  display: flex;
-  gap: 4px;
-}
-
-.control-button {
-  background: none;
-  border: none;
-  color: rgb(238, 175, 17);
-  cursor: pointer;
-  font-size: 1.2rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.control-button:hover {
-  background-color: rgba(238, 175, 17, 0.2);
-}
-
-/* Widget Title Specific Layout */
-.widget-container .section-header.widget-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 3rem 0.75rem 1rem; /* Added right padding for handle */
-  position: relative;
-  width: 100%;
-}
-
-.widget-container .widget-title h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-  text-align: left;
-  max-width: calc(100% - 4rem); /* Leave space for handle */
-  line-height: 1.3;
-  white-space: nowrap;
-  font-family: 'Montserrat', 'Roboto', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: capitalize;
-  color: rgb(238, 175, 17);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.widget-container .widget-title h2 br {
-  content: '';
-  display: block;
-  margin: 0.2rem 0;
-}
-
-.widget-container .widget-title h2 br + * {
-  white-space: normal;
-}
-
-.widget-container .bingo-controls {
-  display: flex;
-  align-items: center;
-  flex-grow: 1;
-  margin-left: 2rem;
-}
-
-.widget-container .widget-handle {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: move;
-  padding: 0.5rem;
-  color: rgb(238, 175, 17);
-  z-index: 2;
-}
-
-.section-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  overflow: visible !important;
-  position: relative;
-  z-index: 2;
-}
-
-.section-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-  width: 100%;
-}
-
-.section-header h2 {
-  text-align: center;
-  margin: 0;
-  color: rgb(238, 175, 17);
-  position: relative;
-  z-index: 1;
-}
-
-.widget-handle {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: move;
-  color: rgb(238, 175, 17);
-  padding: 5px;
-  z-index: 2;
-}
-
-/* Workflow Number Bubbles */
-.workflow-number {
+.grid-item .workflow-number {
   position: absolute;
   top: -10px;
   left: -10px;
@@ -327,127 +326,32 @@
   color: rgb(43, 24, 16);
   font-weight: bold;
   font-family: 'Legendarie', sans-serif;
-  font-size: 1rem;
-  box-shadow: 0 0 10px rgba(238, 175, 17, 0.3);
+  font-size: 0.9rem;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 0 10px rgba(238, 175, 17, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
   cursor: help;
-  z-index: 1002;
-  transition: all 0.3s ease;
-}
-
-.workflow-number.bingo-workflow {
-  top: -10px;
-  left: -10px;
-  z-index: 1004;
-}
-
-.workflow-number.bingo-workflow .workflow-tooltip {
-  left: 35px;
-  top: 0;
-  transform: none;
-  white-space: normal;
-  width: 200px;
-  line-height: 1.3;
-  z-index: 1010;
-  position: absolute;
-}
-
-.workflow-number.risk-reward-workflow {
-  top: -10px;
-  left: -10px;
-  z-index: 1004;
-}
-
-.workflow-number.trade-details-workflow {
-  top: -10px;
-  left: -10px;
-  z-index: 1004;
-}
-
-.workflow-number:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 15px rgba(238, 175, 17, 0.5);
-}
-
-.workflow-tooltip {
-  position: fixed;
-  background: rgba(43, 24, 16, 0.98);
-  color: #ffffff;
-  padding: 12px 15px;
-  border-radius: 6px;
-  font-size: 14px;
-  width: 280px;
-  border: 1px solid rgba(238, 175, 17, 0.5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  pointer-events: none;
-  z-index: 9999;
-  white-space: normal;
-  line-height: 1.4;
-}
-
-.workflow-tooltip .tooltip-buttons {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 8px;
-  z-index: 10000;
-}
-
-.workflow-tooltip .tooltip-button {
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(238, 175, 17, 0.5);
-  background: rgba(43, 24, 16, 0.9);
-  color: #ffffff;
-  transition: all 0.2s ease;
-  z-index: 10000;
-}
-
-.workflow-tooltip .tooltip-button:hover {
-  background: rgba(238, 175, 17, 0.2);
-}
-
-/* Common tooltip styles */
-.workflow-tooltip,
-.target-tooltip {
-  position: fixed;
-  background: rgba(43, 24, 16, 0.98);
-  color: #ffffff;
-  padding: 12px 15px;
-  border-radius: 6px;
-  font-size: 14px;
-  width: 280px;
-  border: 1px solid rgba(238, 175, 17, 0.5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  pointer-events: none;
-  z-index: 9999;
-  white-space: normal;
-  line-height: 1.4;
-}
-
-.tooltip-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.tooltip-button {
-  cursor: pointer;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(238, 175, 17, 0.5);
-  background: rgba(43, 24, 16, 0.9);
-  color: #ffffff;
-  transition: all 0.2s ease;
-  min-width: 25px;
-  text-align: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 2000;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: auto;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
-.tooltip-button:hover {
-  background: rgba(238, 175, 17, 0.2);
+.grid-item .workflow-number:hover {
+  transform: scale(1.15) translateY(-1px);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(238, 175, 17, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+/* Section Backgrounds */
+.tradeidea-section-content,
+.riskreward-area,
+.bingo-section {
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+  border-radius: 4px;
 }
 
 /* Bingo page navigation controls */
@@ -572,126 +476,6 @@
   z-index: 2;
 }
 
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-/* Modal Content */
-.modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Form Group */
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-  color: #333;
-}
-
-.form-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-/* Modal Actions */
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-/* Button */
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-.btn-primary {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #45a049;
-}
-
-.btn-secondary {
-  background-color: #f5f5f5;
-  color: #333;
-}
-
-.btn-secondary:hover {
-  background-color: #e8e8e8;
-}
-
-/* Ensure PremiumLock is always on top */
-.page-container {
-  position: relative;
-  isolation: isolate;
-}
-
-.widget-container {
-  position: relative;
-  z-index: 0;
-  isolation: isolate;
-}
-
-.component-wrapper {
-  position: relative;
-  z-index: 0;
-  isolation: isolate;
-}
-
-/* Reset z-index for other components to ensure proper stacking */
-.section-container,
-.section-header,
-.widget-title,
-.widget-handle {
-  position: relative;
-  z-index: 1;
-}
-
-/* Ensure workflow tooltip is above widgets but below premium lock */
-.workflow-tooltip {
-  z-index: 100;
-}
-
-/* Make sure the vue-grid-layout takes full size */
-.vue-grid-layout {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: calc(100vh - 6rem) !important;
-  background: rgba(255, 215, 0, 0.05);
-}
-
 /* Responsive Design */
 @media (max-width: 87.5rem) {
   .dashboard-layout {
@@ -814,480 +598,152 @@
     height: auto;
   }
 
-  /* Adjust trade details layout */
-  .tradedetails-section-container {
+  /* Typography */
+  h1, h2 {
+    font-family: 'Legendarie', sans-serif;
+    color: rgb(238, 175, 17);
+    margin-bottom: 0px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  .page-title {
+    font-family: 'Legendarie', sans-serif;
+    color: rgb(238, 175, 17);
+    font-size: 2.2rem;
+    text-shadow: 
+      2px 2px 0 rgba(0, 0, 0, 0.8),
+      -2px -2px 0 rgba(0, 0, 0, 0.8),
+      2px -2px 0 rgba(0, 0, 0, 0.8),
+      -2px 2px 0 rgba(0, 0, 0, 0.8),
+      0 0 15px rgba(238, 175, 17, 0.5);
+    border-radius: 8px;
+  }
+
+  /* Bingo Grid */
+  .bingo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: linear-gradient(145deg, rgba(89, 0, 0, 0.8), rgba(60, 28, 19, 0.8));
+    gap: 0.8rem;
+    padding: 1rem;
+    width: 100%;
+    overflow: visible !important;
+  }
+
+  /* Bingo Cell */
+  .bingo-cell {
+    position: relative;
+    aspect-ratio: 1.5;
+    background: rgba(25, 16, 5, 0.9);
+    border: 1px solid rgba(255, 215, 0, 1);
+    box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
+    overflow: visible;
+    padding: 0;
   }
 
-  .tradedetails-price-inputs {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .tradedetails-input-group {
+  /* Cell Zones */
+  .cell-info-zone {
+    height: 20%;
     width: 100%;
+    position: relative;
+    cursor: help;
+    border-bottom: 1px solid rgb(238, 175, 17);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(238, 175, 17);
   }
 
-  .tradedetails-buttons {
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
+  .cell-info-zone::after {
+    content: 'ℹ';
+    color: black;
+    font-size: 1.2rem;
+    position: absolute;
   }
-}
 
-/* Trade Details Actions */
-.tradedetails-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.tradedetails-save-button,
-.tradedetails-history-button {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border-radius: 0.375rem;
-  font-family: 'Montserrat', 'Roboto', sans-serif;
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: 0.0188rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-}
-
-.tradedetails-save-button {
-  background: rgba(238, 175, 17, 0.1);
-  border: 1px solid rgb(238, 175, 17);
-  color: rgb(238, 175, 17);
-}
-
-.tradedetails-save-button:hover {
-  background: rgba(238, 175, 17, 0.2);
-  transform: translateY(-1px);
-}
-
-.tradedetails-save-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.tradedetails-history-button {
-  background: rgba(255, 215, 0, 0.1);
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  color: rgba(255, 215, 0, 0.7);
-}
-
-.tradedetails-history-button:hover {
-  background: rgba(255, 215, 0, 0.2);
-  transform: translateY(-1px);
-}
-
-.tradedetails-history-button.long {
-  background: rgba(0, 255, 0, 0.1);
-  border: 1px solid rgb(0, 255, 0);
-  color: rgb(0, 255, 0);
-}
-
-.tradedetails-history-button.short {
-  background: rgba(255, 0, 0, 0.1);
-  border: 1px solid rgb(255, 0, 0);
-  color: rgb(255, 0, 0);
-}
-
-/* Typography */
-h1, h2 {
-  font-family: 'Legendarie', sans-serif;
-  color: rgb(238, 175, 17);
-  margin-bottom: 0px;
-}
-
-h1 {
-  font-size: 2rem;
-}
-
-h2 {
-  font-size: 1.8rem;
-}
-
-.page-title {
-  font-family: 'Legendarie', sans-serif;
-  color: rgb(238, 175, 17);
-  font-size: 2.2rem;
-  text-shadow: 
-    2px 2px 0 rgba(0, 0, 0, 0.8),
-    -2px -2px 0 rgba(0, 0, 0, 0.8),
-    2px -2px 0 rgba(0, 0, 0, 0.8),
-    -2px 2px 0 rgba(0, 0, 0, 0.8),
-    0 0 15px rgba(238, 175, 17, 0.5);
-  border-radius: 8px;
-}
-
-/* Bingo Grid */
-.bingo-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  background: linear-gradient(145deg, rgba(89, 0, 0, 0.8), rgba(60, 28, 19, 0.8));
-  gap: 0.8rem;
-  padding: 1rem;
-  width: 100%;
-  overflow: visible !important;
-}
-
-/* Bingo Cell */
-.bingo-cell {
-  position: relative;
-  aspect-ratio: 1.5;
-  background: rgba(25, 16, 5, 0.9);
-  border: 1px solid rgba(255, 215, 0, 1);
-  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-  padding: 0;
-}
-
-/* Cell Zones */
-.cell-info-zone {
-  height: 20%;
-  width: 100%;
-  position: relative;
-  cursor: help;
-  border-bottom: 1px solid rgb(238, 175, 17);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgb(238, 175, 17);
-}
-
-.cell-info-zone::after {
-  content: 'ℹ';
-  color: black;
-  font-size: 1.2rem;
-  position: absolute;
-}
-
-.cell-content {
-  height: 60%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: rgb(238, 175, 17);
-  cursor: pointer;
-}
-
-.cell-edit-zone {
-  height: 20%;
-  width: 100%;
-  cursor: pointer;
-  border-top: 1px solid rgb(238, 175, 17);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: chocolate;
-}
-
-.cell-edit-zone::after {
-  content: '✎';
-  color: black;
-  font-size: 1.1rem;
-  position: absolute;
-}
-
-/* Cell States */
-.bingo-cell:hover {
-  border: 2px solid rgba(255, 215, 0, 1);
-}
-.bingo-cell.selected {
-  background-color: rgb(238, 175, 17);
-  border-color: rgb(238, 175, 17);
-}
-
-.bingo-cell.selected .cell-content {
-  color: black;
-  font-weight: bold;
-}
-
-/* Hide top and bottom zones when selected */
-.bingo-cell.selected .cell-info-zone {
-  background-color: rgb(238, 175, 17);
-  border: none;
-}
-
-.bingo-cell.selected .cell-info-zone::after {
-  display: none; /* Hide the info icon */
-}
-
-.bingo-cell.selected .cell-edit-zone {
-  background-color: rgb(238, 175, 17);
-  border: none;
-}
-
-.bingo-cell.selected .cell-edit-zone::after {
-  display: none; /* Hide the pencil icon */
-}
-
-/* Hide tooltip when cell is selected */
-.bingo-cell.selected .tooltip {
-  display: none;
-}
-
-/* Make the cell zones blend with the golden background */
-.bingo-cell.selected .cell-info-zone,
-.bingo-cell.selected .cell-edit-zone {
-  background-color: rgb(238, 175, 17);
-  border-color: rgb(238, 175, 17);
-}
-
-/* Tooltip */
-.tooltip {
-  position: fixed;
-  transform: translate(-50%, -100%);
-  padding: 10px 15px;
-  background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98));
-  color: white;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  font-family: Arial, sans-serif;
-  white-space: nowrap;
-  z-index: 9999;
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  box-shadow: 
-    inset 0 0 15px rgba(255, 215, 0, 0.1),
-    0 4px 12px rgba(0, 0, 0, 0.2);
-  pointer-events: none;
-  margin-top: -10px;
-}
-
-.tooltip strong {
-  color: rgb(238, 175, 17);
-  font-size: 1.2rem;
-  font-family: Arial, sans-serif;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.tooltip .points {
-  color: rgb(238, 175, 17);
-  font-weight: bold;
-}
-
-.tooltip::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid rgba(25, 16, 5, 0.98);
-}
-
-.tradedetails-tooltip-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: rgb(238, 175, 17);  
-  cursor: help;
-  background: rgba(238, 175, 17, 0.15);  
-  border: 1px solid rgba(238, 175, 17, 0.7);  
-  position: relative;
-  font-style: italic;
-  box-shadow: 0 0 5px rgba(238, 175, 17, 0.2);  
-}
-
-.tradedetails-tooltip-content {
-  position: absolute; 
-  left: -260px;
-  top: -10px; 
-  background: rgba(43, 24, 16, 0.98);
-  color: rgb(238, 175, 17);  
-  padding: 12px 15px;
-  border-radius: 6px;
-  font-size: 14px;
-  width: 280px;
-  border: 1px solid rgba(238, 175, 17, 0.7);  
-  box-shadow: 0 4px 12px rgba(238, 175, 17, 0.15);  
-  z-index: 1500;
-  display: none;
-  white-space: normal;
-  line-height: 1.4;
-}
-
-.tradedetails-tooltip-content::before {
-  content: '';
-  position: absolute;
-  left: 100%;
-  top: 0;
-  width: 20px;
-  height: 100%;
-  background: transparent;
-}
-
-.tradedetails-tooltip-icon:hover .tradedetails-tooltip-content {
-  display: block;
-}
-
-.tooltip-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-right: 10px;
-}
-
-.tooltip-button {
-  cursor: pointer;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(238, 175, 17, 0.7);  
-  background: rgba(43, 24, 16, 0.9);
-  color: rgb(238, 175, 17);  
-  transition: all 0.2s ease;
-  min-width: 25px;
-  text-align: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-  box-shadow: 0 0 5px rgba(238, 175, 17, 0.1);  
-}
-
-.tooltip-button:hover {
-  background: rgba(238, 175, 17, 0.25);  
-  box-shadow: 0 0 8px rgba(238, 175, 17, 0.2);  
-}
-
-/* Desktop hover */
-@media (hover: hover) {
-  .cell-info-zone:hover .tooltip {
-    display: block;
+  .cell-content {
+    height: 60%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: rgb(238, 175, 17);
+    cursor: pointer;
   }
-}
 
-/* Mobile styles */
-@media (hover: none) {
-  .tooltip {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 300px;
-    white-space: normal;
+  .cell-edit-zone {
+    height: 20%;
+    width: 100%;
+    cursor: pointer;
+    border-top: 1px solid rgb(238, 175, 17);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: chocolate;
   }
-  
-  .cell-info-zone:active .tooltip {
-    display: block;
+
+  .cell-edit-zone::after {
+    content: '✎';
+    color: black;
+    font-size: 1.1rem;
+    position: absolute;
   }
-}
 
-/* Modal styles */
-.modal {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background-color: rgba(0, 0, 0, 0.5) !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  z-index: 1000 !important;
-}
+  /* Cell States */
+  .bingo-cell:hover {
+    border: 2px solid rgba(255, 215, 0, 1);
+  }
+  .bingo-cell.selected {
+    background-color: rgb(238, 175, 17);
+    border-color: rgb(238, 175, 17);
+  }
 
-.modal-content {
-  background-color: rgba(0, 0, 0, 0.9) !important;
-  border: 2px solid rgb(238, 175, 17) !important;
-  border-radius: 8px !important;
-  padding: 20px !important;
-  min-width: 300px !important;
-  color: white !important;
-}
+  .bingo-cell.selected .cell-content {
+    color: black;
+    font-weight: bold;
+  }
 
-.modal-content h3 {
-  color: rgb(238, 175, 17) !important;
-  margin-bottom: 15px !important;
-  font-size: 1.25rem !important;
-}
+  /* Hide top and bottom zones when selected */
+  .bingo-cell.selected .cell-info-zone {
+    background-color: rgb(238, 175, 17);
+    border: none;
+  }
 
-.modal-form {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 15px !important;
-}
+  .bingo-cell.selected .cell-info-zone::after {
+    display: none; /* Hide the info icon */
+  }
 
-.form-group {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 5px !important;
-}
+  .bingo-cell.selected .cell-edit-zone {
+    background-color: rgb(238, 175, 17);
+    border: none;
+  }
 
-.form-group label {
-  color: rgb(238, 175, 17) !important;
-  font-weight: 500 !important;
-}
+  .bingo-cell.selected .cell-edit-zone::after {
+    display: none; /* Hide the pencil icon */
+  }
 
-.form-group input {
-  padding: 8px !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgb(238, 175, 17) !important;
-  border-radius: 4px !important;
-  color: white !important;
-  width: 100% !important;
-}
+  /* Hide tooltip when cell is selected */
+  .bingo-cell.selected .tooltip {
+    display: none;
+  }
 
-.form-group input:focus {
-  outline: none !important;
-  border-color: rgb(238, 175, 17) !important;
-  box-shadow: 0 0 5px rgba(238, 175, 17, 0.3) !important;
-}
-
-.modal-buttons {
-  display: flex !important;
-  justify-content: flex-end !important;
-  gap: 10px !important;
-  margin-top: 15px !important;
-}
-
-.modal-buttons button {
-  padding: 8px 16px !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  font-weight: 500 !important;
-  transition: all 0.2s ease !important;
-}
-
-.save-button {
-  background-color: rgba(238, 175, 17, 0.1) !important;
-  color: white !important;
-  border: 1px solid rgb(238, 175, 17) !important;
-}
-
-.save-button:hover {
-  background-color: rgb(238, 175, 17) !important;
-  color: black !important;
-}
-
-.cancel-button {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
-  border: 1px solid rgb(238, 175, 17) !important;
-}
-
-.cancel-button:hover {
-  background-color: crimson !important;
+  /* Make the cell zones blend with the golden background */
+  .bingo-cell.selected .cell-info-zone,
+  .bingo-cell.selected .cell-edit-zone {
+    background-color: rgb(238, 175, 17);
+    border-color: rgb(238, 175, 17);
+  }
 }
