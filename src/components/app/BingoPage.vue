@@ -27,9 +27,8 @@
         :height="gridHeight"
         :auto-size="true"
         :prevent-collision="false"
-        class="dashboard-layout vue-grid-layout"
-        style="overflow: visible !important; position: relative !important;"
-        @layout-updated="onLayoutUpdated"
+        :resizable-handle="'.vue-resizable-handle'"
+        class="dashboard-layout"
       >
         <GridItem
           v-for="item in layout"
@@ -41,26 +40,29 @@
           :i="item.i"
           :min-w="item.minW"
           :min-h="item.minH"
-          class="grid-item vue-grid-item"
-          style="overflow: visible !important;"
+          drag-allow-from=".vue-draggable-handle"
+          drag-ignore-from=".no-drag"
+          class="grid-item-wrapper"
         >
-          <div 
-            class="workflow-number" 
-            v-if="item.workflowNumber"
-            :key="'workflow-' + item.i"
-            @mouseenter="showWorkflowTooltip($event, item.workflowNumber)"
-            @mouseleave="hideWorkflowTooltip"
-          >
-            {{ item.workflowNumber }}
-          </div>
-          <div class="widget-container" style="overflow: visible !important;">
+          <div class="grid-item">
             <div class="widget-header">
-              <div class="widget-title">{{ item.title }}</div>
-              <div class="widget-controls">
-                <button class="control-button" @click="removeWidget(item.i)">×</button>
+              <div class="vue-draggable-handle">
+                <div class="widget-title-area">
+                  <span class="widget-title">{{ item.title }}</span>
+                  <div 
+                    class="workflow-number" 
+                    v-if="item.workflowNumber"
+                    :key="'workflow-' + item.i"
+                    @mouseenter="showWorkflowTooltip($event, item.workflowNumber)"
+                    @mouseleave="hideWorkflowTooltip"
+                  >
+                    {{ item.workflowNumber }}
+                  </div>
+                </div>
+                <div class="drag-icon"></div>
               </div>
             </div>
-            <div class="widget-content">
+            <div class="widget-content no-drag">
               <component 
                 :is="item.component" 
                 v-if="item.component" 
@@ -71,6 +73,7 @@
               ></component>
               <div v-else>Widget {{ item.i }}</div>
             </div>
+            <div class="vue-resizable-handle"></div>
           </div>
         </GridItem>
       </GridLayout>
@@ -225,7 +228,8 @@ export default defineComponent({
           maxW: 12,
           maxH: 12
         }
-      ]
+      ],
+      isDragging: false
     };
   },
 
@@ -395,6 +399,18 @@ export default defineComponent({
         tradeDetailsWidget.props.score = score;
       }
     },
+    onLayoutCreated() {
+      console.log('Layout created');
+    },
+    onLayoutBeforeMount() {
+      console.log('Layout before mount');
+    },
+    onLayoutMounted() {
+      console.log('Layout mounted');
+    },
+    onLayoutReady() {
+      console.log('Layout ready');
+    }
   },
 });
 </script>

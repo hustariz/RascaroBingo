@@ -24,6 +24,12 @@
   -ms-overflow-style: none;
 }
 
+.dashboard-layout {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .dashboard-layout::-webkit-scrollbar {
   display: none;
 }
@@ -84,115 +90,173 @@
 
 /* Grid Layout */
 .vue-grid-layout {
-  position: relative !important;
-  overflow: visible !important;
-  z-index: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
+/* Override widget common styles for grid layout */
 .vue-grid-item {
-  overflow: visible !important;
-  z-index: 1;
+  transition: all 200ms ease;
+  transition-property: left, top;
+  cursor: default !important;
 }
 
-.vue-grid-item:hover {
-  z-index: 2;
+.vue-grid-item.vue-draggable-dragging {
+  z-index: 1000 !important;
+  transition: none;
 }
 
+.vue-grid-item.resizing {
+  z-index: 1000 !important;
+  opacity: 0.9;
+}
+
+.vue-grid-item.vue-grid-placeholder {
+  background: rgba(255, 215, 0, 0.2) !important;
+  border: 1px dashed rgba(255, 215, 0, 0.4);
+  opacity: 0.6;
+}
+
+.grid-item-wrapper {
+  height: 100%;
+  width: 100%;
+  cursor: default !important;
+}
+
+/* Override widget styles for grid items */
 .grid-item {
-  overflow: visible !important;
-  z-index: inherit;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 100% !important;
+  background: rgba(43, 24, 16, 0.45) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 215, 0, 0.3) !important;
+  overflow: hidden !important;
+  position: relative !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: default !important;
+}
+
+.widget-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0.5rem !important;
+  background: rgba(43, 24, 16, 0.8) !important;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3) !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  z-index: 1 !important;
+  cursor: grab !important;
+}
+
+.widget-header:active {
+  cursor: grabbing !important;
+}
+
+.vue-draggable-handle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  height: 100% !important;
+  gap: 0.5rem !important;
+}
+
+.widget-title-area {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.widget-title {
+  color: #FFD700 !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  user-select: none !important;
+}
+
+.drag-icon {
+  width: 16px !important;
+  height: 16px !important;
+  cursor: grab !important;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23FFD700"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/></svg>') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  flex-shrink: 0 !important;
+}
+
+.drag-icon:hover {
+  opacity: 0.8 !important;
+}
+
+.drag-icon:active {
+  cursor: grabbing !important;
+  opacity: 0.6 !important;
+}
+
+.widget-content {
+  flex: 1 !important;
+  overflow: auto !important;
+  padding: 0.5rem !important;
+  min-height: 0 !important;
+  position: relative !important;
+  cursor: default !important;
+}
+
+.widget-content * {
+  cursor: default !important;
+}
+
+.widget-controls {
+  display: none !important;
+}
+
+/* Resize Handle */
+.vue-resizable-handle {
+  position: absolute !important;
+  width: 20px !important;
+  height: 20px !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="rgba(255, 215, 0, 0.5)"><path d="M11 9.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm-5 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm-5 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"/></svg>') !important;
+  background-position: bottom right !important;
+  padding: 0 3px 3px 0 !important;
+  background-repeat: no-repeat !important;
+  background-origin: content-box !important;
+  box-sizing: border-box !important;
+  cursor: se-resize !important;
+}
+
+/* Drag Handle */
+.drag-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+/* No Drag Areas */
+.no-drag {
+  height: 100% !important;
+  width: 100% !important;
+  cursor: default !important;
 }
 
 /* Z-index Management */
 .page-container {
   position: relative;
-  isolation: isolate;
-}
-
-.widget-container {
-  background: linear-gradient(145deg, rgba(43, 24, 16, 0.7), rgba(25, 16, 5, 0.9));
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  box-shadow: 
-    inset 0 0 15px rgba(255, 215, 0, 0.1),
-    0 4px 12px rgba(0, 0, 0, 0.2);
-  min-height: 18.75rem;
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: visible !important;
-  z-index: 0;
-  isolation: isolate;
-}
-
-.component-wrapper {
-  position: relative;
-  z-index: 0;
-  isolation: isolate;
-}
-
-.section-container,
-.section-header,
-.widget-title,
-.widget-handle {
-  position: relative;
   z-index: 1;
 }
 
-.section-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  overflow: visible !important;
-  position: relative;
-  z-index: 2;
+.modal-container {
+  z-index: 2000;
 }
 
-/* Typography */
-h1, h2 {
-  font-family: 'Legendarie', sans-serif;
-  color: rgb(238, 175, 17);
-}
-
-/* Responsive Design */
-@media (max-width: 87.5rem) {
-  .dashboard-layout {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 64rem) {
-  .dashboard-layout {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .widget-title h2 {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 48rem) {
-  .dashboard-layout {
-    grid-template-columns: 1fr;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-  }
-
-  .widget-container {
-    grid-column: span 1 !important;
-    grid-row: span 1 !important;
-  }
-  
-  .widget-container.large {
-    min-height: 37.5rem !important;
-    height: auto;
-  }
-
-  .widget-title h2 {
-    font-size: 1rem;
-  }
+.tooltip {
+  z-index: 3000;
 }
 
 /* Section Backgrounds */
@@ -392,7 +456,7 @@ h1, h2 {
   }
 
   .bingo-cell {
-    aspect-ratio: 1;
+    aspect-ratio: 1.5;
     font-size: 0.8rem;
   }
 
