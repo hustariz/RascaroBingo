@@ -220,62 +220,30 @@ input[readonly]:not(.editable) {
 .tradedetails-label-tooltip {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  position: relative;
+  gap: 8px;
 }
 
 .tradedetails-tooltip-icon {
-  position: relative;
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 215, 0, 0.2);
-  border: 1px solid rgba(255, 215, 0, 0.5);
   border-radius: 50%;
-  cursor: pointer;
-  color: rgb(255, 215, 0);
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  cursor: help;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tradedetails-tooltip-icon span {
+  color: rgb(238, 175, 17);
   font-size: 0.8rem;
   font-style: italic;
 }
 
-.tradedetails-tooltip-icon:hover .tradedetails-tooltip-content {
-  display: block;
-}
-
-.tradedetails-tooltip-content {
-  display: none;
-  position: absolute;
-  top: -0.5rem;
-  left: 1.5rem;
-  background: rgba(25, 16, 5, 0.95);
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  border-radius: 4px;
-  padding: 0.5rem;
-  width: max-content;
-  z-index: 10;
-}
-
-.tooltip-content {
-  color: rgb(255, 215, 0);
-  font-size: 0.9rem;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.tooltip-button {
-  cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  background: rgba(255, 215, 0, 0.1);
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.tooltip-button:hover {
+.tradedetails-tooltip-icon:hover {
   background: rgba(255, 215, 0, 0.2);
   border-color: rgba(255, 215, 0, 0.5);
 }

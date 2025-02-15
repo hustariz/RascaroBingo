@@ -58,16 +58,10 @@
         <div class="tradedetails-input-group">
           <div class="tradedetails-label-tooltip">
             <h4>Target:</h4>
-            <div class="tradedetails-tooltip-icon">
-              <span>i</span>
-              <div class="tradedetails-tooltip-content">
-                <div class="tooltip-content">
-                  Would you like to manually set it? 
-                  <span class="tooltip-button" @click.stop="enableTargetEdit">✓</span>
-                  <span class="tooltip-button" @click.stop="disableTargetEdit">✗</span>
-                </div>
-              </div>
-            </div>
+            <TargetTooltip 
+              @enable="enableTargetEdit"
+              @disable="disableTargetEdit"
+            />
           </div>
           <div class="tradedetails-input-wrapper">
             <span class="tradedetails-input-prefix">$</span>
@@ -110,20 +104,22 @@
 <script>
 import '@/assets/styles/widgets/TradeDetailsWidget.css';
 import { defineComponent } from 'vue';
+import TargetTooltip from '../app/TargetTooltip.vue';
 
 export default defineComponent({
   name: 'TradeDetailsWidget',
+  components: { TargetTooltip },
   emits: ['open-trade-history'],
   data() {
     return {
-      stoploss: '',
-      entry: '',
-      target: '',
-      isTargetEditable: false,
+      stoploss: null,
+      entry: null,
+      target: null,
       previousTarget: '',
       trades: [],
       isLong: false,
-      isResizing: false
+      isResizing: false,
+      isTargetEditable: false
     }
   },
   computed: {
@@ -321,5 +317,30 @@ export default defineComponent({
 
 <style>
 @import '@/assets/styles/widgets/common.css';
-@import '@/assets/styles/widgets/TradeDetailsWidget.css';
+
+.tradedetails-tooltip-icon {
+  width: 19px;
+  height: 19px;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: rgb(255, 215, 0);
+  cursor: help;
+  background: rgba(25, 16, 5, 0.9);
+  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.tradedetails-tooltip-icon:hover {
+  border-color: rgb(255, 215, 0);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.tradedetails-tooltip-icon span {
+  font-style: italic;
+}
 </style>
