@@ -66,6 +66,7 @@
                 v-if="item.component" 
                 v-bind="item.props" 
                 @open-trade-history="$emit('open-trade-history')"
+                @edit-cell="openEditModal"
               ></component>
               <div v-else>Widget {{ item.i }}</div>
             </div>
@@ -335,11 +336,6 @@ export default defineComponent({
     },
 
     async editCell(cellIndex, newData) {
-      if (!this.isPremiumUser) {
-        this.showPremiumLock = true;
-        return;
-      }
-
       try {
         const currentPage = this.getCurrentPage;
         if (!currentPage || !currentPage.bingoCells) {

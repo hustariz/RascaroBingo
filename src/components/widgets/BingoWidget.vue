@@ -26,8 +26,8 @@ export default defineComponent({
       default: 0
     }
   },
-  emits: ['score-updated'],
-  setup() {
+  emits: ['score-updated', 'edit-cell'],
+  setup(props, { emit }) {
     const store = useStore();
 
     // Load initial data
@@ -41,8 +41,7 @@ export default defineComponent({
     };
 
     const handleCellEdit = (index) => {
-      // We'll implement this in the next step
-      console.log('Edit cell:', index);
+      emit('edit-cell', index);
     };
 
     return {
