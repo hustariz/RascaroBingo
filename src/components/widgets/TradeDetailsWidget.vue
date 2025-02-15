@@ -36,6 +36,7 @@
               type="number"
               v-model="stoploss"
               step="0.0001"
+              min="0"
               placeholder="0.00"
               @input="calculateTarget"
             >
@@ -50,6 +51,7 @@
               type="number"
               v-model="entry"
               step="0.0001"
+              min="0"
               placeholder="0.00"
               @input="calculateTarget"
             >
@@ -70,8 +72,9 @@
               :class="{ 'editable': isTargetEditable }"
               type="number"
               v-model="target"
-              step="1"
-              placeholder="0"
+              step="0.0001"
+              min="0"
+              placeholder="0.00"
               :readonly="!isTargetEditable"
             >
           </div>
@@ -104,12 +107,20 @@
 <script>
 import '@/assets/styles/widgets/TradeDetailsWidget.css';
 import { defineComponent } from 'vue';
+import { mapState } from 'vuex';
 import TargetTooltip from '../app/TargetTooltip.vue';
 
 export default defineComponent({
   name: 'TradeDetailsWidget',
   components: { TargetTooltip },
   emits: ['open-trade-history'],
+  props: {
+    score: {
+      type: Number,
+      required: true,
+      default: 0
+    }
+  },
   data() {
     return {
       stoploss: null,
@@ -119,10 +130,32 @@ export default defineComponent({
       trades: [],
       isLong: false,
       isResizing: false,
-      isTargetEditable: false
+      isTargetEditable: false,
+      baseRR: 1 // Base R:R ratio
     }
   },
   computed: {
+    ...mapState('riskManagement', [
+      'accountSize',
+      'baseTradeSize',
+      'tradeStreak',
+      'slTaken'
+    ]),
+    
+    // Calculate R:R based on bingo score
+    targetRR() {
+      // 0-5 points: No risk/reward
+      // 6-10 points: 2R/R
+      // 11-15 points: 3R/R
+      // 16-19 points: 4R/R
+      // 20+ points: 5R/R (Hidden Bingo)
+      if (this.score >= 20) return 5;
+      if (this.score >= 16) return 4;
+      if (this.score >= 11) return 3;
+      if (this.score >= 6) return 2;
+      return this.baseRR;
+    },
+
     currentRR() {
       if (!this.stoploss || !this.entry || !this.target) {
         return '0.00';
@@ -150,12 +183,12 @@ export default defineComponent({
 
         return (reward / risk).toFixed(2);
       } else {
-        if (ep >= sl || tp >= ep) {
+        if (ep >= sl || tp >= ep) { 
           return '0.00';
         }
 
-        const risk = sl - ep;
-        const reward = ep - tp;
+        const risk = sl - ep; 
+        const reward = ep - tp; 
 
         if (risk === 0) {
           return '0.00';
@@ -163,22 +196,37 @@ export default defineComponent({
 
         return (reward / risk).toFixed(2);
       }
-    },
-    openTradesCount() {
-      return this.trades.length;
     }
   },
   watch: {
     stoploss: {
-      handler: 'calculateTarget',
+      handler() {
+        this.calculateTarget();
+      },
       immediate: true
     },
     entry: {
-      handler: 'calculateTarget',
+      handler() {
+        this.calculateTarget();
+      },
       immediate: true
     },
     isLong: {
-      handler: 'calculateTarget',
+      handler() {
+        this.calculateTarget();
+      },
+      immediate: true
+    },
+    score: {
+      handler() {
+        this.calculateTarget();
+      },
+      immediate: true
+    },
+    targetRR: {
+      handler() {
+        this.calculateTarget();
+      },
       immediate: true
     }
   },
@@ -199,84 +247,56 @@ export default defineComponent({
         return;
       }
 
-      let targetPrice;
-      const rr = 2; // Default R:R ratio
-
+      // Calculate target based on R:R from score
       if (this.isLong) {
         if (ep <= sl) {
           this.target = '';
           return;
         }
         const risk = ep - sl;
-        targetPrice = ep + (risk * rr);
+        this.target = (ep + (risk * this.targetRR)).toFixed(4);
       } else {
-        if (ep >= sl) {
+        if (ep >= sl) { // For shorts, entry should be BELOW stoploss
           this.target = '';
           return;
         }
         const risk = sl - ep;
-        targetPrice = ep - (risk * rr);
-      }
-
-      this.target = targetPrice.toFixed(4);
-    },
-    calculateActualRR() {
-      if (!this.stoploss || !this.entry || !this.target) {
-        return 0;
-      }
-
-      const sl = parseFloat(this.stoploss);
-      const ep = parseFloat(this.entry);
-      const tp = parseFloat(this.target);
-
-      if (isNaN(sl) || isNaN(ep) || isNaN(tp)) {
-        return 0;
-      }
-
-      if (this.isLong) {
-        if (ep <= sl || tp <= ep) {
-          return 0;
-        }
-
-        const risk = ep - sl;
-        const reward = tp - ep;
-
-        if (risk === 0) {
-          return 0;
-        }
-
-        return reward / risk;
-      } else {
-        if (ep >= sl || tp >= ep) {
-          return 0;
-        }
-
-        const risk = sl - ep;
-        const reward = ep - tp;
-
-        if (risk === 0) {
-          return 0;
-        }
-
-        return reward / risk;
+        const calculatedTarget = ep - (risk * this.targetRR);
+        
+        // If target would be negative, set to 0
+        this.target = calculatedTarget <= 0 ? '0.00' : calculatedTarget.toFixed(4);
       }
     },
-    saveTrade() {
+
+    async saveTrade() {
       if (!this.validateTrade()) return;
 
       const trade = {
-        id: Date.now(),
         type: this.isLong ? 'LONG' : 'SHORT',
-        stoploss: parseFloat(this.stoploss),
         entry: parseFloat(this.entry),
+        stoploss: parseFloat(this.stoploss),
         target: parseFloat(this.target),
-        rr: this.calculateActualRR(),
+        size: this.baseTradeSize,
+        rr: parseFloat(this.currentRR),
         timestamp: new Date().toISOString()
       };
 
-      this.trades.push(trade);
-      this.$emit('trade-saved', trade);
-      this.clearForm();
+      try {
+        // Save trade to store
+        await this.$store.dispatch('trades/addTrade', trade);
+        
+        // Update risk management stats
+        this.$store.dispatch('riskManagement/updateFromTradeResult', {
+          type: trade.type,
+          entry: trade.entry,
+          size: trade.size,
+          rr: trade.rr
+        });
+
+        this.clearForm();
+      } catch (error) {
+        console.error('Failed to save trade:', error);
+      }
     },
     clearForm() {
       this.stoploss = '';
