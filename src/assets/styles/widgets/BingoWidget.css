@@ -1,107 +1,327 @@
 /* Bingo Widget Styles */
 .bingo-widget {
-  height: 100% !important;
-  width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   border-top: 1px solid rgba(255, 215, 0, 1);
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
 }
 
 .bingo-section {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
 }
 
 .bingo-grid {
-  display: grid !important;
-  grid-template-columns: repeat(5, 1fr) !important;
-  grid-template-rows: repeat(5, 1fr) !important;
-  gap: 0.15rem !important;
-  padding: 0.15rem !important;
-  background: rgba(25, 16, 5, 0.5) !important;
-  border-radius: 4px !important;
-  width: 100% !important;
-  height: 100% !important;
-  flex: 1 !important;
-  align-items: stretch !important;
-  align-content: stretch !important;
-  overflow: hidden !important;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 0.15rem;
+  padding: 0.15rem;
+  background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
+  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  align-items: stretch;
+  align-content: stretch;
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
 }
 
 .bingo-cell {
-  position: relative !important;
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 3.3rem !important;
-  border: 1px solid rgba(255, 215, 0, 0.4) !important;
-  border-radius: 2px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-  transition: all 0.2s ease !important;
-  background: rgba(43, 24, 16, 0.7) !important;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 3.3rem;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1;
 }
 
 .bingo-cell:hover {
-  border-color: rgba(255, 215, 0, 0.7) !important;
-  background: rgba(43, 24, 16, 0.8) !important;
+  border-color: rgba(255, 215, 0, 0.7);
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.1);
 }
 
 .bingo-cell.selected {
-  background: rgba(255, 215, 0, 0.15) !important;
-  border-color: rgba(255, 215, 0, 0.9) !important;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
+  border-color: rgba(255, 215, 0, 0.9);
   box-shadow: 
     inset 0 0 15px rgba(255, 215, 0, 0.1),
-    0 0 10px rgba(255, 215, 0, 0.2) !important;
+    0 0 10px rgba(255, 215, 0, 0.2);
 }
 
 .cell-info-zone {
-  height: 1.15rem !important;
-  min-height: 1.15rem !important;
-  background: rgba(25, 16, 5, 0.9) !important;
-  cursor: help !important;
-  border-bottom: 1px solid rgba(255, 215, 0, 0.2) !important;
+  height: 20%;
+  width: 100%;
+  position: relative;
+  cursor: help;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  color: rgb(255, 215, 0);
+  transition: all 0.3s ease;
+  z-index: 1;
+  overflow: visible;
 }
 
-.cell-content {
-  flex: 1 !important;
-  min-height: 1.9rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: clamp(0.68rem, 1.15vw, 1.05rem) !important;
-  color: rgba(255, 215, 0, 0.8) !important;
-  cursor: pointer !important;
-  font-family: 'Montserrat', sans-serif !important;
-  padding: 0.1rem !important;
+.cell-info-zone::after {
+  content: 'ℹ';
+  color: rgb(255, 215, 0);
+  font-size: 0.9rem;
+  position: absolute;
+  opacity: 0.8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.cell-info-zone:hover {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 1), rgba(205, 127, 50, 0.1));
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+.cell-info-zone:hover::after {
+  opacity: 1;
+  transform: scale(1.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .cell-edit-zone {
-  height: 1.15rem !important;
-  min-height: 1.15rem !important;
-  background: rgba(25, 16, 5, 0.9) !important;
-  cursor: pointer !important;
-  border-top: 1px solid rgba(255, 215, 0, 0.2) !important;
+  height: 20%;
+  width: 100%;
+  cursor: pointer;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  color: rgb(255, 215, 0);
+  transition: all 0.3s ease;
+  overflow: visible;
+}
+
+.cell-edit-zone::after {
+  content: '✎';
+  color: rgb(255, 215, 0);
+  font-size: 0.9rem;
+  position: absolute;
+  opacity: 0.8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
 }
 
 .cell-edit-zone:hover {
-  background: rgba(255, 215, 0, 0.1) !important;
+  background: linear-gradient(135deg, rgba(89, 0, 0, 1), rgba(205, 127, 50, 0.1));
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
 }
 
-.tooltip {
+.cell-edit-zone:hover::after {
+  opacity: 1;
+  transform: scale(1.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.cell-content {
+  flex: 1;
+  min-height: 1.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.68rem, 1.15vw, 1.05rem);
+  color: rgba(255, 215, 0, 0.8);
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  padding: 0.1rem;
+  overflow: visible;
+}
+
+/* Selected state overrides */
+.bingo-cell.selected .cell-info-zone,
+.bingo-cell.selected .cell-edit-zone {
+  background: linear-gradient(135deg, rgb(238, 175, 17), rgba(205, 127, 50, 0.8));
+  border: 1px solid rgb(238, 175, 17);
+  box-shadow: 0 0 12px rgba(238, 175, 17, 0.2);
+}
+
+.bingo-cell.selected .cell-info-zone::after,
+.bingo-cell.selected .cell-edit-zone::after {
+  color: rgba(25, 16, 5, 0.9);
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Cell States */
+.bingo-cell:hover {
+  border: 2px solid rgba(255, 215, 0, 1);
+}
+
+.bingo-cell.selected {
+  background-color: rgb(238, 175, 17);
+  border-color: rgb(238, 175, 17);
+}
+
+.bingo-cell.selected .cell-content {
+  color: black;
+  font-weight: bold;
+}
+
+/* Hide top and bottom zones when selected */
+.bingo-cell.selected .cell-info-zone {
+  background-color: rgb(238, 175, 17);
+  border: none;
+}
+
+.bingo-cell.selected .cell-info-zone::after {
+  display: none; /* Hide the info icon */
+}
+
+.bingo-cell.selected .cell-edit-zone {
+  background-color: rgb(238, 175, 17);
+  border: none;
+}
+
+.bingo-cell.selected .cell-edit-zone::after {
+  display: none; /* Hide the pencil icon */
+}
+
+/* Make the cell zones blend with the golden background */
+.bingo-cell.selected .cell-info-zone,
+.bingo-cell.selected .cell-edit-zone {
+  background-color: rgb(238, 175, 17);
+  border-color: rgb(238, 175, 17);
+}
+
+/* Media query for hover-capable devices */
+@media (hover: hover) {
+  .cell-info-zone:hover {
+    background: linear-gradient(135deg, rgba(89, 0, 0, 1), rgba(205, 127, 50, 0.1));
+    border-color: rgba(255, 215, 0, 0.8);
+  }
+}
+
+/* Mobile styles */
+@media (hover: none) {
+  /* No styles */
+}
+
+/* Edit Modal Styles */
+.bingo-widget .modal-edit {
   position: fixed;
-  transform: translate(-50%, -100%);
-  padding: 10px 15px;
-  background: rgba(25, 16, 5, 0.95);
-  color: white;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.bingo-widget .modal-content-edit {
+  background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  width: 250px;
+  max-width: 90%;
+}
+
+.bingo-widget .modal-content-edit h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: rgb(255, 215, 0);
+  text-align: center;
+}
+
+.bingo-widget .modal-form-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bingo-widget .form-group-edit {
+  margin: 0;
+}
+
+.bingo-widget .form-group-edit input.edit-input {
+  width: 100%;
+  padding: 0.4rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.4);
   border-radius: 4px;
-  font-size: 14px;
-  white-space: nowrap;
-  z-index: 9999;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  pointer-events: none;
-  margin-top: -10px;
-  display: none;
+  font-size: 0.9rem;
+  color: #fff;
+  outline: none;
+  transition: all 0.2s ease;
+  height: 2rem;
+}
+
+.bingo-widget .form-group-edit input.edit-input:focus {
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+.bingo-widget .form-group-edit input.edit-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bingo-widget .modal-buttons-edit {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.bingo-widget .save-button-edit,
+.bingo-widget .cancel-button-edit {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  height: 2rem;
+}
+
+.bingo-widget .save-button-edit {
+  background: rgba(255, 215, 0, 0.15);
+  color: rgb(255, 215, 0);
+}
+
+.bingo-widget .save-button-edit:hover {
+  background: rgba(255, 215, 0, 0.25);
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+.bingo-widget .cancel-button-edit {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bingo-widget .cancel-button-edit:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
 }

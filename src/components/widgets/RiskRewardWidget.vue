@@ -35,17 +35,28 @@
         <span class="riskreward-score-value">{{ score }}</span>
       </h3>
     </div>
-    <div v-if="score >= 20" class="riskreward-bingo">
+    <div v-if="score >= 20" 
+         class="riskreward-bingo" 
+         @mouseenter="updateTooltipPosition"
+         @mouseleave="showTooltip = false"
+         ref="bingoText"
+    >
         Bingo!
-        <div class="riskreward-bingo-tooltip">
-            Hidden Bingo! <br> 5R/R Maximum risk allowed!
-        </div>
+        <teleport to="body">
+          <div 
+            v-show="showTooltip" 
+            class="riskreward-bingo-tooltip"
+            :style="tooltipStyle"
+          >
+              Hidden Bingo! <br> 5R/R Maximum risk allowed!
+          </div>
+        </teleport>
     </div>
   </div>
 </template>
 
 <script>
-import { defineComponent } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import '@/assets/styles/widgets/RiskRewardWidget.css';
 
 export default defineComponent({
@@ -56,6 +67,35 @@ export default defineComponent({
       required: true,
       default: 0
     }
+  },
+  setup() {
+    const showTooltip = ref(false);
+    const bingoText = ref(null);
+    const tooltipX = ref(0);
+    const tooltipY = ref(0);
+
+    const tooltipStyle = computed(() => {
+      if (!tooltipX.value || !tooltipY.value) return {};
+      return {
+        left: `${tooltipX.value}px`,
+        top: `${tooltipY.value}px`
+      };
+    });
+
+    const updateTooltipPosition = () => {
+      if (!bingoText.value) return;
+      const rect = bingoText.value.getBoundingClientRect();
+      tooltipX.value = rect.left + (rect.width / 2);
+      tooltipY.value = rect.top;
+      showTooltip.value = true;
+    };
+
+    return {
+      showTooltip,
+      bingoText,
+      tooltipStyle,
+      updateTooltipPosition
+    };
   },
   watch: {
     score: {
@@ -75,4 +115,10 @@ export default defineComponent({
 </script>
 
 <style>
+@import '@/assets/styles/widgets/common.css';
+@import '@/assets/styles/widgets/RiskRewardWidget.css';
+
+.riskreward-bingo-tooltip {
+  position: fixed;
+}
 </style>

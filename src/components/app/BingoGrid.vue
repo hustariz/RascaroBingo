@@ -9,13 +9,14 @@
       <!-- Info zone (top) -->
       <div class="cell-info-zone" 
            @mouseenter="showTooltip($event, index)"
-           @mouseleave="hideTooltip"
-           @mousemove="updateTooltipPosition($event)">
-        <div class="tooltip" v-show="tooltipVisible === index">
-          <strong>{{ cell.title || 'Not set' }}</strong>
-          <br>
-          Points: <span class="points">{{ cell.points || '0' }}</span>
-        </div>
+           @mouseleave="hideTooltip">
+        <BingoCellTooltip 
+          :show="tooltipVisible === index"
+          :title="cell.title"
+          :points="cell.points"
+          :x="tooltipX"
+          :y="tooltipY"
+        />
       </div>
       
       <!-- Content zone (middle) -->
@@ -30,8 +31,13 @@
 </template>
 
 <script>
+import BingoCellTooltip from './BingoCellTooltip.vue'
+
 export default {
   name: 'BingoGrid',
+  components: {
+    BingoCellTooltip
+  },
   props: {
     cells: {
       type: Array,
@@ -45,30 +51,19 @@ export default {
       tooltipY: 0
     }
   },
-  computed: {
-    tooltipStyle() {
-      return {
-        left: `${this.tooltipX}px`,
-        top: `${this.tooltipY}px`
-      }
-    }
-  },
   methods: {
     showTooltip(event, index) {
       this.tooltipVisible = index;
-      this.updateTooltipPosition(event);
+      this.tooltipX = event.clientX;
+      this.tooltipY = event.clientY;
     },
     hideTooltip() {
       this.tooltipVisible = null;
-    },
-    updateTooltipPosition(event) {
-      if (this.tooltipVisible !== null) {
-        this.tooltipX = event.clientX;
-        this.tooltipY = event.clientY;
-      }
     }
   }
 }
 </script>
 
-<style></style>
+<style scoped>
+
+</style>

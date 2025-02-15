@@ -11,10 +11,9 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import BingoGrid from '@/components/app/BingoGrid.vue';
-import '@/assets/styles/widgets/BingoWidget.css';
 
 export default defineComponent({
   name: 'BingoWidget',
@@ -27,14 +26,20 @@ export default defineComponent({
       default: 0
     }
   },
-  emits: ['score-updated'],
-  setup() {
+  emits: ['score-updated', 'edit-cell'],
+  setup(props, { emit }) {
     const store = useStore();
 
     // Load initial data
     store.dispatch('bingo/loadUserCard');
 
     const cells = computed(() => store.getters['bingo/getCurrentPageCells']);
+    const totalScore = computed(() => store.getters['bingo/getTotalScore']);
+
+    // Watch for score changes and emit updates
+    watch(totalScore, (newScore) => {
+      emit('score-updated', newScore);
+    }, { immediate: true });
 
     const handleCellClick = (index) => {
       store.commit('bingo/TOGGLE_CELL', { index });
@@ -42,8 +47,7 @@ export default defineComponent({
     };
 
     const handleCellEdit = (index) => {
-      // We'll implement this in the next step
-      console.log('Edit cell:', index);
+      emit('edit-cell', index);
     };
 
     return {
@@ -56,4 +60,6 @@ export default defineComponent({
 </script>
 
 <style>
+@import '@/assets/styles/widgets/common.css';
+@import '@/assets/styles/widgets/BingoWidget.css';
 </style>

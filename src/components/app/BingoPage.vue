@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container" @open-trade-history="$emit('open-trade-history')">
+  <div class="page-container" @open-trade-history="$emit('open-trade-history')" style="overflow: visible !important;">
     <PremiumLock 
       :show="showPremiumLock" 
       :message="'Upgrade to Premium to access multiple Bingo pages and custom page names'"
@@ -13,7 +13,7 @@
       @sidebar-toggle="handleSidebarToggle" 
     />
     
-    <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
+    <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }" style="overflow: visible !important;">
       <GridLayout
         v-model:layout="layout"
         :col-num="12"
@@ -27,8 +27,8 @@
         :height="gridHeight"
         :auto-size="true"
         :prevent-collision="false"
-        class="dashboard-layout"
-        style="overflow: visible !important;"
+        class="dashboard-layout vue-grid-layout"
+        style="overflow: visible !important; position: relative !important;"
         @layout-updated="onLayoutUpdated"
       >
         <GridItem
@@ -41,7 +41,8 @@
           :i="item.i"
           :min-w="item.minW"
           :min-h="item.minH"
-          class="grid-item"
+          class="grid-item vue-grid-item"
+          style="overflow: visible !important;"
         >
           <div 
             class="workflow-number" 
@@ -52,7 +53,7 @@
           >
             {{ item.workflowNumber }}
           </div>
-          <div class="widget-container">
+          <div class="widget-container" style="overflow: visible !important;">
             <div class="widget-header">
               <div class="widget-title">{{ item.title }}</div>
               <div class="widget-controls">
@@ -65,6 +66,8 @@
                 v-if="item.component" 
                 v-bind="item.props" 
                 @open-trade-history="$emit('open-trade-history')"
+                @edit-cell="openEditModal"
+                @score-updated="handleScoreUpdate"
               ></component>
               <div v-else>Widget {{ item.i }}</div>
             </div>
@@ -152,10 +155,12 @@ export default defineComponent({
       workflowTooltipY: 0,
       showEditModal: false,
       editingCell: null,
+      editingCellIndex: null,
       showPremiumLock: false,
       isSidebarCollapsed: false,
       gridWidth: 1200,
       gridHeight: 800,
+      currentScore: 0,
       layout: [
         {
           x: 0,  // Bingo Grid starts first
@@ -169,7 +174,8 @@ export default defineComponent({
           minW: 4,
           minH: 9,
           maxW: 12,
-          maxH: 12
+          maxH: 12,
+          props: {}
         },
         {
           x: 4,  // Risk/Reward next to Bingo Grid
@@ -334,11 +340,6 @@ export default defineComponent({
     },
 
     async editCell(cellIndex, newData) {
-      if (!this.isPremiumUser) {
-        this.showPremiumLock = true;
-        return;
-      }
-
       try {
         const currentPage = this.getCurrentPage;
         if (!currentPage || !currentPage.bingoCells) {
@@ -380,6 +381,19 @@ export default defineComponent({
       }
       this.workflowTooltipVisible = false;
       this.workflowTooltipNumber = null;
+    },
+    handleScoreUpdate(score) {
+      this.currentScore = score;
+      // Update RiskRewardWidget props
+      const riskRewardWidget = this.layout.find(item => item.i === 'risk-reward');
+      if (riskRewardWidget) {
+        riskRewardWidget.props.score = score;
+      }
+      // Update TradeDetailsWidget props
+      const tradeDetailsWidget = this.layout.find(item => item.i === 'trade-details');
+      if (tradeDetailsWidget) {
+        tradeDetailsWidget.props.score = score;
+      }
     },
   },
 });
