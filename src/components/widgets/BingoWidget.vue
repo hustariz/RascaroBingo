@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import BingoGrid from '@/components/app/BingoGrid.vue';
 
@@ -34,6 +34,12 @@ export default defineComponent({
     store.dispatch('bingo/loadUserCard');
 
     const cells = computed(() => store.getters['bingo/getCurrentPageCells']);
+    const totalScore = computed(() => store.getters['bingo/getTotalScore']);
+
+    // Watch for score changes and emit updates
+    watch(totalScore, (newScore) => {
+      emit('score-updated', newScore);
+    }, { immediate: true });
 
     const handleCellClick = (index) => {
       store.commit('bingo/TOGGLE_CELL', { index });

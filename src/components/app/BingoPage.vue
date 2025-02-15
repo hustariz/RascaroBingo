@@ -67,6 +67,7 @@
                 v-bind="item.props" 
                 @open-trade-history="$emit('open-trade-history')"
                 @edit-cell="openEditModal"
+                @score-updated="handleScoreUpdate"
               ></component>
               <div v-else>Widget {{ item.i }}</div>
             </div>
@@ -154,10 +155,12 @@ export default defineComponent({
       workflowTooltipY: 0,
       showEditModal: false,
       editingCell: null,
+      editingCellIndex: null,
       showPremiumLock: false,
       isSidebarCollapsed: false,
       gridWidth: 1200,
       gridHeight: 800,
+      currentScore: 0,
       layout: [
         {
           x: 0,  // Bingo Grid starts first
@@ -171,7 +174,8 @@ export default defineComponent({
           minW: 4,
           minH: 9,
           maxW: 12,
-          maxH: 12
+          maxH: 12,
+          props: {}
         },
         {
           x: 4,  // Risk/Reward next to Bingo Grid
@@ -377,6 +381,19 @@ export default defineComponent({
       }
       this.workflowTooltipVisible = false;
       this.workflowTooltipNumber = null;
+    },
+    handleScoreUpdate(score) {
+      this.currentScore = score;
+      // Update RiskRewardWidget props
+      const riskRewardWidget = this.layout.find(item => item.i === 'risk-reward');
+      if (riskRewardWidget) {
+        riskRewardWidget.props.score = score;
+      }
+      // Update TradeDetailsWidget props
+      const tradeDetailsWidget = this.layout.find(item => item.i === 'trade-details');
+      if (tradeDetailsWidget) {
+        tradeDetailsWidget.props.score = score;
+      }
     },
   },
 });
