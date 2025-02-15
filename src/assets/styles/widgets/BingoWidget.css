@@ -18,6 +18,8 @@
   overflow: visible !important;
   position: relative;
   z-index: 1;
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+  border-radius: 4px;
 }
 
 .bingo-grid {

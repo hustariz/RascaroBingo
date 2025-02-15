@@ -4,7 +4,7 @@
 
 /* Dashboard Grid Layout */
 .dashboard-layout {
-  background: rgba(43, 24, 16, 0.45) !important;
+  background: rgba(43, 24, 16, 0.45);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-radius: 10px;
@@ -14,7 +14,7 @@
   right: 0.75rem;
   bottom: 0.75rem;
   padding: 0.25rem;
-  overflow: visible !important;
+  overflow: visible;
   box-sizing: border-box;
   z-index: 1;
   isolation: isolate;
@@ -62,7 +62,7 @@
   padding: 0.5rem;
   position: relative;
   isolation: isolate;
-  overflow: visible !important;
+  overflow: visible;
   z-index: 1;
 }
 
@@ -70,7 +70,7 @@
   flex: 1;
   position: relative;
   padding: 0.5rem;
-  overflow: visible !important;
+  overflow: visible;
   transition: margin-left 0.3s ease;
   min-width: 0;
   height: calc(100vh - 4rem);
@@ -87,7 +87,6 @@
   transition: all 200ms ease;
   transition-property: left, top;
   cursor: default !important;
-
   background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
   border: 1px solid rgba(255, 215, 0, 0.5) !important;
   border-radius: 8px !important;
@@ -136,15 +135,19 @@
   background-repeat: no-repeat !important;
   flex-shrink: 0 !important;
   margin-right: 0.5rem !important;
+  filter: drop-shadow(0 0 2px rgba(238, 175, 17, 0.7)) !important;
+  transition: filter 0.3s ease !important;
 }
 
 .drag-icon:hover {
   opacity: 0.8 !important;
+  filter: drop-shadow(0 0 4px rgba(238, 175, 17, 0.7)) !important;
 }
 
 .drag-icon:active {
   cursor: grabbing !important;
   opacity: 0.6 !important;
+  filter: drop-shadow(0 0 3px rgba(238, 175, 17, 0.6)) !important;
 }
 
 /* Z-index Management */
@@ -154,28 +157,6 @@
 
 .tooltip {
   z-index: 3000;
-}
-
-/* Responsive Layout */
-@media (max-width: 48rem) {
-  .page-container {
-    padding: 20px 10px;
-    flex-direction: column;
-  }
-
-  .main-content {
-    margin-left: 0;
-    margin-top: 1rem;
-    height: auto;
-  }
-}
-
-/* Section Backgrounds */
-.tradeidea-section-content,
-.riskreward-area,
-.bingo-section {
-  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
-  border-radius: 4px;
 }
 
 /* Bingo page navigation controls */
@@ -251,87 +232,28 @@
   background: rgba(255, 100, 100, 0.1);
 }
 
-/* Disable delete button when it's the only page */
 .delete-button[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
   border-color: rgba(255, 215, 0, 0.1);
 }
 
-/* Component Wrapper */
-.component-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  isolation: isolate;
-}
-
-.component-wrapper.has-premium-feature {
-  min-height: 25rem;
-}
-
-/* Section Header Layout */
-.section-header.widget-title {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 1rem;
-  gap: 2rem;
-  position: relative;
-}
-
-.widget-title h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.widget-handle {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: move;
-  padding: 0.5rem;
+/* Typography */
+.page-title {
+  font-family: 'Legendarie', sans-serif;
   color: rgb(238, 175, 17);
-  z-index: 2;
+  font-size: 2.2rem;
+  text-shadow: 
+    2px 2px 0 rgba(0, 0, 0, 0.8),
+    -2px -2px 0 rgba(0, 0, 0, 0.8),
+    2px -2px 0 rgba(0, 0, 0, 0.8),
+    -2px 2px 0 rgba(0, 0, 0, 0.8),
+    0 0 15px rgba(238, 175, 17, 0.5);
+  border-radius: 8px;
+  margin-bottom: 0;
 }
 
-/* Responsive Design */
-@media (max-width: 87.5rem) {
-  .dashboard-layout {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .widget-container.extra-large {
-    grid-column: span 3;
-  }
-}
-
-@media (max-width: 64rem) {
-  .dashboard-layout {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .widget-container.extra-large,
-  .widget-container.large {
-    grid-column: span 2;
-  }
-}
-
-@media (max-width: 48rem) {
-  .dashboard-layout {
-    grid-template-columns: 1fr;
-  }
-  
-  .widget-container {
-    grid-column: span 1 !important;
-    grid-row: span 1 !important;
-  }
-}
-
-/* Update your existing responsive section */
+/* Responsive Layout */
 @media (max-width: 48rem) {
   .page-container {
     padding: 20px 10px;
@@ -345,222 +267,47 @@
     padding: 10px;
   }
 
-  /* Widget size adjustments */
-  .widget-container.small,
-  .widget-container.medium,
-  .widget-container.large,
-  .widget-container.extra-large {
+  .widget-container {
+    grid-column: span 1;
+    grid-row: span 1;
     width: 100%;
     min-height: auto;
     margin-bottom: 10px;
   }
 
-  /* Adjust the bingo grid widget */
+  .widget-container.large {
+    min-height: 37.5rem;
+    height: auto;
+  }
+
   .widget-container:first-child {
-    order: -1; /* Makes bingo grid appear first */
+    order: -1;
   }
 
-  .bingo-grid {
-    grid-template-columns: repeat(5, 1fr);
-    gap: 5px;
-    padding: 5px;
-  }
-
-  .bingo-cell {
-    aspect-ratio: 1.5;
-    font-size: 0.8rem;
-  }
-
-  .cell-content {
-    font-size: 0.9rem;
-    padding: 2px;
-  }
-
-  /* Adjust other widgets */
-  .widget-title h2 {
-    font-size: 1.2rem;
-    padding: 8px;
-  }
-
-  /* Handle the risk management sidebar */
   .main-content {
+    margin-left: 0;
+    margin-top: 1rem;
     padding: 10px;
     width: 100%;
+    height: auto;
   }
 
   .main-content.expanded {
     padding: 10px;
   }
-}
-
-/* Small phones */
-@media (max-width: 23.75rem) {
-  .bingo-grid {
-    gap: 3px;
-    padding: 3px;
-  }
-
-  .cell-content {
-    font-size: 0.8rem;
-  }
 
   .widget-title h2 {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 48rem) {
-  .widget-container {
-    grid-column: span 1 !important;
-    grid-row: span 1 !important;
-  }
-  
-  .widget-container.large {
-    min-height: 37.5rem !important; /* Increase height significantly */
-    height: auto;
-  }
-
-  /* Typography */
-  h1, h2 {
-    font-family: 'Legendarie', sans-serif;
-    color: rgb(238, 175, 17);
-    margin-bottom: 0px;
-  }
-
-  h1 {
-    font-size: 2rem;
-  }
-
-  h2 {
-    font-size: 1.8rem;
+    font-size: 1.2rem;
+    padding: 8px;
   }
 
   .page-title {
-    font-family: 'Legendarie', sans-serif;
-    color: rgb(238, 175, 17);
-    font-size: 2.2rem;
-    text-shadow: 
-      2px 2px 0 rgba(0, 0, 0, 0.8),
-      -2px -2px 0 rgba(0, 0, 0, 0.8),
-      2px -2px 0 rgba(0, 0, 0, 0.8),
-      -2px 2px 0 rgba(0, 0, 0, 0.8),
-      0 0 15px rgba(238, 175, 17, 0.5);
-    border-radius: 8px;
+    font-size: 1.8rem;
   }
+}
 
-  /* Bingo Grid */
-  .bingo-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    background: linear-gradient(145deg, rgba(89, 0, 0, 0.8), rgba(60, 28, 19, 0.8));
-    gap: 0.8rem;
-    padding: 1rem;
-    width: 100%;
-    overflow: visible !important;
-  }
-
-  /* Bingo Cell */
-  .bingo-cell {
-    position: relative;
-    aspect-ratio: 1.5;
-    background: rgba(25, 16, 5, 0.9);
-    border: 1px solid rgba(255, 215, 0, 1);
-    box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    overflow: visible;
-    padding: 0;
-  }
-
-  /* Cell Zones */
-  .cell-info-zone {
-    height: 20%;
-    width: 100%;
-    position: relative;
-    cursor: help;
-    border-bottom: 1px solid rgb(238, 175, 17);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgb(238, 175, 17);
-  }
-
-  .cell-info-zone::after {
-    content: 'ℹ';
-    color: black;
-    font-size: 1.2rem;
-    position: absolute;
-  }
-
-  .cell-content {
-    height: 60%;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: rgb(238, 175, 17);
-    cursor: pointer;
-  }
-
-  .cell-edit-zone {
-    height: 20%;
-    width: 100%;
-    cursor: pointer;
-    border-top: 1px solid rgb(238, 175, 17);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: chocolate;
-  }
-
-  .cell-edit-zone::after {
-    content: '✎';
-    color: black;
+@media (max-width: 23.75rem) {
+  .widget-title h2 {
     font-size: 1.1rem;
-    position: absolute;
-  }
-
-  /* Cell States */
-  .bingo-cell:hover {
-    border: 2px solid rgba(255, 215, 0, 1);
-  }
-  .bingo-cell.selected {
-    background-color: rgb(238, 175, 17);
-    border-color: rgb(238, 175, 17);
-  }
-
-  .bingo-cell.selected .cell-content {
-    color: black;
-    font-weight: bold;
-  }
-
-  /* Hide top and bottom zones when selected */
-  .bingo-cell.selected .cell-info-zone {
-    background-color: rgb(238, 175, 17);
-    border: none;
-  }
-
-  .bingo-cell.selected .cell-info-zone::after {
-    display: none; /* Hide the info icon */
-  }
-
-  .bingo-cell.selected .cell-edit-zone {
-    background-color: rgb(238, 175, 17);
-    border: none;
-  }
-
-  .bingo-cell.selected .cell-edit-zone::after {
-    display: none; /* Hide the pencil icon */
-  }
-
-  /* Make the cell zones blend with the golden background */
-  .bingo-cell.selected .cell-info-zone,
-  .bingo-cell.selected .cell-edit-zone {
-    background-color: rgb(238, 175, 17);
-    border-color: rgb(238, 175, 17);
   }
 }
