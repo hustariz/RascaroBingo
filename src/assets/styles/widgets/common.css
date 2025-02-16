@@ -30,6 +30,7 @@
   font-size: 1rem;
   flex-shrink: 0;
   padding: 0.25rem 0.75rem;
+  margin: 0 0 0 0.5rem;
   text-align: left;
   max-width: calc(100% - 4rem);
   line-height: 1.3;
@@ -39,7 +40,6 @@
   text-transform: capitalize;
   color: rgb(238, 175, 17);
   text-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px;
-  margin: 0;
   white-space: nowrap;
 }
 

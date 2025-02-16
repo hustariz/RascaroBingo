@@ -21,7 +21,8 @@
           </button>
         </div>
         <div class="tradedetails-rr-display">
-          <span>R/R:{{ currentRR }}</span>
+          <div>R/R:</div>
+          <div>{{ currentRR }}</div>
         </div>
       </div>
 
