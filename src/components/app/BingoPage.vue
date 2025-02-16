@@ -47,8 +47,57 @@
           <div class="grid-item">
             <div class="widget-header">
               <div class="vue-draggable-handle">
-                <div class="widget-title-area">
-                  <span class="widget-title">{{ item.title }}</span>
+                <div class="widget-title-area" style="display: flex; align-items: center;">
+                  <div class="widget-title">{{ item.title }}</div>
+                  <template v-if="item.navigation">
+                    <div class="widget-navigation" style="margin-left: 0.5rem;">
+                      <button 
+                        class="page-nav-button"
+                        @click="item.navigation.onPrevious"
+                        :disabled="item.navigation.currentPageIndex === 0"
+                      >
+                        ←
+                      </button>
+
+                      <div class="board-name-container">
+                        <template v-if="item.navigation.isEditingName">
+                          <input
+                            ref="nameInput"
+                            v-model="item.navigation.editedName"
+                            class="board-name-input"
+                            @blur="item.navigation.onSave"
+                            @keyup.enter="item.navigation.onSave"
+                            @keyup.esc="item.navigation.onCancel"
+                            placeholder="Default Board"
+                          />
+                        </template>
+                        <template v-else>
+                          <div 
+                            class="board-name"
+                            @click="item.navigation.onStartEdit"
+                          >
+                            {{ item.navigation.currentPageName || 'Default Board' }}
+                          </div>
+                        </template>
+                      </div>
+
+                      <button 
+                        class="page-nav-button"
+                        @click="item.navigation.onNext"
+                        :disabled="item.navigation.currentPageIndex >= item.navigation.totalPages - 1"
+                      >
+                        →
+                      </button>
+
+                      <button 
+                        class="page-nav-button delete-button"
+                        @click="item.navigation.onDelete"
+                        :disabled="item.navigation.currentPageIndex === 0"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </template>
                   <div 
                     class="workflow-number" 
                     v-if="item.workflowNumber"
@@ -70,6 +119,7 @@
                 @open-trade-history="$emit('open-trade-history')"
                 @edit-cell="openEditModal"
                 @score-updated="handleScoreUpdate"
+                @update-title-area="updateWidgetNavigation(item.i, $event)"
               ></component>
               <div v-else>Widget {{ item.i }}</div>
             </div>
@@ -178,7 +228,12 @@ export default defineComponent({
           minH: 9,
           maxW: 12,
           maxH: 12,
-          props: {}
+          props: {},
+          on: {
+            'score-updated': 'handleScoreUpdate',
+            'edit-cell': 'openEditModal',
+            'update-title-area': 'updateWidgetNavigation'
+          }
         },
         {
           x: 4,  // Risk/Reward next to Bingo Grid
@@ -399,6 +454,12 @@ export default defineComponent({
         tradeDetailsWidget.props.score = score;
       }
     },
+    updateWidgetNavigation(itemId, navigation) {
+      const item = this.layout.find(item => item.i === itemId);
+      if (item) {
+        item.navigation = navigation;
+      }
+    },
     onLayoutCreated() {
       console.log('Layout created');
     },
@@ -417,4 +478,82 @@ export default defineComponent({
 
 <style>
 @import '@/assets/styles/BingoPage.css';
+
+.widget-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.board-name-container {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+  margin: 0 0.5rem;
+}
+
+.board-name {
+  color: rgb(238, 175, 17);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board-name:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.board-name-input {
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+  color: rgb(255, 215, 0);
+  padding: 0.25rem 0.5rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+}
+
+.board-name-input:focus {
+  outline: none;
+  border-color: rgb(255, 215, 0);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.page-nav-button {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+  color: rgb(238, 175, 17);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.page-nav-button:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.page-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 </style>
