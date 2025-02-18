@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import BingoCellTooltip from './BingoCellTooltip.vue'
+import BingoCellTooltip from '../little_components/BingoCellTooltip.vue';
 
 export default {
   name: 'BingoGrid',

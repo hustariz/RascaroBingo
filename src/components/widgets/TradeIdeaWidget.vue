@@ -45,7 +45,7 @@
 
 <script>
 import { defineComponent } from 'vue';
-import PremiumLock from '@/components/app/PremiumLock.vue';
+import PremiumLock from '@/components/little_components/PremiumLock.vue';
 
 export default defineComponent({
   name: 'TradeIdeaWidget',

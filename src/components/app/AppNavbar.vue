@@ -73,9 +73,9 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import '@/assets/styles/AppNavbar.css';
-import ContactForm from './ContactForm.vue';
-import LoginForm from './LoginForm.vue';
-import RegisterForm from './RegisterForm.vue';
+import ContactForm from '../forms/ContactForm.vue';
+import LoginForm from '../forms/LoginForm.vue';
+import RegisterForm from '../forms/RegisterForm.vue';
 import api from '@/services/api';
 
 export default {

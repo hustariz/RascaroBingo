@@ -28,7 +28,7 @@
 </template>
   
   <script>
-  import '@/assets/styles/ContactForm.css';
+  import '@/assets/styles//forms/ContactForm.css';
 
   export default {
     name: 'ContactForm',

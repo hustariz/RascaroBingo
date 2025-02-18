@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import '@/assets/styles/LoginForm.css';
+import '@/assets/styles/forms/LoginForm.css';
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';

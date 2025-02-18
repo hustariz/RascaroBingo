@@ -3,14 +3,14 @@ import HomePage from '@/components/app/HomePage.vue'
 import BingoPage from '@/components/app/BingoPage.vue'
 import ProfilePage from '@/components/app/ProfilePage.vue'
 import AnalyticsPage from '@/components/app/AnalyticsPage.vue'
-import LoginForm from '@/components/app/LoginForm.vue'
+import LoginForm from '@/components/forms/LoginForm.vue'
 import LeaderboardPage from '@/components/app/LeaderboardPage.vue'
 import ShopPage from '@/components/app/ShopPage.vue'
 import AboutPage from '@/components/app/AboutPage.vue'
 import PaymentPage from '@/components/app/PaymentPage.vue'
-import EmailVerification from '@/components/app/EmailVerification.vue'
+import EmailVerification from '@/components/forms/EmailVerificationForm.vue'
 import KrakenTest from '@/components/kraken/KrakenTest.vue'
-import ResetPassword from '@/components/app/ResetPassword.vue';
+import ResetPassword from '@/components/forms/ResetPasswordForm.vue'
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -102,8 +102,6 @@ const routes = [
     path: '/leaderboard',
     name: 'Leaderboard',
     component: LeaderboardPage,
-    beforeEnter: authGuard,
-    meta: { requiresAuth: false }
   },
   {
     path: '/shop',
