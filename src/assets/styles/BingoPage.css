@@ -75,12 +75,12 @@
   transition: margin-left 0.3s ease;
   min-width: 0;
   height: calc(100vh - 4rem);
-  margin-left: 17.875rem;  /* Width of risk management sidebar */
+  margin-left: 18rem;  /* Width of risk management sidebar */
   margin-top: 2.5rem;  /* Height of navbar */
 }
 
 .main-content.expanded {
-  margin-left: 0;
+  margin-left: 2.5rem;  /* Width of risk management sidebar */
 }
 
 /* Grid Layout Overrides */

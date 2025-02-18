@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import '@/assets/styles/EmailVerification.css';
+import '@/assets/styles/forms/EmailVerificationForm.css';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
