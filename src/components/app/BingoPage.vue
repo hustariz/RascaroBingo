@@ -188,7 +188,7 @@ import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
 import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
-import PremiumLock from '@/components/app/PremiumLock.vue';
+import PremiumLock from '@/components/little_components/PremiumLock.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
 export default defineComponent({

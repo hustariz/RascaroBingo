@@ -40,7 +40,7 @@ import '@/assets/styles/EmailVerification.css';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/services/api';
-import LoginForm from './LoginForm.vue';
+import LoginForm from '../forms/LoginForm.vue';
 
 export default {
   name: 'EmailVerification',

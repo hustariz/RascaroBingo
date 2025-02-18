@@ -108,7 +108,7 @@
 <script>
 import { defineComponent } from 'vue';
 import { mapState } from 'vuex';
-import TargetTooltip from '../app/TargetTooltip.vue';
+import TargetTooltip from '../little_components/TargetTooltip.vue';
 
 export default defineComponent({
   name: 'TradeDetailsWidget',
