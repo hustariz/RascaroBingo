@@ -27,9 +27,8 @@
         :height="gridHeight"
         :auto-size="true"
         :prevent-collision="false"
-        class="dashboard-layout vue-grid-layout"
-        style="overflow: visible !important; position: relative !important;"
-        @layout-updated="onLayoutUpdated"
+        :resizable-handle="'.vue-resizable-handle'"
+        class="dashboard-layout"
       >
         <GridItem
           v-for="item in layout"
@@ -41,26 +40,96 @@
           :i="item.i"
           :min-w="item.minW"
           :min-h="item.minH"
-          class="grid-item vue-grid-item"
-          style="overflow: visible !important;"
+          drag-allow-from=".vue-draggable-handle"
+          drag-ignore-from=".no-drag"
+          class="grid-item-wrapper"
         >
-          <div 
-            class="workflow-number" 
-            v-if="item.workflowNumber"
-            :key="'workflow-' + item.i"
-            @mouseenter="showWorkflowTooltip($event, item.workflowNumber)"
-            @mouseleave="hideWorkflowTooltip"
-          >
-            {{ item.workflowNumber }}
-          </div>
-          <div class="widget-container" style="overflow: visible !important;">
+          <div class="grid-item">
             <div class="widget-header">
-              <div class="widget-title">{{ item.title }}</div>
-              <div class="widget-controls">
-                <button class="control-button" @click="removeWidget(item.i)">×</button>
+              <div class="vue-draggable-handle">
+                <div class="widget-title-area" style="display: flex; align-items: center;">
+                  <div class="widget-title">{{ item.title }}</div>
+                  <template v-if="item.navigation">
+                    <div class="widget-navigation" style="margin-left: 0.5rem;">
+                      <button 
+                        class="page-nav-button"
+                        @click="item.navigation.onPrevious"
+                        :disabled="item.navigation.currentPageIndex === 0"
+                      >
+                        ←
+                      </button>
+
+                      <div class="board-name-container">
+                        <template v-if="item.navigation.isEditingName">
+                          <input
+                            ref="nameInput"
+                            v-model="item.navigation.editedName"
+                            class="board-name-input"
+                            @blur="item.navigation.onSave"
+                            @keyup.enter="item.navigation.onSave"
+                            @keyup.esc="item.navigation.onCancel"
+                            placeholder="Default Board"
+                          />
+                        </template>
+                        <template v-else>
+                          <div 
+                            class="board-name"
+                            @click="item.navigation.onStartEdit"
+                          >
+                            {{ item.navigation.currentPageName || 'Default Board' }}
+                          </div>
+                        </template>
+                      </div>
+
+                      <button 
+                        class="page-nav-button"
+                        @click="item.navigation.onNext"
+                        :disabled="item.navigation.currentPageIndex >= item.navigation.totalPages - 1"
+                      >
+                        →
+                      </button>
+
+                      <button 
+                        class="page-nav-button delete-button"
+                        @click="item.navigation.onDelete"
+                        :disabled="item.navigation.currentPageIndex === 0"
+                      >
+                        🗑
+                      </button>
+
+                      <button 
+                        class="page-nav-button export-button"
+                        @click="item.navigation.onExport"
+                        @mouseover="showExportTooltip($event)"
+                        @mouseleave="hideExportTooltip"
+                      >
+                        ↓
+                      </button>
+                      <teleport to="body" v-if="exportTooltipVisible">
+                        <div class="workflow-tooltip" :style="{
+                          left: exportTooltipX + 'px',
+                          top: exportTooltipY + 'px',
+                          visibility: 'visible'
+                        }">
+                          Export to Excel
+                        </div>
+                      </teleport>
+                    </div>
+                  </template>
+                  <div 
+                    class="workflow-number" 
+                    v-if="item.workflowNumber"
+                    :key="'workflow-' + item.i"
+                    @mouseenter="showWorkflowTooltip($event, item.workflowNumber)"
+                    @mouseleave="hideWorkflowTooltip"
+                  >
+                    {{ item.workflowNumber }}
+                  </div>
+                </div>
+                <div class="drag-icon"></div>
               </div>
             </div>
-            <div class="widget-content">
+            <div class="widget-content no-drag">
               <component 
                 :is="item.component" 
                 v-if="item.component" 
@@ -68,9 +137,12 @@
                 @open-trade-history="$emit('open-trade-history')"
                 @edit-cell="openEditModal"
                 @score-updated="handleScoreUpdate"
+                @update-title-area="updateWidgetNavigation(item.i, $event)"
+                ref="bingoWidget"
               ></component>
               <div v-else>Widget {{ item.i }}</div>
             </div>
+            <div class="vue-resizable-handle"></div>
           </div>
         </GridItem>
       </GridLayout>
@@ -175,7 +247,12 @@ export default defineComponent({
           minH: 9,
           maxW: 12,
           maxH: 12,
-          props: {}
+          props: {},
+          on: {
+            'score-updated': 'handleScoreUpdate',
+            'edit-cell': 'openEditModal',
+            'update-title-area': 'updateWidgetNavigation'
+          }
         },
         {
           x: 4,  // Risk/Reward next to Bingo Grid
@@ -225,7 +302,11 @@ export default defineComponent({
           maxW: 12,
           maxH: 12
         }
-      ]
+      ],
+      isDragging: false,
+      exportTooltipVisible: false,
+      exportTooltipX: 0,
+      exportTooltipY: 0
     };
   },
 
@@ -279,6 +360,38 @@ export default defineComponent({
         visibility: this.workflowTooltipVisible ? 'visible' : 'hidden'
       }
     }
+  },
+
+  mounted() {
+    this.$nextTick(() => {
+      // Get reference to BingoWidget component
+      const bingoWidget = this.$refs.bingoWidget;
+      if (bingoWidget) {
+        // Update layout with navigation methods
+        this.layout = this.layout.map(item => {
+          if (item.i === 'bingo') {
+            return {
+              ...item,
+              navigation: {
+                currentPageIndex: bingoWidget.currentPageIndex,
+                totalPages: bingoWidget.totalPages,
+                currentPageName: bingoWidget.currentPageName,
+                isEditingName: bingoWidget.isEditingName,
+                editedName: bingoWidget.editedName,
+                onPrevious: bingoWidget.previousPage,
+                onNext: bingoWidget.nextPage,
+                onStartEdit: bingoWidget.startNameEdit,
+                onSave: bingoWidget.saveBoardName,
+                onCancel: bingoWidget.cancelNameEdit,
+                onDelete: bingoWidget.deletePage,
+                onExport: bingoWidget.exportBoard
+              }
+            };
+          }
+          return item;
+        });
+      }
+    });
   },
 
   methods: {
@@ -382,6 +495,17 @@ export default defineComponent({
       this.workflowTooltipVisible = false;
       this.workflowTooltipNumber = null;
     },
+    showExportTooltip(event) {
+      const exportButton = event.target;
+      const rect = exportButton.getBoundingClientRect();
+      
+      this.exportTooltipX = rect.left;
+      this.exportTooltipY = rect.bottom;
+      this.exportTooltipVisible = true;
+    },
+    hideExportTooltip() {
+      this.exportTooltipVisible = false;
+    },
     handleScoreUpdate(score) {
       this.currentScore = score;
       // Update RiskRewardWidget props
@@ -395,6 +519,32 @@ export default defineComponent({
         tradeDetailsWidget.props.score = score;
       }
     },
+    updateWidgetNavigation(widgetId, { navigation }) {
+      this.layout = this.layout.map(item => {
+        if (item.i === widgetId) {
+          return {
+            ...item,
+            navigation: {
+              ...item.navigation,
+              ...navigation
+            }
+          };
+        }
+        return item;
+      });
+    },
+    onLayoutCreated() {
+      console.log('Layout created');
+    },
+    onLayoutBeforeMount() {
+      console.log('Layout before mount');
+    },
+    onLayoutMounted() {
+      console.log('Layout mounted');
+    },
+    onLayoutReady() {
+      console.log('Layout ready');
+    }
   },
 });
 </script>

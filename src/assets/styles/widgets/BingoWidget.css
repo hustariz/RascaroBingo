@@ -18,6 +18,8 @@
   overflow: visible !important;
   position: relative;
   z-index: 1;
+  background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
+  border-radius: 4px;
 }
 
 .bingo-grid {
@@ -109,15 +111,14 @@
 .cell-edit-zone {
   height: 20%;
   width: 100%;
+  position: relative;
   cursor: pointer;
   border: 1px solid rgba(255, 215, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
-  color: rgb(255, 215, 0);
   transition: all 0.3s ease;
-  overflow: visible;
 }
 
 .cell-edit-zone::after {
@@ -133,27 +134,30 @@
 .cell-edit-zone:hover {
   background: linear-gradient(135deg, rgba(89, 0, 0, 1), rgba(205, 127, 50, 0.1));
   border-color: rgba(255, 215, 0, 0.8);
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
 }
 
 .cell-edit-zone:hover::after {
   opacity: 1;
   transform: scale(1.1);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .cell-content {
   flex: 1;
-  min-height: 1.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(0.68rem, 1.15vw, 1.05rem);
-  color: rgba(255, 215, 0, 0.8);
-  cursor: pointer;
   font-family: 'Montserrat', sans-serif;
-  padding: 0.1rem;
-  overflow: visible;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: rgb(238, 175, 17);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cell-content:hover {
+  color: rgb(255, 215, 0);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
 /* Selected state overrides */
@@ -324,4 +328,120 @@
 .bingo-widget .cancel-button-edit:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Widget Title Area */
+.widget-title-area {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem;
+}
+
+.widget-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgb(238, 175, 17);
+}
+
+/* Widget Navigation */
+.widget-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  padding-left: 1rem;
+}
+
+.page-nav-button {
+  background: transparent;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  color: rgb(238, 175, 17);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  padding: 0;
+}
+
+.page-nav-button:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.8);
+  color: rgb(255, 215, 0);
+}
+
+.page-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.board-name-container {
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.board-name {
+  padding: 0.25rem 0.5rem;
+  color: rgb(238, 175, 17);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board-name:hover {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.board-name-input {
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+  color: rgb(255, 215, 0);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.board-name-input:focus {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+.delete-button {
+  color: rgba(255, 99, 71, 0.8);
+}
+
+.delete-button:hover:not(:disabled) {
+  background: rgba(255, 99, 71, 0.1);
+  border-color: rgba(255, 99, 71, 0.8);
+  color: rgb(255, 99, 71);
+}
+
+.export-button {
+  color: rgb(238, 175, 17);
+}
+
+.export-button:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.8);
+  color: rgb(255, 215, 0);
 }

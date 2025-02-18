@@ -9,7 +9,6 @@ import ShopPage from '@/components/app/ShopPage.vue'
 import AboutPage from '@/components/app/AboutPage.vue'
 import PaymentPage from '@/components/app/PaymentPage.vue'
 import EmailVerification from '@/components/app/EmailVerification.vue'
-import KrakenTradeSection from '@/components/kraken/KrakenTradeSection.vue'
 import KrakenTest from '@/components/kraken/KrakenTest.vue'
 import ResetPassword from '@/components/app/ResetPassword.vue';
 
@@ -70,13 +69,6 @@ const routes = [
     meta: { requiresAuth: false }
   },
   { 
-    path: '/trading', 
-    name: 'Trading',
-    component: KrakenTradeSection,
-    beforeEnter: authGuard,
-    meta: { requiresAuth: true }
-  },
-  { 
     path: '/kraken-test', 
     name: 'KrakenTest',
     component: KrakenTest,
@@ -111,7 +103,7 @@ const routes = [
     name: 'Leaderboard',
     component: LeaderboardPage,
     beforeEnter: authGuard,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/shop',

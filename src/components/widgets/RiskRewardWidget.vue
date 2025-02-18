@@ -117,8 +117,4 @@ export default defineComponent({
 <style>
 @import '@/assets/styles/widgets/common.css';
 @import '@/assets/styles/widgets/RiskRewardWidget.css';
-
-.riskreward-bingo-tooltip {
-  position: fixed;
-}
 </style>
