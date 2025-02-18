@@ -31,9 +31,13 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapState('bingo', ['currentPageIndex', 'totalPages']),
+    ...mapState('bingo', ['currentPageIndex', 'bingoPages']),
     ...mapGetters('bingo', ['getCurrentPage', 'getTotalScore']),
     
+    totalPages() {
+      return this.bingoPages.length;
+    },
+
     cells() {
       const cells = this.getCurrentPage?.bingoCells || [];
       console.log('Bingo cells:', cells);
@@ -50,8 +54,8 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapActions('bingo', ['updatePage', 'setCurrentPageIndex', 'saveCardState']),
-    ...mapMutations('bingo', ['TOGGLE_CELL']),
+  ...mapActions('bingo', ['updatePage', 'setCurrentPageIndex', 'saveCardState']), 
+  ...mapMutations('bingo', ['TOGGLE_CELL', 'ADD_PAGE']),
 
     handleCellClick(cellIndex) {
       this.TOGGLE_CELL({ index: cellIndex });
@@ -71,7 +75,11 @@ export default defineComponent({
     nextPage() {
       if (this.currentPageIndex < this.totalPages - 1) {
         this.setCurrentPageIndex(this.currentPageIndex + 1);
+      } else {
+        this.ADD_PAGE(); // Now using ADD_PAGE as mutation
+        this.setCurrentPageIndex(this.bingoPages.length - 1);
       }
+      this.saveCardState();
     },
 
     startNameEdit() {
@@ -102,6 +110,11 @@ export default defineComponent({
     deletePage() {
       // TO DO: implement delete page functionality
     },
+
+    exportBoard() {
+      // TO DO: implement export functionality
+      console.log('Exporting board:', this.currentPageName);
+    },
   },
 
   mounted() {
@@ -118,6 +131,8 @@ export default defineComponent({
         onStartEdit: this.startNameEdit,
         onSave: this.saveBoardName,
         onCancel: this.cancelNameEdit,
+        onDelete: this.deletePage,
+        onExport: this.exportBoard
       }
     });
   },
@@ -144,7 +159,8 @@ export default defineComponent({
           onStartEdit: this.startNameEdit,
           onSave: this.saveBoardName,
           onCancel: this.cancelNameEdit,
-          onDelete: this.deletePage
+          onDelete: this.deletePage,
+          onExport: this.exportBoard
         }
       });
     },
@@ -162,7 +178,8 @@ export default defineComponent({
           onStartEdit: this.startNameEdit,
           onSave: this.saveBoardName,
           onCancel: this.cancelNameEdit,
-          onDelete: this.deletePage
+          onDelete: this.deletePage,
+          onExport: this.exportBoard
         }
       });
     }
@@ -173,19 +190,4 @@ export default defineComponent({
 <style>
 @import '@/assets/styles/widgets/common.css';
 @import '@/assets/styles/widgets/BingoWidget.css';
-
-.bingo-widget {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-}
-
-.bingo-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  position: relative;
-}
 </style>

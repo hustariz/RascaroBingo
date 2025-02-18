@@ -34,7 +34,7 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 215, 0, 1);
+  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .modal-title {

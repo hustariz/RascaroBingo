@@ -150,7 +150,25 @@ export default {
 
     SET_LOADING(state, loading) {
       state.loading = loading;
-    }
+    },
+
+    UPDATE_PAGE(state, { pageIndex, page }) {
+      if (pageIndex >= 0 && pageIndex < state.bingoPages.length) {
+        state.bingoPages[pageIndex] = {
+          ...state.bingoPages[pageIndex],
+          ...page,
+          bingoCells: page.bingoCells || state.bingoPages[pageIndex].bingoCells
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('bingoState', JSON.stringify({
+          bingoPages: state.bingoPages,
+          currentPageIndex: state.currentPageIndex,
+          lastModified: new Date().toISOString(),
+          version: '2.0'
+        }));
+      }
+    },
   },
 
   getters: {
@@ -291,6 +309,21 @@ export default {
       } finally {
         commit('SET_LOADING', false);
       }
+    },
+
+    async setCurrentPageIndex({ commit }, index) {
+      commit('SET_CURRENT_PAGE', index);
+      return Promise.resolve();
+    },
+
+    ADD_PAGE({ commit }) {
+      commit('ADD_PAGE');
+      return Promise.resolve();
+    },
+
+    async updatePage({ commit }, { pageIndex, page }) {
+      commit('UPDATE_PAGE', { pageIndex, page });
+      return Promise.resolve();
     },
 
     async saveCardState({ state }) {

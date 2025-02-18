@@ -65,5 +65,4 @@ export default {
 </script>
 
 <style>
-@import '@/assets/styles/widgets/BingoWidget.css';
 </style>

@@ -106,7 +106,6 @@
 </template>
 
 <script>
-import '@/assets/styles/widgets/TradeDetailsWidget.css';
 import { defineComponent } from 'vue';
 import { mapState } from 'vuex';
 import TargetTooltip from '../app/TargetTooltip.vue';
@@ -338,30 +337,5 @@ export default defineComponent({
 
 <style>
 @import '@/assets/styles/widgets/common.css';
-
-.tradedetails-tooltip-icon {
-  width: 19px;
-  height: 19px;
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  color: rgb(255, 215, 0);
-  cursor: help;
-  background: rgba(25, 16, 5, 0.9);
-  box-shadow: inset 0 0 8px rgba(255, 215, 0, 0.2);
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.tradedetails-tooltip-icon:hover {
-  border-color: rgb(255, 215, 0);
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-}
-
-.tradedetails-tooltip-icon span {
-  font-style: italic;
-}
+@import '@/assets/styles/widgets/TradeDetailsWidget.css';
 </style>

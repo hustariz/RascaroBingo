@@ -17,9 +17,6 @@
       <router-link to="/leaderboard" class="rb-navbar-item" @click="closeMenu">
         <font-awesome-icon icon="trophy" class="rb-icon" /> Leaderboard
       </router-link>
-      <router-link to="/trading" class="rb-navbar-item" @click="closeMenu">
-        <font-awesome-icon icon="chart-line" class="rb-icon" /> Trading
-      </router-link>
       <router-link to="/shop" class="rb-navbar-item" @click="closeMenu">
         <font-awesome-icon icon="store" class="rb-icon" /> Shop
       </router-link>

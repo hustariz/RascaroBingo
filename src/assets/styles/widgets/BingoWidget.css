@@ -435,3 +435,13 @@
   border-color: rgba(255, 99, 71, 0.8);
   color: rgb(255, 99, 71);
 }
+
+.export-button {
+  color: rgb(238, 175, 17);
+}
+
+.export-button:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.8);
+  color: rgb(255, 215, 0);
+}

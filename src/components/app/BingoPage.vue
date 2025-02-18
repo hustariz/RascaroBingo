@@ -96,6 +96,24 @@
                       >
                         🗑
                       </button>
+
+                      <button 
+                        class="page-nav-button export-button"
+                        @click="item.navigation.onExport"
+                        @mouseover="showExportTooltip($event)"
+                        @mouseleave="hideExportTooltip"
+                      >
+                        ↓
+                      </button>
+                      <teleport to="body" v-if="exportTooltipVisible">
+                        <div class="workflow-tooltip" :style="{
+                          left: exportTooltipX + 'px',
+                          top: exportTooltipY + 'px',
+                          visibility: 'visible'
+                        }">
+                          Export to Excel
+                        </div>
+                      </teleport>
                     </div>
                   </template>
                   <div 
@@ -120,6 +138,7 @@
                 @edit-cell="openEditModal"
                 @score-updated="handleScoreUpdate"
                 @update-title-area="updateWidgetNavigation(item.i, $event)"
+                ref="bingoWidget"
               ></component>
               <div v-else>Widget {{ item.i }}</div>
             </div>
@@ -284,7 +303,10 @@ export default defineComponent({
           maxH: 12
         }
       ],
-      isDragging: false
+      isDragging: false,
+      exportTooltipVisible: false,
+      exportTooltipX: 0,
+      exportTooltipY: 0
     };
   },
 
@@ -338,6 +360,38 @@ export default defineComponent({
         visibility: this.workflowTooltipVisible ? 'visible' : 'hidden'
       }
     }
+  },
+
+  mounted() {
+    this.$nextTick(() => {
+      // Get reference to BingoWidget component
+      const bingoWidget = this.$refs.bingoWidget;
+      if (bingoWidget) {
+        // Update layout with navigation methods
+        this.layout = this.layout.map(item => {
+          if (item.i === 'bingo') {
+            return {
+              ...item,
+              navigation: {
+                currentPageIndex: bingoWidget.currentPageIndex,
+                totalPages: bingoWidget.totalPages,
+                currentPageName: bingoWidget.currentPageName,
+                isEditingName: bingoWidget.isEditingName,
+                editedName: bingoWidget.editedName,
+                onPrevious: bingoWidget.previousPage,
+                onNext: bingoWidget.nextPage,
+                onStartEdit: bingoWidget.startNameEdit,
+                onSave: bingoWidget.saveBoardName,
+                onCancel: bingoWidget.cancelNameEdit,
+                onDelete: bingoWidget.deletePage,
+                onExport: bingoWidget.exportBoard
+              }
+            };
+          }
+          return item;
+        });
+      }
+    });
   },
 
   methods: {
@@ -441,6 +495,17 @@ export default defineComponent({
       this.workflowTooltipVisible = false;
       this.workflowTooltipNumber = null;
     },
+    showExportTooltip(event) {
+      const exportButton = event.target;
+      const rect = exportButton.getBoundingClientRect();
+      
+      this.exportTooltipX = rect.left;
+      this.exportTooltipY = rect.bottom;
+      this.exportTooltipVisible = true;
+    },
+    hideExportTooltip() {
+      this.exportTooltipVisible = false;
+    },
     handleScoreUpdate(score) {
       this.currentScore = score;
       // Update RiskRewardWidget props
@@ -454,11 +519,19 @@ export default defineComponent({
         tradeDetailsWidget.props.score = score;
       }
     },
-    updateWidgetNavigation(itemId, navigation) {
-      const item = this.layout.find(item => item.i === itemId);
-      if (item) {
-        item.navigation = navigation;
-      }
+    updateWidgetNavigation(widgetId, { navigation }) {
+      this.layout = this.layout.map(item => {
+        if (item.i === widgetId) {
+          return {
+            ...item,
+            navigation: {
+              ...item.navigation,
+              ...navigation
+            }
+          };
+        }
+        return item;
+      });
     },
     onLayoutCreated() {
       console.log('Layout created');
@@ -478,82 +551,4 @@ export default defineComponent({
 
 <style>
 @import '@/assets/styles/BingoPage.css';
-
-.widget-navigation {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: 1rem;
-}
-
-.board-name-container {
-  flex: 1;
-  text-align: center;
-  min-width: 0;
-  margin: 0 0.5rem;
-}
-
-.board-name {
-  color: rgb(238, 175, 17);
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.board-name:hover {
-  background: rgba(255, 215, 0, 0.1);
-}
-
-.board-name-input {
-  width: 100%;
-  max-width: 200px;
-  text-align: center;
-  background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  border-radius: 4px;
-  color: rgb(255, 215, 0);
-  padding: 0.25rem 0.5rem;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
-}
-
-.board-name-input:focus {
-  outline: none;
-  border-color: rgb(255, 215, 0);
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-}
-
-.page-nav-button {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  border-radius: 4px;
-  color: rgb(238, 175, 17);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.page-nav-button:hover:not(:disabled) {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: rgba(255, 215, 0, 0.8);
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-}
-
-.page-nav-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 </style>
