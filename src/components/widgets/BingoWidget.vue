@@ -7,6 +7,10 @@
         @cell-edit="handleCellEdit"
       />
     </div>
+    <PremiumLock 
+      v-if="showPremiumLock"
+      @close="showPremiumLock = false"
+    />
   </div>
 </template>
 
@@ -14,12 +18,14 @@
 import { defineComponent } from 'vue';
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex';
 import BingoGrid from '@/components/little_components/BingoGrid.vue';
+import PremiumLock from '@/components/little_components/PremiumLock.vue';
 
 export default defineComponent({
   name: 'BingoWidget',
   
   components: {
     BingoGrid,
+    PremiumLock,
   },
 
   expose: [
@@ -32,21 +38,31 @@ export default defineComponent({
     'currentPageName',
     'currentPageIndex',
     'isEditingName',
-    'editedName'
+    'editedName',
+    'openEditModal'
   ],
+
+  props: {
+  },
 
   data() {
     return {
       isEditingName: false,
       editedName: '',
       originalName: '',
+      showPremiumLock: false,
     };
   },
 
   computed: {
+    ...mapGetters('user', ['isPaidUser', 'isConnected']),
     ...mapState('bingo', ['currentPageIndex', 'bingoPages']),
     ...mapGetters('bingo', ['getCurrentPage', 'getTotalScore']),
     
+    isPremium() {
+      return this.isPaidUser && this.isConnected;
+    },
+
     totalPages() {
       return this.bingoPages.length;
     },
@@ -59,138 +75,114 @@ export default defineComponent({
 
     currentPageName() {
       return this.getCurrentPage?.name || 'Default Board';
-    },
-
-    score() {
-      return this.getTotalScore;
     }
   },
 
   methods: {
-  ...mapActions('bingo', ['updatePage', 'setCurrentPageIndex', 'saveCardState', 'DELETE_PAGE']), 
-  ...mapMutations('bingo', ['TOGGLE_CELL', 'ADD_PAGE']),
+  ...mapActions('bingo', ['updatePage', 'saveCardState', 'DELETE_PAGE']), 
+  ...mapMutations('bingo', ['TOGGLE_CELL', 'ADD_PAGE', 'SET_CURRENT_PAGE']),
 
     handleCellClick(cellIndex) {
+      // Cell editing should work for all users
       this.TOGGLE_CELL({ index: cellIndex });
       this.saveCardState();
     },
 
     handleCellEdit(cellIndex) {
+      // Cell editing should work for all users
       this.$emit('edit-cell', cellIndex);
+      this.openEditModal(cellIndex);
     },
 
-    previousPage() {
-      console.log('previousPage called');
-      console.log('Current index:', this.currentPageIndex);
-      if (this.currentPageIndex > 0) {
-        this.setCurrentPageIndex(this.currentPageIndex - 1);
-        console.log('New index:', this.currentPageIndex - 1);
-      }
+    openEditModal(cellIndex) {
+      console.log('Opening edit modal for cell:', cellIndex);
+      this.$emit('open-edit-modal', cellIndex);
     },
 
     nextPage() {
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
       console.log('nextPage called');
       console.log('Current index:', this.currentPageIndex);
       console.log('Total pages:', this.totalPages);
       if (this.currentPageIndex < this.totalPages - 1) {
-        this.setCurrentPageIndex(this.currentPageIndex + 1);
+        this.SET_CURRENT_PAGE(this.currentPageIndex + 1);
       } else {
         console.log('Adding new page');
-        this.ADD_PAGE(); // Now using ADD_PAGE as mutation
-        this.setCurrentPageIndex(this.bingoPages.length - 1);
+        this.ADD_PAGE();
+        this.SET_CURRENT_PAGE(this.bingoPages.length - 1);
       }
       this.saveCardState();
+    },
+
+    previousPage() {
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
+      console.log('previousPage called');
+      console.log('Current index:', this.currentPageIndex);
+      if (this.currentPageIndex > 0) {
+        this.SET_CURRENT_PAGE(this.currentPageIndex - 1);
+        console.log('New index:', this.currentPageIndex - 1);
+      }
     },
 
     startNameEdit() {
-      console.log('startNameEdit called');
-      console.log('Current name:', this.currentPageName);
-      this.originalName = this.currentPageName;
-      this.editedName = this.currentPageName;
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
       this.isEditingName = true;
-      this.$nextTick(() => {
-        console.log('Focusing input');
-        this.$refs.nameInput?.focus();
-      });
+      this.editedName = this.currentPageName;
+      this.originalName = this.currentPageName;
     },
 
     saveBoardName() {
-      console.log('saveBoardName called');
-      console.log('Edited name:', this.editedName);
-      if (this.editedName.trim()) {
-        const updatedPage = {
-          ...this.getCurrentPage,
+      if (this.editedName.trim() !== this.originalName) {
+        this.updatePage({
+          index: this.currentPageIndex,
           name: this.editedName.trim()
-        };
-        console.log('Updating page with:', updatedPage);
-        this.updatePage({ pageIndex: this.currentPageIndex, page: updatedPage });
+        });
       }
       this.isEditingName = false;
-      this.saveCardState();
     },
 
     cancelNameEdit() {
-      console.log('cancelNameEdit called');
       this.editedName = this.originalName;
       this.isEditingName = false;
     },
 
     deletePage() {
-      if (this.currentPageIndex === 0) {
-        console.warn('Cannot delete the first board');
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
         return;
       }
-      
-      // Confirm before deleting
-      if (!confirm('Are you sure you want to delete this board?')) {
+      if (this.totalPages <= 1) {
         return;
       }
-      
-      // Store the current index before deletion
-      const currentIndex = this.currentPageIndex;
-      
-      // Remove the current page
-      this.$store.dispatch('bingo/deletePage', this.currentPageIndex);
-      
-      // Navigate to the previous page
-      this.$store.dispatch('bingo/setCurrentPage', currentIndex - 1);
-      
-      // Save the updated state
-      this.$store.dispatch('bingo/saveCardState');
+      if (confirm('Are you sure you want to delete this board?')) {
+        this.DELETE_PAGE(this.currentPageIndex);
+        this.saveCardState();
+      }
     },
 
     exportBoard() {
-      console.log('Export board functionality coming soon...');
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
+      // Export functionality here
     },
   },
 
-  mounted() {
-    console.log('BingoWidget mounted');
-    this.$emit('mounted');
-    // Emit an event to update the widget title area with navigation
-    this.$emit('update-title-area', {
-      navigation: {
-        currentPageIndex: this.currentPageIndex,
-        totalPages: this.totalPages,
-        currentPageName: this.currentPageName,
-        isEditingName: this.isEditingName,
-        editedName: this.editedName,
-        onPrevious: this.previousPage,
-        onNext: this.nextPage,
-        onStartEdit: this.startNameEdit,
-        onSave: this.saveBoardName,
-        onCancel: this.cancelNameEdit,
-        onDelete: this.deletePage,
-        onExport: this.exportBoard
-      }
-    });
-  },
-
   watch: {
-    score: {
+    getTotalScore: {
       handler(newScore) {
         console.log('Score updated:', newScore);
-        this.$emit('score-updated', newScore);
+        this.$emit('update:score', newScore);
       },
       immediate: true
     },
@@ -232,7 +224,29 @@ export default defineComponent({
         }
       });
     }
-  }
+  },
+
+  mounted() {
+    console.log('BingoWidget mounted');
+    this.$emit('mounted');
+    // Emit an event to update the widget title area with navigation
+    this.$emit('update-title-area', {
+      navigation: {
+        currentPageIndex: this.currentPageIndex,
+        totalPages: this.totalPages,
+        currentPageName: this.currentPageName,
+        isEditingName: this.isEditingName,
+        editedName: this.editedName,
+        onPrevious: this.previousPage,
+        onNext: this.nextPage,
+        onStartEdit: this.startNameEdit,
+        onSave: this.saveBoardName,
+        onCancel: this.cancelNameEdit,
+        onDelete: this.deletePage,
+        onExport: this.exportBoard
+      }
+    });
+  },
 });
 </script>
 

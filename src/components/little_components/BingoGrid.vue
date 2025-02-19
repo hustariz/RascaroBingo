@@ -60,6 +60,21 @@ export default {
     hideTooltip() {
       this.tooltipVisible = null;
     }
+  },
+  watch: {
+    cells: {
+      handler(newCells) {
+        // If tooltip is visible, update its position
+        if (this.tooltipVisible !== null) {
+          const cell = newCells[this.tooltipVisible];
+          if (cell) {
+            // Force tooltip update
+            this.tooltipVisible = null;
+          }
+        }
+      },
+      deep: true
+    }
   }
 }
 </script>

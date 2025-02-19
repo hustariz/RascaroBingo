@@ -9,14 +9,26 @@ const state = {
 const getters = {
   isAuthenticated: state => !!state.token,
   currentUser: state => state.user,
-  isPaidUser: state => state.user?.isPaidUser || false,
+  isPaidUser: state => {
+    console.log('🔑 Checking isPaidUser:', {
+      user: state.user,
+      isPaidUser: state.user?.isPaidUser,
+      token: state.token
+    });
+    return state.user?.isPaidUser || false;
+  },
+  isConnected: () => {
+    const hasToken = !!localStorage.getItem('token');
+    console.log('🔌 Checking isConnected:', hasToken);
+    return hasToken;
+  },
   allUsers: state => state.allUsers
 };
 
 const actions = {
   async login({ commit, dispatch }, credentials) {
     const response = await api.login(credentials);
-    console.log('🔐 Login response full:', response);
+    console.log('🔐 Login response:', response);
     
     // Set token first
     localStorage.setItem('token', response.token);
@@ -40,34 +52,23 @@ const actions = {
 
   async getCurrentUser({ commit }) {
     try {
-      const token = localStorage.getItem('token');
-      console.log('🎫 Getting current user with token:', token ? 'token-exists' : 'no-token');
+      console.log('🔄 Getting current user data...');
+      const userData = await api.getCurrentUser();
+      console.log('✅ Got user data:', userData);
       
-      const response = await api.getCurrentUser();
-      console.log('👥 GetCurrentUser full response:', response);
-      
-      if (response && response.data) {
-        console.log('✅ Setting user data from getCurrentUser:', response.data);
-        commit('setUser', response.data);
-        
-        // Debug current state
-        console.log('🔍 Current store state after getCurrentUser:', {
-          user: response.data,
-          isPaidUser: response.data.isPaidUser
-        });
-        
-        return response;
+      if (userData) {
+        commit('setUser', userData);
+        return userData;
       }
     } catch (error) {
-      console.error('❌ Error in getCurrentUser:', error);
+      console.error('❌ Error getting current user:', error);
       if (error.response?.status === 401) {
-        console.log('⚠️ Unauthorized, clearing user data');
         commit('setUser', null);
-        return null;
+        commit('setToken', null);
+        localStorage.removeItem('token');
       }
       throw error;
     }
-    return null;
   },
 
   logout({ commit }) {
@@ -95,11 +96,10 @@ const actions = {
 
 const mutations = {
   setToken(state, token) {
-    console.log('🔑 Setting token:', token ? 'token-exists' : 'no-token');
     state.token = token;
   },
   setUser(state, user) {
-    console.log('👤 Setting user:', user);
+    console.log('👤 Setting user state:', user);
     state.user = user;
   },
   setAllUsers(state, users) {

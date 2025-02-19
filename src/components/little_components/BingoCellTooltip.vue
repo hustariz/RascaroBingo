@@ -1,6 +1,6 @@
 <template>
   <teleport to="body">
-    <div class="bingo-tooltip" v-show="show" :style="tooltipStyle">
+    <div class="bingo-tooltip" v-show="show" :style="tooltipStyle" :key="tooltipKey">
       <strong>{{ title || 'Not set' }}</strong>
       <br>
       Points: <span class="points">{{ points || '0' }}</span>
@@ -17,6 +17,19 @@ export default {
     points: [Number, String],
     x: Number,
     y: Number
+  },
+  data() {
+    return {
+      tooltipKey: 0
+    };
+  },
+  watch: {
+    title() {
+      this.tooltipKey++; // Force re-render when title changes
+    },
+    points() {
+      this.tooltipKey++; // Force re-render when points change
+    }
   },
   computed: {
     tooltipStyle() {
