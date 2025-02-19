@@ -301,34 +301,47 @@ exports.updateSettings = async (req, res) => {
 // In riskManagementController.js
 exports.resetStopLoss = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
     if (!user) {
-      console.log('❌ Reset SL failed: User not found');
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        msg: 'User not found'
+      });
     }
 
-    console.log('🔄 Attempting to reset SL count for user:', {
-      userId: user._id,
-      currentSL: user.riskManagement.slTaken,
+    // Reset the SL counter
+    user.riskManagement.slTaken = 0;
+    
+    // Save the changes
+    await user.save();
+
+    // Return the full updated risk management state
+    const netPL = (user.riskManagement.dailyStats?.dailyProfit || 0) - (user.riskManagement.dailyStats?.dailyLoss || 0);
+    
+    res.json({
+      success: true,
+      dailyStats: {
+        ...user.riskManagement.dailyStats,
+        netPL
+      },
+      totalStats: user.riskManagement.totalStats,
+      accountSize: user.riskManagement.accountSize,
+      settings: user.riskManagement.settings,
+      slTaken: user.riskManagement.slTaken,
+      tradeStreak: user.riskManagement.tradeStreak,
+      baseTradeSize: user.riskManagement.baseTradeSize,
       currentPercentage: user.riskManagement.currentPercentage
     });
 
-    // Only reset the SL count, preserve other values
-    user.riskManagement.slTaken = 0;
-    
-    // Save the entire user object to ensure we don't lose other fields
-    await user.save();
-
-    console.log('✅ Successfully reset SL count:', {
-      userId: user._id,
-      newSL: user.riskManagement.slTaken,
-      tradeStreak: user.riskManagement.tradeStreak
-    });
-
-    res.json(user.riskManagement);
   } catch (error) {
-    console.error('❌ Reset SL failed:', error);
-    res.status(500).json({ message: error.message });
+    console.error(' [RISK] Error resetting stoploss counter:', error);
+    res.status(500).json({
+      success: false,
+      msg: 'Server error',
+      error: error.message
+    });
   }
 };
 

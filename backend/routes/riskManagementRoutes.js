@@ -8,7 +8,7 @@ const auth = require('../middleware/auth');
 router.get('/', auth, riskManagementController.getRiskManagement);
 router.post('/update', auth, riskManagementController.updateRiskManagement);
 router.post('/settings', auth, riskManagementController.updateSettings);
-router.post('/reset', auth, riskManagementController.resetStopLoss);
+router.post('/reset-sl', auth, riskManagementController.resetStopLoss);
 router.post('/reset-stats', auth, riskManagementController.resetDailyStats); 
 
 module.exports = router;

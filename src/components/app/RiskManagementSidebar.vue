@@ -236,47 +236,19 @@ export default {
   methods: {
     async handleGrassResponse(touched) {
       if (touched) {
+        console.log('🌱 User touched grass, attempting to reset SL count');
         try {
-          console.log('🌱 User touched grass, attempting to reset SL count');
-          const token = localStorage.getItem('token');
-          if (!token) throw new Error('No authentication token found');
-
-          // Update backend
-          const response = await fetch('http://localhost:3004/api/risk-management/reset', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          if (!response.ok) throw new Error('Failed to reset stoploss counter');
-          
-          const data = await response.json();
-          console.log('✅ SL count reset successful:', data);
-
-          // Update Vuex store
-          this.$store.commit('riskManagement/SET_RISK_MANAGEMENT', {
-            data: {
-              ...this.$store.state.riskManagement,
-              slTaken: 0
-            }
-          });
-
+          await this.$store.dispatch('riskManagement/resetStopLossCounter');
           this.showTooltip = false;
           this.askingForGrass = false;
         } catch (error) {
           console.error('❌ Error resetting SL count:', error);
         }
       } else {
-        console.log('❌ User did not touch grass, keeping SL count');
+        console.log('❌ User has not touched grass');
         this.showTooltip = false;
         this.askingForGrass = false;
       }
-    },
-    toggleSidebar() {
-      this.isCollapsed = !this.isCollapsed;
-      this.$emit('sidebar-toggle', this.isCollapsed);
     },
 
     async updateAccountSize() {
@@ -285,10 +257,11 @@ export default {
           accountSize: this.localAccountSize,
           baseTradeSize: this.localTradeSize
         });
-        // Update current percentage after account size change
-        this.currentPercentage = Number(this.calculatePercentage);
+        console.log('✅ Account size updated successfully');
       } catch (error) {
-        console.error('Error updating account size:', error);
+        console.error('❌ Error updating account size:', error);
+        // Revert to store value if update fails
+        this.localAccountSize = this.$store.state.riskManagement.accountSize;
       }
     },
     
