@@ -18,6 +18,7 @@
 <script>
 import Navbar from '@/components/app/AppNavbar.vue'
 import TradeHistorySection from '@/components/app/TradeHistorySection.vue'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'App',
@@ -32,14 +33,18 @@ export default {
       showRegisterForm: false
     }
   },
-  async beforeMount() {
+  methods: {
+    ...mapActions('user', ['getCurrentUser'])
+  },
+  async created() {
     // Check if auth state exists before accessing token
-    if (this.$store.state.auth?.token) {
+    if (localStorage.getItem('token')) {
       try {
-        await this.$store.dispatch('riskManagement/fetchRiskManagement');
-        console.log('Risk management data initialized');
+        // Load user data first
+        const userData = await this.getCurrentUser();
+        console.log('👤 User data initialized:', userData);
       } catch (error) {
-        console.error('Error loading risk management data:', error);
+        console.error('Error loading user data:', error);
       }
     }
   }

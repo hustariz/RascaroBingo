@@ -191,14 +191,18 @@
               <component 
                 :is="item.component"
                 v-if="item.i !== 'bingo'"
-                v-bind="item.props || {}"
+                v-bind="item.props"
                 @update:score="handleScoreUpdate"
+                @open-trade-history="$emit('open-trade-history')"
               />
-              <BingoWidget
-                v-else
+              <BingoWidget 
+                v-else-if="item.i === 'bingo'"
                 ref="bingoWidget"
+                :score="currentScore"
                 @update:score="handleScoreUpdate"
                 @mounted="bingoWidgetRef = $refs.bingoWidget"
+                @cell-click="handleCellClick"
+                @open-edit-modal="openEditModal"
               />
             </div>
             <div class="vue-resizable-handle"></div>
@@ -216,21 +220,21 @@
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="showEditModal" class="modal modal-edit">
-      <div class="modal-content modal-content-edit">
+    <div v-if="editModalVisible" class="modal">
+      <div class="modal-content">
         <h3>Edit Bingo Cell</h3>
-        <div class="modal-form modal-form-edit">
-          <div class="form-group form-group-edit">
+        <div class="modal-form">
+          <div class="form-group">
             <label>Title:</label>
-            <input v-model="editingCell.title" type="text" placeholder="Enter title">
+            <input v-model="editedCell.title" type="text" placeholder="Enter title">
           </div>
-          <div class="form-group form-group-edit">
+          <div class="form-group">
             <label>Points:</label>
-            <input v-model.number="editingCell.points" type="number" min="0">
+            <input v-model.number="editedCell.points" type="number" min="0">
           </div>
-          <div class="modal-buttons modal-buttons-edit">
-            <button @click="saveEditedCell" class="save-button save-button-edit">Save</button>
-            <button @click="closeEditModal" class="cancel-button cancel-button-edit">Cancel</button>
+          <div class="modal-buttons">
+            <button @click="saveEditedCell" class="save-button">Save</button>
+            <button @click="closeEditModal" class="cancel-button">Cancel</button>
           </div>
         </div>
       </div>
@@ -266,17 +270,6 @@ export default defineComponent({
 
   data() {
     return {
-      workflowTooltipVisible: false,
-      workflowTooltipNumber: null,
-      workflowTooltipX: 0,
-      workflowTooltipY: 0,
-      showEditModal: false,
-      editingCell: null,
-      editingCellIndex: null,
-      showPremiumLock: false,
-      isSidebarCollapsed: false,
-      gridWidth: 1200,
-      gridHeight: 800,
       currentScore: 0,
       layout: [
         {
@@ -292,11 +285,8 @@ export default defineComponent({
           minH: 9,
           maxW: 12,
           maxH: 12,
-          props: {},
-          on: {
-            'score-updated': 'handleScoreUpdate',
-            'edit-cell': 'openEditModal',
-            'update-title-area': 'updateWidgetNavigation'
+          props: {
+            score: 0
           }
         },
         {
@@ -304,20 +294,20 @@ export default defineComponent({
           y: 0,
           w: 2,
           h: 9,  // Match Bingo Grid height
-          i: "risk-reward",
+          i: "risk",
           title: "Score: Risk/Reward",
           workflowNumber: 3,
           component: markRaw(RiskRewardWidget),
-          props: {
-            score: 0
-          },
           minW: 2,
           minH: 9,  // Match Bingo Grid min height
           maxW: 12,
-          maxH: 12
+          maxH: 12,
+          props: {
+            score: 0
+          }
         },
         {
-          x: 0,  // Trade's Idea on second row
+          x: 0,
           y: 9,
           w: 3,
           h: 6,
@@ -331,7 +321,7 @@ export default defineComponent({
           maxH: 12
         },
         {
-          x: 3,  // Trade's Details next to Trade's Idea
+          x: 3,
           y: 9,
           w: 4,  /* Set to match minW */
           h: 6,
@@ -339,20 +329,35 @@ export default defineComponent({
           title: "Trade's Details",
           workflowNumber: 4,
           component: markRaw(TradeDetailsWidget),
-          props: {
-            score: 0
-          },
           minW: 4,
           minH: 6,
           maxW: 12,
-          maxH: 12
+          maxH: 12,
+          props: {
+            score: 0
+          }
         }
       ],
+      workflowTooltipVisible: false,
+      workflowTooltipNumber: null,
+      workflowTooltipX: 0,
+      workflowTooltipY: 0,
+      editModalVisible: false,
+      editedCell: {
+        title: '',
+        points: 0,
+        selected: false
+      },
+      editingCellIndex: null,
+      showPremiumLock: false,
+      isSidebarCollapsed: false,
+      bingoWidgetRef: null,
+      gridWidth: 0,
+      gridHeight: 0,
       isDragging: false,
       exportTooltipVisible: false,
       exportTooltipX: 0,
       exportTooltipY: 0,
-      bingoWidgetRef: null
     };
   },
 
@@ -365,6 +370,9 @@ export default defineComponent({
     ]),
     ...mapGetters('user', ['isPaidUser']),
     
+    isPremium() {
+      return this.isPaidUser;
+    },
     activeCells() {
       return this.getCurrentPage?.bingoCells || [];
     },
@@ -390,7 +398,7 @@ export default defineComponent({
         return this.getCurrentPage?.name || 'Board 1';
       },
       set(newName) {
-        if (!this.isPremiumUser) {
+        if (!this.isPremium) {
           this.showPremiumLock = true;
           return;
         }
@@ -447,62 +455,63 @@ export default defineComponent({
     },
 
     openEditModal(cellIndex) {
-      const currentPage = this.getCurrentPage;
-      if (!currentPage || !currentPage.bingoCells) return;
-
-      this.editingCellIndex = cellIndex;
-      this.editingCell = { ...currentPage.bingoCells[cellIndex] };
-      this.showEditModal = true;
+      console.log('Opening edit modal for cell:', cellIndex);
+      const currentCell = this.getCurrentPage?.bingoCells[cellIndex];
+      if (currentCell) {
+        this.editingCellIndex = cellIndex;
+        this.editedCell = {
+          title: currentCell.title || '',
+          points: currentCell.points || 0,
+          selected: currentCell.selected || false
+        };
+        this.editModalVisible = true;
+      }
     },
 
     closeEditModal() {
-      this.showEditModal = false;
-      this.editingCell = null;
+      this.editModalVisible = false;
       this.editingCellIndex = null;
+      this.editedCell = {
+        title: '',
+        points: 0,
+        selected: false
+      };
     },
 
-    async saveEditedCell() {
-      if (!this.editingCell || this.editingCellIndex === null) return;
-
-      try {
-        await this.editCell(this.editingCellIndex, this.editingCell);
-        this.closeEditModal();
-      } catch (error) {
-        // Handle error
-      }
-    },
-
-    async handleCellClick(cellIndex) {
-      const currentPage = this.getCurrentPage;
-      if (currentPage && currentPage.bingoCells && currentPage.bingoCells[cellIndex]) {
-        const cell = currentPage.bingoCells[cellIndex];
-        this.$store.commit('bingo/UPDATE_CELL', {
-          pageIndex: this.currentPageIndex,
-          cellIndex,
-          cell: { ...cell, selected: !cell.selected }
-        });
-      } else {
-        // Handle invalid cell index or cells not loaded
-      }
-    },
-
-    async editCell(cellIndex, newData) {
-      try {
-        const currentPage = this.getCurrentPage;
-        if (!currentPage || !currentPage.bingoCells) {
-          // Handle invalid page structure
-          return;
+    saveEditedCell() {
+      if (this.editingCellIndex !== null) {
+        const currentCell = this.getCurrentPage?.bingoCells[this.editingCellIndex];
+        if (currentCell) {
+          this.editCell(this.editingCellIndex, {
+            ...currentCell,
+            title: this.editedCell.title,
+            points: this.editedCell.points
+          });
         }
+      }
+      this.closeEditModal();
+    },
+    handleCellClick(cellIndex) {
+      console.log('Cell clicked:', cellIndex);
+      const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
+      if (bingoWidget?.handleCellClick) {
+        bingoWidget.handleCellClick(cellIndex);
+      }
+    },
 
-        const cell = { ...currentPage.bingoCells[cellIndex], ...newData };
-
+    editCell(cellIndex, newData) {
+      console.log('Editing cell:', cellIndex, newData);
+      const currentPage = this.getCurrentPage;
+      if (currentPage && currentPage.bingoCells[cellIndex]) {
         this.$store.commit('bingo/UPDATE_CELL', {
-          pageIndex: this.getCurrentPageIndex,
+          pageIndex: this.$store.state.bingo.currentPageIndex,
           cellIndex,
-          cell
+          cell: {
+            ...currentPage.bingoCells[cellIndex],
+            ...newData
+          }
         });
-      } catch (error) {
-        // Handle error
+        this.$store.dispatch('bingo/saveCardState');
       }
     },
     showWorkflowTooltip(event, number) {
@@ -541,16 +550,22 @@ export default defineComponent({
       this.exportTooltipVisible = false;
     },
     handleScoreUpdate(score) {
+      console.log('Score update received:', score);
       this.currentScore = score;
-      // Update RiskRewardWidget props
-      const riskRewardWidget = this.layout.find(item => item.i === 'risk-reward');
-      if (riskRewardWidget) {
-        riskRewardWidget.props.score = score;
-      }
-      // Update TradeDetailsWidget props
+      
+      // Update score in all relevant widgets
+      const bingoWidget = this.layout.find(item => item.i === 'bingo');
+      const riskWidget = this.layout.find(item => item.i === 'risk');
       const tradeDetailsWidget = this.layout.find(item => item.i === 'trade-details');
+      
+      if (bingoWidget) {
+        bingoWidget.props = { ...bingoWidget.props, score };
+      }
+      if (riskWidget) {
+        riskWidget.props = { ...riskWidget.props, score };
+      }
       if (tradeDetailsWidget) {
-        tradeDetailsWidget.props.score = score;
+        tradeDetailsWidget.props = { ...tradeDetailsWidget.props, score };
       }
     },
     updateWidgetNavigation(widgetId, { navigation }) {
@@ -581,6 +596,10 @@ export default defineComponent({
     },
     handleStartNameEdit() {
       console.log('Board name clicked');
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
       const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
       console.log('BingoWidget ref:', bingoWidget);
       if (bingoWidget?.startNameEdit) {
@@ -591,7 +610,10 @@ export default defineComponent({
     },
 
     handleNextPage() {
-      console.log('Next button clicked');
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
       const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
       console.log('BingoWidget ref:', bingoWidget);
       if (bingoWidget?.nextPage) {
@@ -602,7 +624,10 @@ export default defineComponent({
     },
 
     handlePreviousPage() {
-      console.log('Previous button clicked');
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
       const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
       console.log('BingoWidget ref:', bingoWidget);
       if (bingoWidget?.previousPage) {
@@ -633,7 +658,10 @@ export default defineComponent({
     },
 
     handleDeletePage() {
-      console.log('Delete button clicked');
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
       const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
       console.log('BingoWidget ref:', bingoWidget);
       if (bingoWidget?.deletePage) {

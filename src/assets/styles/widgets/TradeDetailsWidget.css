@@ -284,17 +284,19 @@ input[readonly]:not(.editable) {
   border-color: rgba(255, 215, 0, 0.5);
 }
 
-/* Trade Details Actions */
-.trade-details-widget .tradedetails-actions {
+/* Action Buttons */
+.tradedetails-actions {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: 10px;
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 1rem;
 }
 
-.trade-details-widget .tradedetails-save-button,
-.trade-details-widget .tradedetails-history-button {
+.tradedetails-save-button,
+.tradedetails-history-button {
   flex: 1;
+  position: relative;
   padding: 0.75rem 1rem;
   border-radius: 0.375rem;
   font-family: 'Montserrat', 'Roboto', sans-serif;
@@ -302,69 +304,98 @@ input[readonly]:not(.editable) {
   font-size: 1rem;
   letter-spacing: 0.0188rem;
   cursor: pointer;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition: all 0.3s ease;
   text-transform: uppercase;
 }
 
-.trade-details-widget .long-mode .tradedetails-save-button {
-  background: linear-gradient(135deg, rgba(0, 89, 0, 0.95), rgba(205, 127, 50, 0.05)) !important;
-  border: 1px solid rgba(255, 215, 0, 0.5) !important;
-  color: rgb(255, 215, 0) !important;
-  box-shadow: none !important;
+.long-mode .tradedetails-save-button {
+  background: linear-gradient(135deg, rgba(0, 89, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  color: rgb(255, 215, 0);
+  box-shadow: none;
 }
 
-.trade-details-widget .long-mode .tradedetails-save-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(0, 89, 0, 1), rgba(205, 127, 50, 0.1)) !important;
-  border-color: rgba(255, 215, 0, 0.8) !important;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2) !important;
-  transform: translateY(-1px) !important;
+.long-mode .tradedetails-save-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(0, 89, 0, 1), rgba(205, 127, 50, 0.1));
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+  transform: translateY(-1px);
 }
 
-.trade-details-widget .tradedetails-content:not(.long-mode) .tradedetails-save-button {
-  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05)) !important;
-  border: 1px solid rgba(255, 215, 0, 0.5) !important;
-  color: rgb(255, 215, 0) !important;
-  box-shadow: none !important;
+.tradedetails-content:not(.long-mode) .tradedetails-save-button {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  color: rgb(255, 215, 0);
+  box-shadow: none;
 }
 
-.trade-details-widget .tradedetails-content:not(.long-mode) .tradedetails-save-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(89, 0, 0, 1), rgba(205, 127, 50, 0.1)) !important;
-  border-color: rgba(255, 215, 0, 0.8) !important;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2) !important;
-  transform: translateY(-1px) !important;
+.tradedetails-content:not(.long-mode) .tradedetails-save-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 1), rgba(205, 127, 50, 0.1));
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+  transform: translateY(-1px);
 }
 
-.trade-details-widget .tradedetails-save-button:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-  box-shadow: none !important;
+.tradedetails-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-.trade-details-widget .tradedetails-history-button {
-  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05)) !important;
-  border: 1px solid rgba(255, 215, 0, 0.5) !important;
-  color: rgb(255, 215, 0) !important;
+.tradedetails-history-button {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  color: rgb(255, 215, 0);
 }
 
-.trade-details-widget .tradedetails-history-button:hover {
-  background: linear-gradient(135deg, rgba(89, 0, 0, 1), rgba(205, 127, 50, 0.1)) !important;
-  border-color: rgba(255, 215, 0, 0.8) !important;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2) !important;
-  transform: translateY(-1px) !important;
+.tradedetails-history-button:hover {
+  background: linear-gradient(135deg, rgba(89, 0, 0, 1), rgba(205, 127, 50, 0.1));
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+  transform: translateY(-1px);
+  opacity: 0.9;
 }
 
-.trade-details-widget .long-mode .tradedetails-history-button {
-  background: linear-gradient(135deg, rgba(0, 89, 0, 0.95), rgba(205, 127, 50, 0.05)) !important;
-  border: 1px solid rgba(255, 215, 0, 0.5) !important;
-  color: rgb(255, 215, 0) !important;
+.long-mode .tradedetails-history-button {
+  background: linear-gradient(135deg, rgba(0, 89, 0, 0.95), rgba(205, 127, 50, 0.05));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  color: rgb(255, 215, 0);
 }
 
-.trade-details-widget .long-mode .tradedetails-history-button:hover {
-  background: linear-gradient(135deg, rgba(0, 89, 0, 1), rgba(205, 127, 50, 0.1)) !important;
-  border-color: rgba(255, 215, 0, 0.8) !important;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2) !important;
-  transform: translateY(-1px) !important;
+.long-mode .tradedetails-history-button:hover {
+  background: linear-gradient(135deg, rgba(0, 89, 0, 1), rgba(205, 127, 50, 0.1));
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.tradedetails-history-icon {
+  font-size: 1.2em;
+}
+
+/* Notification Bubble */
+.notification-bubble {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Trade History Section */
