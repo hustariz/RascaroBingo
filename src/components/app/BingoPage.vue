@@ -328,13 +328,13 @@ export default defineComponent({
           title: "Trade's Details",
           workflowNumber: 4,
           component: markRaw(TradeDetailsWidget),
-          props: {
-            score: 0
-          },
           minW: 4,
           minH: 6,
           maxW: 12,
-          maxH: 12
+          maxH: 12,
+          props: {
+            score: 0
+          }
         }
       ],
       workflowTooltipVisible: false,
@@ -552,15 +552,19 @@ export default defineComponent({
       console.log('Score update received:', score);
       this.currentScore = score;
       
-      // Update score in both widgets
+      // Update score in all relevant widgets
       const bingoWidget = this.layout.find(item => item.i === 'bingo');
       const riskWidget = this.layout.find(item => item.i === 'risk');
+      const tradeDetailsWidget = this.layout.find(item => item.i === 'trade-details');
       
       if (bingoWidget) {
         bingoWidget.props = { ...bingoWidget.props, score };
       }
       if (riskWidget) {
         riskWidget.props = { ...riskWidget.props, score };
+      }
+      if (tradeDetailsWidget) {
+        tradeDetailsWidget.props = { ...tradeDetailsWidget.props, score };
       }
     },
     updateWidgetNavigation(widgetId, { navigation }) {
