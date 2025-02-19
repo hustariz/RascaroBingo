@@ -191,8 +191,9 @@
               <component 
                 :is="item.component"
                 v-if="item.i !== 'bingo'"
-                v-bind="item.props || {}"
+                v-bind="item.props"
                 @update:score="handleScoreUpdate"
+                @open-trade-history="$emit('open-trade-history')"
               />
               <BingoWidget 
                 v-else-if="item.i === 'bingo'"

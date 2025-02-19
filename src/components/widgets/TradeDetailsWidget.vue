@@ -298,12 +298,6 @@ export default defineComponent({
         console.error('Failed to save trade:', error);
       }
     },
-    clearForm() {
-      this.stoploss = '';
-      this.entry = '';
-      this.target = '';
-      this.isTargetEditable = false;
-    },
     validateTrade() {
       if (!this.stoploss || !this.entry || !this.target) {
         return false;
