@@ -13,7 +13,7 @@
 <script>
 import { defineComponent } from 'vue';
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex';
-import BingoGrid from '@/components/app/BingoGrid.vue';
+import BingoGrid from '@/components/little_components/BingoGrid.vue';
 
 export default defineComponent({
   name: 'BingoWidget',
