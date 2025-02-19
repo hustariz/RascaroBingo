@@ -49,7 +49,65 @@
               <div class="vue-draggable-handle">
                 <div class="widget-title-area" style="display: flex; align-items: center;">
                   <div class="widget-title">{{ item.title }}</div>
-                  <template v-if="item.navigation">
+                  <template v-if="item.i === 'bingo'">
+                    <div class="widget-navigation" style="margin-left: 0.5rem;">
+                      <button 
+                        class="page-nav-button"
+                        @click="handlePreviousPage"
+                        :disabled="(Array.isArray(bingoWidgetRef) ? bingoWidgetRef[0]?.currentPageIndex : bingoWidgetRef?.currentPageIndex) === 0"
+                      >
+                        ←
+                      </button>
+
+                      <div class="board-name-container">
+                        <template v-if="Array.isArray(bingoWidgetRef) ? bingoWidgetRef[0]?.isEditingName : bingoWidgetRef?.isEditingName">
+                          <input
+                            ref="nameInput"
+                            v-model="(Array.isArray(bingoWidgetRef) ? bingoWidgetRef[0] : bingoWidgetRef).editedName"
+                            class="board-name-input"
+                            @blur="handleSaveBoardName"
+                            @keyup.enter="handleSaveBoardName"
+                            @keyup.esc="handleCancelNameEdit"
+                            placeholder="Default Board"
+                          />
+                        </template>
+                        <template v-else>
+                          <div 
+                            class="board-name"
+                            @click="handleStartNameEdit"
+                          >
+                            {{ (Array.isArray(bingoWidgetRef) ? bingoWidgetRef[0] : bingoWidgetRef)?.currentPageName || 'Default Board' }}
+                          </div>
+                        </template>
+                      </div>
+
+                      <button 
+                        class="page-nav-button"
+                        @click="handleNextPage"
+                        :disabled="false"
+                      >
+                        →
+                      </button>
+
+                      <button 
+                        class="page-nav-button delete-button"
+                        @click="handleDeletePage"
+                        :disabled="(Array.isArray(bingoWidgetRef) ? bingoWidgetRef[0]?.currentPageIndex : bingoWidgetRef?.currentPageIndex) === 0"
+                        title="Delete current board"
+                      >
+                        🗑
+                      </button>
+
+                      <button 
+                        class="page-nav-button export-button"
+                        @click="handleExportBoard"
+                        title="Export current board"
+                      >
+                        ↓
+                      </button>
+                    </div>
+                  </template>
+                  <template v-else-if="item.navigation">
                     <div class="widget-navigation" style="margin-left: 0.5rem;">
                       <button 
                         class="page-nav-button"
@@ -129,18 +187,19 @@
                 <div class="drag-icon"></div>
               </div>
             </div>
-            <div class="widget-content no-drag">
+            <div class="widget-content">
               <component 
-                :is="item.component" 
-                v-if="item.component" 
-                v-bind="item.props" 
-                @open-trade-history="$emit('open-trade-history')"
-                @edit-cell="openEditModal"
-                @score-updated="handleScoreUpdate"
-                @update-title-area="updateWidgetNavigation(item.i, $event)"
+                :is="item.component"
+                v-if="item.i !== 'bingo'"
+                v-bind="item.props || {}"
+                @update:score="handleScoreUpdate"
+              />
+              <BingoWidget
+                v-else
                 ref="bingoWidget"
-              ></component>
-              <div v-else>Widget {{ item.i }}</div>
+                @update:score="handleScoreUpdate"
+                @mounted="bingoWidgetRef = $refs.bingoWidget"
+              />
             </div>
             <div class="vue-resizable-handle"></div>
           </div>
@@ -180,10 +239,10 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
-import { mapState, mapGetters, useStore } from 'vuex';
-import { markRaw } from 'vue';
+import { defineComponent } from 'vue';
+import { mapState, mapGetters } from 'vuex';
 import BingoWidget from '@/components/widgets/BingoWidget.vue';
+import { markRaw } from 'vue';
 import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
 import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
@@ -195,28 +254,14 @@ export default defineComponent({
   name: 'BingoPage',
   
   components: {
+    BingoWidget,
     RiskManagementSidebar,
     PremiumLock,
     GridLayout,
     GridItem,
-    BingoWidget,
     RiskRewardWidget,
     TradeIdeaWidget,
     TradeDetailsWidget
-  },
-
-  setup() {
-    const store = useStore();
-    
-    // Get premium status directly from store
-    const isPremiumUser = computed(() => {
-      const status = store.getters['user/isPaidUser'];
-      return status;
-    });
-
-    return {
-      isPremiumUser,
-    };
   },
 
   data() {
@@ -306,7 +351,8 @@ export default defineComponent({
       isDragging: false,
       exportTooltipVisible: false,
       exportTooltipX: 0,
-      exportTooltipY: 0
+      exportTooltipY: 0,
+      bingoWidgetRef: null
     };
   },
 
@@ -362,36 +408,24 @@ export default defineComponent({
     }
   },
 
-  mounted() {
-    this.$nextTick(() => {
-      // Get reference to BingoWidget component
-      const bingoWidget = this.$refs.bingoWidget;
-      if (bingoWidget) {
-        // Update layout with navigation methods
-        this.layout = this.layout.map(item => {
-          if (item.i === 'bingo') {
-            return {
-              ...item,
-              navigation: {
-                currentPageIndex: bingoWidget.currentPageIndex,
-                totalPages: bingoWidget.totalPages,
-                currentPageName: bingoWidget.currentPageName,
-                isEditingName: bingoWidget.isEditingName,
-                editedName: bingoWidget.editedName,
-                onPrevious: bingoWidget.previousPage,
-                onNext: bingoWidget.nextPage,
-                onStartEdit: bingoWidget.startNameEdit,
-                onSave: bingoWidget.saveBoardName,
-                onCancel: bingoWidget.cancelNameEdit,
-                onDelete: bingoWidget.deletePage,
-                onExport: bingoWidget.exportBoard
-              }
-            };
-          }
-          return item;
-        });
-      }
-    });
+  watch: {
+    bingoWidgetRef: {
+      handler(newRef) {
+        console.log('BingoWidget ref updated:', newRef);
+        const widget = Array.isArray(newRef) ? newRef[0] : newRef;
+        if (widget) {
+          // Initialize any necessary state
+          console.log('BingoWidget methods:', {
+            startNameEdit: typeof widget.startNameEdit,
+            saveBoardName: typeof widget.saveBoardName,
+            previousPage: typeof widget.previousPage,
+            nextPage: typeof widget.nextPage,
+            deletePage: typeof widget.deletePage
+          });
+        }
+      },
+      immediate: true
+    }
   },
 
   methods: {
@@ -544,7 +578,90 @@ export default defineComponent({
     },
     onLayoutReady() {
       console.log('Layout ready');
+    },
+    handleStartNameEdit() {
+      console.log('Board name clicked');
+      const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
+      console.log('BingoWidget ref:', bingoWidget);
+      if (bingoWidget?.startNameEdit) {
+        bingoWidget.startNameEdit();
+      } else {
+        console.warn('startNameEdit method not found on bingoWidget');
+      }
+    },
+
+    handleNextPage() {
+      console.log('Next button clicked');
+      const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
+      console.log('BingoWidget ref:', bingoWidget);
+      if (bingoWidget?.nextPage) {
+        bingoWidget.nextPage();
+      } else {
+        console.warn('nextPage method not found on bingoWidget');
+      }
+    },
+
+    handlePreviousPage() {
+      console.log('Previous button clicked');
+      const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
+      console.log('BingoWidget ref:', bingoWidget);
+      if (bingoWidget?.previousPage) {
+        bingoWidget.previousPage();
+      } else {
+        console.warn('previousPage method not found on bingoWidget');
+      }
+    },
+
+    handleSaveBoardName() {
+      console.log('Save board name');
+      const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
+      if (bingoWidget?.saveBoardName) {
+        bingoWidget.saveBoardName();
+      } else {
+        console.warn('saveBoardName method not found on bingoWidget');
+      }
+    },
+
+    handleCancelNameEdit() {
+      console.log('Cancel name edit');
+      const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
+      if (bingoWidget?.cancelNameEdit) {
+        bingoWidget.cancelNameEdit();
+      } else {
+        console.warn('cancelNameEdit method not found on bingoWidget');
+      }
+    },
+
+    handleDeletePage() {
+      console.log('Delete button clicked');
+      const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
+      console.log('BingoWidget ref:', bingoWidget);
+      if (bingoWidget?.deletePage) {
+        bingoWidget.deletePage();
+      } else {
+        console.warn('deletePage method not found on bingoWidget');
+      }
+    },
+    handleExportBoard() {
+      console.log('Export button clicked');
+      const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
+      if (bingoWidget?.exportBoard) {
+        bingoWidget.exportBoard();
+      } else {
+        console.warn('exportBoard method not found on bingoWidget');
+      }
     }
+  },
+
+  mounted() {
+    console.log('BingoPage mounted');
+    this.$store.dispatch('bingo/loadUserCard');
+    
+    this.$nextTick(() => {
+      console.log('BingoPage nextTick');
+      this.bingoWidgetRef = this.$refs.bingoWidget;
+      console.log('BingoWidget ref in mounted:', this.bingoWidgetRef);
+    });
   },
 });
 </script>
