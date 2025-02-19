@@ -9,6 +9,7 @@
           </button>
           <button class="action-button nuke-positions" title="Close All Positions" @click="confirmNukePositions">
             💣
+            <span v-if="openTradesCount > 0" class="notification-bubble">{{ openTradesCount }}</span>
           </button>
         </div>
       </div>
@@ -155,7 +156,7 @@ export default {
   props: {
     isVisible: {
       type: Boolean,
-      default: false
+      required: true
     },
     isSidebarCollapsed: {
       type: Boolean,
@@ -166,6 +167,7 @@ export default {
     const store = useStore();
     const loading = ref(true);
     const editingTrade = ref(null);
+    const openTradesCount = computed(() => store.getters['trades/openTradesCount']);
 
     // Computed property to sort trades by status (open first) and then by date
     const trades = computed(() => {
@@ -330,6 +332,7 @@ export default {
       trades,
       loading,
       editingTrade,
+      openTradesCount,
       getStatusText,
       formatDate,
       updateTradeStatus,
@@ -344,3 +347,27 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.notification-bubble {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.action-button {
+  position: relative;
+}
+</style>

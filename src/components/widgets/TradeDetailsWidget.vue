@@ -86,6 +86,7 @@
       <div class="tradedetails-actions">
         <button 
           class="tradedetails-save-button"
+          :class="{ 'long': isLong, 'short': !isLong }"
           @click="saveTrade"
           :disabled="!validateTrade()"
         >
@@ -98,6 +99,7 @@
         >
           <span class="tradedetails-history-icon">📊</span>
           Trade History
+          <span v-if="openTradesCount > 0" class="notification-bubble">{{ openTradesCount }}</span>
         </button>
       </div>
     </div>
@@ -106,8 +108,9 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { mapState } from 'vuex';
+import { useStore } from 'vuex';
 import TargetTooltip from '../little_components/TargetTooltip.vue';
 
 export default defineComponent({
@@ -121,16 +124,25 @@ export default defineComponent({
       default: 0
     }
   },
+  setup() {
+    const store = useStore();
+    const openTradesCount = computed(() => store.getters['trades/openTradesCount']);
+
+    return {
+      openTradesCount
+    };
+  },
   data() {
     return {
-      stoploss: null,
-      entry: null,
-      target: null,
+      stoploss: '',
+      entry: '',
+      target: '',
       previousTarget: '',
       trades: [],
       isLong: false,
       isResizing: false,
       isTargetEditable: false,
+      pair: 'BTCUSDT', // Default trading pair
       baseRR: 1 // Base R:R ratio
     }
   },
@@ -269,33 +281,50 @@ export default defineComponent({
     },
 
     async saveTrade() {
-      if (!this.validateTrade()) return;
+      if (!this.validateTrade()) {
+        console.error('❌ Trade validation failed');
+        return;
+      }
 
       const trade = {
-        type: this.isLong ? 'LONG' : 'SHORT',
-        entry: parseFloat(this.entry),
-        stoploss: parseFloat(this.stoploss),
-        target: parseFloat(this.target),
+        isLong: this.isLong,
+        entryPrice: parseFloat(this.entry),
+        stopLoss: parseFloat(this.stoploss),
+        takeProfit: parseFloat(this.target),
         size: this.baseTradeSize,
         rr: parseFloat(this.currentRR),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        status: 'OPEN',
+        pair: this.pair
       };
+
+      console.log('📝 Saving trade:', trade);
+      console.log('🔑 Auth token:', localStorage.getItem('token'));
 
       try {
         // Save trade to store
-        await this.$store.dispatch('trades/addTrade', trade);
+        await this.$store.dispatch('trades/saveTrade', trade);
+        console.log('✅ Trade saved successfully');
         
         // Update risk management stats
         this.$store.dispatch('riskManagement/updateFromTradeResult', {
-          type: trade.type,
-          entry: trade.entry,
+          type: this.isLong ? 'LONG' : 'SHORT',
+          entry: trade.entryPrice,
           size: trade.size,
           rr: trade.rr
         });
 
-        this.clearForm();
+        // Clear form after successful save
+        this.stoploss = '';
+        this.entry = '';
+        this.target = '';
+        this.isTargetEditable = false;
       } catch (error) {
-        console.error('Failed to save trade:', error);
+        console.error('❌ Failed to save trade:', error);
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data
+        });
       }
     },
     validateTrade() {
@@ -329,7 +358,8 @@ export default defineComponent({
 });
 </script>
 
-<style>
+<style scoped>
 @import '@/assets/styles/widgets/common.css';
 @import '@/assets/styles/widgets/TradeDetailsWidget.css';
+
 </style>

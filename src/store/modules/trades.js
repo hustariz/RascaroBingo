@@ -193,5 +193,6 @@ export default {
     isLoading: state => state.loading,
     error: state => state.error,
     openTradesCount: state => state.trades.filter(trade => trade.status === 'OPEN').length,
+    openTrades: state => state.trades.filter(trade => trade.status === 'OPEN')
   }
 };
