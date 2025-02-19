@@ -22,6 +22,19 @@ export default defineComponent({
     BingoGrid,
   },
 
+  expose: [
+    'startNameEdit',
+    'saveBoardName',
+    'cancelNameEdit',
+    'previousPage',
+    'nextPage',
+    'deletePage',
+    'currentPageName',
+    'currentPageIndex',
+    'isEditingName',
+    'editedName'
+  ],
+
   data() {
     return {
       isEditingName: false,
@@ -54,7 +67,7 @@ export default defineComponent({
   },
 
   methods: {
-  ...mapActions('bingo', ['updatePage', 'setCurrentPageIndex', 'saveCardState']), 
+  ...mapActions('bingo', ['updatePage', 'setCurrentPageIndex', 'saveCardState', 'DELETE_PAGE']), 
   ...mapMutations('bingo', ['TOGGLE_CELL', 'ADD_PAGE']),
 
     handleCellClick(cellIndex) {
@@ -67,15 +80,22 @@ export default defineComponent({
     },
 
     previousPage() {
+      console.log('previousPage called');
+      console.log('Current index:', this.currentPageIndex);
       if (this.currentPageIndex > 0) {
         this.setCurrentPageIndex(this.currentPageIndex - 1);
+        console.log('New index:', this.currentPageIndex - 1);
       }
     },
 
     nextPage() {
+      console.log('nextPage called');
+      console.log('Current index:', this.currentPageIndex);
+      console.log('Total pages:', this.totalPages);
       if (this.currentPageIndex < this.totalPages - 1) {
         this.setCurrentPageIndex(this.currentPageIndex + 1);
       } else {
+        console.log('Adding new page');
         this.ADD_PAGE(); // Now using ADD_PAGE as mutation
         this.setCurrentPageIndex(this.bingoPages.length - 1);
       }
@@ -83,41 +103,70 @@ export default defineComponent({
     },
 
     startNameEdit() {
+      console.log('startNameEdit called');
+      console.log('Current name:', this.currentPageName);
       this.originalName = this.currentPageName;
       this.editedName = this.currentPageName;
       this.isEditingName = true;
       this.$nextTick(() => {
+        console.log('Focusing input');
         this.$refs.nameInput?.focus();
       });
     },
 
     saveBoardName() {
+      console.log('saveBoardName called');
+      console.log('Edited name:', this.editedName);
       if (this.editedName.trim()) {
         const updatedPage = {
           ...this.getCurrentPage,
           name: this.editedName.trim()
         };
+        console.log('Updating page with:', updatedPage);
         this.updatePage({ pageIndex: this.currentPageIndex, page: updatedPage });
       }
       this.isEditingName = false;
+      this.saveCardState();
     },
 
     cancelNameEdit() {
+      console.log('cancelNameEdit called');
       this.editedName = this.originalName;
       this.isEditingName = false;
     },
 
     deletePage() {
-      // TO DO: implement delete page functionality
+      if (this.currentPageIndex === 0) {
+        console.warn('Cannot delete the first board');
+        return;
+      }
+      
+      // Confirm before deleting
+      if (!confirm('Are you sure you want to delete this board?')) {
+        return;
+      }
+      
+      // Store the current index before deletion
+      const currentIndex = this.currentPageIndex;
+      
+      // Remove the current page
+      this.$store.dispatch('bingo/deletePage', this.currentPageIndex);
+      
+      // Navigate to the previous page
+      this.$store.dispatch('bingo/setCurrentPage', currentIndex - 1);
+      
+      // Save the updated state
+      this.$store.dispatch('bingo/saveCardState');
     },
 
     exportBoard() {
-      // TO DO: implement export functionality
-      console.log('Exporting board:', this.currentPageName);
+      console.log('Export board functionality coming soon...');
     },
   },
 
   mounted() {
+    console.log('BingoWidget mounted');
+    this.$emit('mounted');
     // Emit an event to update the widget title area with navigation
     this.$emit('update-title-area', {
       navigation: {

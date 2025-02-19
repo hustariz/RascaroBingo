@@ -211,74 +211,58 @@ export default {
 
   actions: {
     async loadUserCard({ commit }) {
-      console.log('🔄 [LOAD] Starting loadUserCard');
+      console.log('📥 [LOAD] Starting loadUserCard');
       commit('SET_LOADING', true);
+
       try {
-        // Try to load from server if user is authenticated
+        // Try to load from server if authenticated
         const token = localStorage.getItem('token');
         if (token) {
           try {
-            console.log('🔄 [LOAD] Found token, loading from server...');
             const response = await fetch(`${API_URL}/api/bingo/card`, {
               headers: {
                 'Authorization': `Bearer ${token}`
               }
             });
 
-            console.log('🔄 [LOAD] Server response status:', response.status);
-            
             if (response.ok) {
-              const result = await response.json();
-              console.log('🔄 [LOAD] Server response:', result);
-              
-              if (result.success && result.data?.bingoPages) {
-                console.log('✅ [LOAD] Loaded data from server:', result.data);
-                commit('SET_PAGES', result.data.bingoPages);
-                commit('SET_CURRENT_PAGE', result.data.currentPageIndex || 0);
+              const data = await response.json();
+              console.log('✅ [LOAD] Loaded from server:', data);
+
+              if (data && Array.isArray(data.bingoPages)) {
+                commit('SET_PAGES', data.bingoPages);
+                commit('SET_CURRENT_PAGE', data.currentPageIndex || 0);
                 return true;
               }
             } else {
-              const errorData = await response.json().catch(() => ({ message: 'Unknown server error' }));
-              console.error('❌ [LOAD] Server error:', response.status, errorData);
-              
-              // If server error, try to load from localStorage as fallback
-              console.log('⚠️ [LOAD] Server error, trying localStorage fallback');
-              const localData = localStorage.getItem('bingoState');
-              if (localData) {
-                try {
-                  const parsedData = JSON.parse(localData);
-                  console.log('✅ [LOAD] Loaded fallback data from localStorage:', parsedData);
-                  commit('SET_PAGES', parsedData.bingoPages);
-                  commit('SET_CURRENT_PAGE', parsedData.currentPageIndex || 0);
-                  return true;
-                } catch (error) {
-                  console.error('❌ [LOAD] Error parsing localStorage data:', error);
-                }
+              console.warn('⚠️ [LOAD] Failed to load from server');
+              if (response.status === 401) {
+                localStorage.removeItem('token');
               }
             }
           } catch (error) {
-            console.error('❌ [LOAD] Error loading from server:', error);
-            // Don't throw here, let it fall through to default state
-          }
-        } else {
-          console.log('ℹ️ [LOAD] No token found, using local storage');
-          // Try to load from localStorage for non-authenticated users
-          const localData = localStorage.getItem('bingoState');
-          if (localData) {
-            try {
-              const parsedData = JSON.parse(localData);
-              console.log('✅ [LOAD] Loaded data from localStorage:', parsedData);
-              commit('SET_PAGES', parsedData.bingoPages);
-              commit('SET_CURRENT_PAGE', parsedData.currentPageIndex || 0);
-              return true;
-            } catch (error) {
-              console.error('❌ [LOAD] Error parsing localStorage data:', error);
-            }
+            console.warn('⚠️ [LOAD] Error loading from server:', error);
           }
         }
 
-        // If no data loaded, initialize with default
-        console.log('📝 [LOAD] Initializing default state');
+        // If server load fails or no token, try localStorage
+        const localState = localStorage.getItem('bingoState');
+        if (localState) {
+          try {
+            const parsedState = JSON.parse(localState);
+            if (parsedState && Array.isArray(parsedState.bingoPages)) {
+              console.log('💾 [LOAD] Loaded from localStorage:', parsedState);
+              commit('SET_PAGES', parsedState.bingoPages);
+              commit('SET_CURRENT_PAGE', parsedState.currentPageIndex || 0);
+              return true;
+            }
+          } catch (error) {
+            console.warn('⚠️ [LOAD] Error parsing localStorage state:', error);
+          }
+        }
+
+        // If all else fails, create default state
+        console.log('📝 [LOAD] Creating default state');
         const defaultState = {
           id: 1,
           name: 'Default Board',
@@ -290,7 +274,6 @@ export default {
           }))
         };
 
-        // Save default state
         const stateToSave = {
           bingoPages: [defaultState],
           currentPageIndex: 0,
@@ -300,11 +283,11 @@ export default {
 
         commit('SET_PAGES', [defaultState]);
         commit('SET_CURRENT_PAGE', 0);
-        
-        // Always save default state to localStorage as backup
+
+        // Save default state to localStorage as backup
         console.log('💾 [LOAD] Saving default state to localStorage');
         localStorage.setItem('bingoState', JSON.stringify(stateToSave));
-        
+
         return false;
       } finally {
         commit('SET_LOADING', false);
@@ -400,6 +383,14 @@ export default {
         console.error('❌ [SAVE] Error saving card state:', error);
         return false;
       }
-    }
+    },
+
+    deletePage({ commit }, pageIndex) {
+      if (pageIndex === 0) {
+        console.warn('Cannot delete the first board');
+        return;
+      }
+      commit('DELETE_PAGE', pageIndex);
+    },
   }
 };
