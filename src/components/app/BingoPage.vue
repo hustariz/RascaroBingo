@@ -20,7 +20,7 @@
         :row-height="45"
         :margin="[10, 10]"
         :use-css-transforms="true"
-        :vertical-compact="true"
+        :vertical-compact="isMobile"
         :prevent-collision="false"
         :is-draggable="true"
         :is-resizable="true"
@@ -432,15 +432,15 @@ export default defineComponent({
           minW: 4, minH: 8
         },
         risk: {
-          x: 0, y: 9, w: 4, h: 7,
+          x: 0, y: 8, w: 4, h: 7,
           minW: 4, minH: 7
         },
         'trade-idea': {
-          x: 0, y: 17, w: 4, h: 6,
+          x: 0, y: 15, w: 4, h: 6,
           minW: 4, minH: 6
         },
         'trade-details': {
-          x: 0, y: 24, w: 4, h: 8,
+          x: 0, y: 21, w: 4, h: 8,
           minW: 4, minH: 8
         }
       };
