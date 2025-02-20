@@ -19,7 +19,7 @@
   width: calc(80% - 270px);
   max-width: 900px;
   max-height: 85vh;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.5), rgba(205, 127, 50, 0.4));
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(205, 127, 50, 0.15));
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 215, 0, 0.4);
   box-shadow: 0 8px 32px rgba(255, 179, 71, 0.3);
@@ -35,9 +35,9 @@
 
 /* Header Section */
 .section-header {
-  background: linear-gradient(90deg, rgba(255, 215, 0, 0.25), rgba(205, 127, 50, 0.2));
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
+  box-shadow: 0 1px 0 rgba(255, 215, 0, 0.05);
   backdrop-filter: blur(5px);
-  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -123,15 +123,15 @@
 /* Trade Cards */
 .trade-card {
   position: relative;
-  background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(205, 127, 50, 0.08));
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.1);
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
+  box-shadow: 0 1px 0 rgba(255, 215, 0, 0.05);
   border-radius: 6px;
   margin-bottom: 0.75rem;
   transition: all 0.3s ease;
   overflow: visible;
   z-index: 1;
 }
+
 .trade-card.open {
   position: relative;
 }
@@ -186,13 +186,14 @@
   0% { background-position: 0% 50%; }
   100% { background-position: -200% 50%; }
 }
+
 .trade-header {
   padding: 0.4rem 0.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
-  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 1px 0 rgba(255, 215, 0, 0.05);
   backdrop-filter: blur(2px);
 }
 
@@ -259,6 +260,7 @@
   gap: 0.5rem;
   color: rgb(238, 175, 17);
 }
+
 .trade-symbol {
   font-weight: bold;
   color: rgb(238, 175, 17);

@@ -20,7 +20,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0;
+  padding: 0.5rem;
+  min-height: 2.5rem;
   background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), rgba(205, 127, 50, 0.1));
   box-shadow: 0 1px 0 rgba(255, 215, 0, 0.05);
   z-index: 1;
@@ -28,11 +29,10 @@
 
 .widget-title {
   font-size: 1rem;
-  flex-shrink: 0;
-  padding: 0.25rem 0.75rem;
-  margin: 0 0 0 0.5rem;
+  flex: 1;
+  padding: 0.25rem 0.5rem;
+  margin: 0;
   text-align: left;
-  max-width: calc(100% - 4rem);
   line-height: 1.3;
   font-family: Montserrat, Roboto, sans-serif;
   font-weight: 600;
@@ -41,12 +41,17 @@
   color: rgb(238, 175, 17);
   text-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px;
   white-space: nowrap;
+  overflow: visible;
+  min-width: 0;
+  width: auto;
 }
 
 .widget-controls {
-  padding-right: 0.5rem;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+  flex-shrink: 0;
 }
 
 .control-button {
@@ -70,6 +75,7 @@
   overflow: hidden;
   position: relative;
   background: transparent;
+  padding: 0;
 }
 
 /* Grid Item Styles */
@@ -135,8 +141,7 @@
   left: -10px;
   width: 25px;
   height: 25px;
-  display: flex
-;
+  display: flex;
   align-items: center;
   justify-content: center;
   color: rgb(43, 24, 16);
@@ -157,6 +162,35 @@
     0 4px 8px rgba(0, 0, 0, 0.3),
     0 0 15px rgba(238, 175, 17, 0.5),
     inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+/* Drag and Drop Styles */
+.vue-draggable-handle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  height: 100% !important;
+  gap: 0.25rem !important;
+}
+
+.widget-title-area {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  min-width: 0;
+  flex: 1;
+}
+
+.drag-icon {
+  width: 16px !important;
+  height: 16px !important;
+  cursor: grab !important;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="rgb(238, 175, 17)"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/></svg>') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  flex-shrink: 0 !important;
+  margin: 0 0.5rem !important;
 }
 
 /* Widget Container Additional Styles */

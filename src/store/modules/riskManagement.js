@@ -215,6 +215,31 @@ export default {
         console.error('Error updating settings:', error);
         throw error;
       }
+    },
+
+    async resetStopLossCounter({ commit }) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No authentication token found');
+
+        const response = await fetch(`${API_URL}/api/risk-management/reset-sl`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        commit('SET_RISK_MANAGEMENT', { data });
+        return data;
+      } catch (error) {
+        console.error('Error resetting stoploss counter:', error);
+        throw error;
+      }
     }
   },
 

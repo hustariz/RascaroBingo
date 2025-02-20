@@ -132,6 +132,7 @@ const tradeRoutes = require('./routes/tradeRoutes');
 const emailVerificationRoutes = require('./routes/emailVerification');
 const krakenRoutes = require('./routes/krakenRoutes');
 const krakenFuturesRoutes = require('./routes/krakenFuturesRoutes');
+const riskManagementRoutes = require('./routes/riskManagementRoutes');
 
 // API routes
 app.use('/api/users', userRoutes);
@@ -140,6 +141,7 @@ app.use('/api/trades', tradeRoutes);
 app.use('/api/auth', emailVerificationRoutes);
 app.use('/api/kraken', krakenRoutes);
 app.use('/api/kraken/futures', krakenFuturesRoutes);
+app.use('/api/risk-management', riskManagementRoutes);
 
 // API Info Route
 app.get('/api', (req, res) => {

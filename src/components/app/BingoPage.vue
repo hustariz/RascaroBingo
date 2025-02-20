@@ -15,23 +15,27 @@
     
     <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }" style="overflow: visible !important;">
       <GridLayout
-        v-model:layout="layout"
-        :col-num="12"
-        :row-height="50"
+        v-model:layout="responsiveLayout"
+        :col-num="isMobile ? 4 : 12"
+        :row-height="45"
+        :margin="[10, 10]"
+        :use-css-transforms="true"
+        :vertical-compact="true"
+        :prevent-collision="false"
         :is-draggable="true"
         :is-resizable="true"
-        :vertical-compact="false"
-        :margin="[5, 5]"
-        :use-css-transforms="true"
+        :responsive="true"
+        :compact-type="null"
         :width="gridWidth"
-        :height="gridHeight"
         :auto-size="true"
-        :prevent-collision="false"
-        :resizable-handle="'.vue-resizable-handle'"
         class="dashboard-layout"
+        @layout-created="onLayoutCreated"
+        @layout-before-mount="onLayoutBeforeMount"
+        @layout-mounted="onLayoutMounted"
+        @layout-ready="onLayoutReady"
       >
         <GridItem
-          v-for="item in layout"
+          v-for="item in responsiveLayout"
           :key="item.i"
           :x="item.x"
           :y="item.y"
@@ -273,7 +277,7 @@ export default defineComponent({
       currentScore: 0,
       layout: [
         {
-          x: 0,  // Bingo Grid starts first
+          x: 0,
           y: 0,
           w: 4,
           h: 9,
@@ -290,16 +294,16 @@ export default defineComponent({
           }
         },
         {
-          x: 4,  // Risk/Reward next to Bingo Grid
+          x: 4,
           y: 0,
           w: 2,
-          h: 9,  // Match Bingo Grid height
+          h: 9,
           i: "risk",
           title: "Score: Risk/Reward",
           workflowNumber: 3,
           component: markRaw(RiskRewardWidget),
           minW: 2,
-          minH: 9,  // Match Bingo Grid min height
+          minH: 9,
           maxW: 12,
           maxH: 12,
           props: {
@@ -323,7 +327,7 @@ export default defineComponent({
         {
           x: 3,
           y: 9,
-          w: 4,  /* Set to match minW */
+          w: 4,
           h: 6,
           i: "trade-details",
           title: "Trade's Details",
@@ -413,6 +417,43 @@ export default defineComponent({
         opacity: this.workflowTooltipVisible ? 1 : 0,
         visibility: this.workflowTooltipVisible ? 'visible' : 'hidden'
       }
+    },
+    isMobile() {
+      return window.innerWidth < 768;
+    },
+    responsiveLayout() {
+      if (!this.isMobile) {
+        return this.layout;
+      }
+
+      const mobileConfig = {
+        bingo: {
+          x: 0, y: 0, w: 4, h: 8,
+          minW: 4, minH: 8
+        },
+        risk: {
+          x: 0, y: 9, w: 4, h: 7,
+          minW: 4, minH: 7
+        },
+        'trade-idea': {
+          x: 0, y: 17, w: 4, h: 6,
+          minW: 4, minH: 6
+        },
+        'trade-details': {
+          x: 0, y: 24, w: 4, h: 8,
+          minW: 4, minH: 8
+        }
+      };
+
+      return this.layout.map(item => {
+        if (mobileConfig[item.i]) {
+          return {
+            ...item,
+            ...mobileConfig[item.i]
+          };
+        }
+        return item;
+      });
     }
   },
 

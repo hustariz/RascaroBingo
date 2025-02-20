@@ -8,6 +8,7 @@
   overflow: visible !important;
   position: relative;
   z-index: 1;
+  touch-action: none !important;
 }
 
 .bingo-section {
@@ -20,6 +21,7 @@
   z-index: 1;
   background: linear-gradient(145deg, rgba(89, 0, 0, 0.95), rgba(43, 24, 16, 0.98));
   border-radius: 4px;
+  touch-action: none !important;
 }
 
 .bingo-grid {
@@ -27,7 +29,6 @@
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(5, 1fr);
   gap: 0.15rem;
-  padding: 0.15rem;
   background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
   border-radius: 4px;
   width: 100%;
@@ -38,6 +39,9 @@
   overflow: visible !important;
   position: relative;
   z-index: 1;
+  min-width: 280px;
+  min-height: 280px;
+  touch-action: none !important;
 }
 
 .bingo-cell {
@@ -225,8 +229,83 @@
 }
 
 /* Mobile styles */
-@media (hover: none) {
-  /* No styles */
+@media screen and (max-width: 768px) {
+  .bingo-section {
+    touch-action: none !important;
+  }
+
+  .bingo-grid {
+    min-width: unset; /* Remove minimum size on mobile */
+    min-height: unset;
+    width: 100%;
+    gap: 0.1rem;
+    padding: 0.1rem;
+    touch-action: none !important;
+  }
+
+  .bingo-cell {
+    min-height: 2.5rem;
+  }
+
+  .cell-content {
+    font-size: 0.9rem !important;
+  }
+
+  .cell-info-zone::after,
+  .cell-edit-zone::after {
+    font-size: 0.7rem;
+  }
+
+  .cell-info-zone,
+  .cell-edit-zone {
+    height: 15%;
+  }
+
+  /* Ensure resize handle is more visible on mobile */
+  .grid-item .vue-resizable-handle {
+    width: 20px !important;
+    height: 20px !important;
+    right: 0 !important;
+    bottom: 0 !important;
+  }
+
+  .grid-item .vue-resizable-handle::after {
+    border-width: 0 0 10px 10px !important;
+  }
+}
+
+/* Small Mobile Styles */
+@media screen and (max-width: 480px) {
+  .bingo-section {
+  }
+
+  .bingo-grid {
+    gap: 0.08rem;
+    padding: 0.08rem;
+  }
+
+  .bingo-cell {
+    min-height: 2rem;
+  }
+
+  .cell-content {
+    font-size: 0.8rem !important;
+  }
+
+  .cell-info-zone::after,
+  .cell-edit-zone::after {
+    font-size: 0.6rem;
+  }
+}
+
+/* Landscape Mobile Styles */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .bingo-section {
+  }
+
+  .bingo-grid {
+    height: auto;
+  }
 }
 
 /* Edit Modal Styles */
