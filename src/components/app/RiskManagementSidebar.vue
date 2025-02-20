@@ -4,130 +4,137 @@
       {{ isCollapsed ? '>' : '<' }}
     </button>
     <div class="sidebar-content" v-show="!isCollapsed">
-      <h2>Asset's Management</h2>
-      <div class="settings-group">
-        <div class="setting-item">
-          <label>Account Size:</label>
-          <div class="input-with-prefix">
-            <span class="prefix">$</span>
-            <input 
-              type="number" 
-              v-model.number="localAccountSize"
-              @change="updateAccountSize"
-              placeholder="Enter account size"
-              class="risk-input"
-            />
-          </div>
-        </div>
-        <div class="setting-item">
-          <label>Trade Size:</label>
-          <div class="input-with-prefix">
-            <span class="prefix">$</span>
-            <input 
-              type="number" 
-              v-model.number="localTradeSize"
-              @change="updateTradeSize"
-              placeholder="Enter trade size"
-              class="risk-input"
-            />
-          </div>
-          <span class="percentage-display">
-            ({{ calculatePercentage }}% of account)
-          </span>
-        </div>
-        <h2>Risk's Management</h2>
-        <div class="setting-item">
-          <label>Trade's Streak:</label>
-          <div class="streak-progress-container">
-            <div class="streak-tube">
-              <div class="streak-liquid" :style="{ width: fillWidth, background: streakColor }">
-                <div class="bubble-effect"></div>
-              </div>
+      <div class="assets-management-section">
+        <h2 class="section-title">Asset's Management</h2>
+        <div class="settings-group">
+          <div class="setting-item">
+            <label>Account Size:</label>
+            <div class="input-with-prefix">
+              <span class="prefix">$</span>
+              <input 
+                type="number" 
+                v-model.number="localAccountSize"
+                @change="updateAccountSize"
+                placeholder="Enter account size"
+                class="risk-input"
+              />
             </div>
-            <span 
-              class="streak-value" 
-              :class="{ 'grass-state': tradeStreak === -3 }"
-              :style="{ color: streakColor }"
-            >{{ streakLabel }}</span>
+          </div>
+          <div class="setting-item">
+            <label>Trade Size:</label>
+            <div class="input-with-prefix">
+              <span class="prefix">$</span>
+              <input 
+                type="number" 
+                v-model.number="localTradeSize"
+                @change="updateTradeSize"
+                placeholder="Enter trade size"
+                class="risk-input"
+              />
+            </div>
+            <span class="percentage-display">
+              ({{ calculatePercentage }}% of account)
+            </span>
           </div>
         </div>
-        <div class="setting-item">
-          <label>Stoploss's Streak:</label>
-          <div class="streak-slider-container">
-            <div class="streak-info">
-              <div 
-                class="risk-tooltip-container" 
-                @mouseover="showTooltip = true"
-                @mouseleave="showTooltip = false"
-              >
-                <span 
-                  class="streak-value" 
-                  :class="{ 'session-ended': slTaken === 3 }"
-                  :style="{ color: slColor }" 
-                  v-html="slLabel"
-                ></span>
-                
-                <div class="risk-tooltip-bridge"></div>
-                <div v-if="showTooltip && slTaken === 3" class="risk-tooltip">
-                  <template v-if="!askingForGrass">
-                    Session ended, come back later
-                  </template>
-                  <template v-else>
-                    <div class="grass-question">
-                      Did you touch some grass?
-                      <div class="risk-tooltip-buttons">
-                        <button class="risk-tooltip-button" @click="handleGrassResponse(true)">Yes</button>
-                        <button class="risk-tooltip-button" @click="handleGrassResponse(false)">No</button>
-                      </div>
-                    </div>
-                  </template>
+      </div>
+      <div class="risks-management-section">
+        <h2 class="section-title">Risk's Management</h2>
+        <div class="settings-group">
+          <div class="setting-item">
+            <label>Trade's Streak:</label>
+            <div class="streak-progress-container">
+              <div class="streak-tube">
+                <div class="streak-liquid" :style="{ width: fillWidth, background: streakColor }">
+                  <div class="bubble-effect"></div>
                 </div>
               </div>
+              <span 
+                class="streak-value" 
+                :class="{ 'grass-state': tradeStreak === -3 }"
+                :style="{ color: streakColor }"
+              >{{ streakLabel }}</span>
             </div>
-            <!-- Replace input with sl-tube -->
-            <div class="sl-tube">
-              <div 
-                class="sl-liquid" 
-                :style="{ 
-                  width: slFillWidth, 
-                  background: slColor 
-                }"
-              >
-                <div class="bubble-effect"></div>
+          </div>
+          <div class="setting-item">
+            <label>Stoploss's Streak:</label>
+            <div class="streak-slider-container">
+              <div class="streak-info">
+                <div 
+                  class="risk-tooltip-container" 
+                  @mouseover="showTooltip = true"
+                  @mouseleave="showTooltip = false"
+                >
+                  <span 
+                    class="streak-value" 
+                    :class="{ 'session-ended': slTaken === 3 }"
+                    :style="{ color: slColor }" 
+                    v-html="slLabel"
+                  ></span>
+                  
+                  <div class="risk-tooltip-bridge"></div>
+                  <div v-if="showTooltip && slTaken === 3" class="risk-tooltip">
+                    <template v-if="!askingForGrass">
+                      Session ended, come back later
+                    </template>
+                    <template v-else>
+                      <div class="grass-question">
+                        Did you touch some grass?
+                        <div class="risk-tooltip-buttons">
+                          <button class="risk-tooltip-button" @click="handleGrassResponse(true)">Yes</button>
+                          <button class="risk-tooltip-button" @click="handleGrassResponse(false)">No</button>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+              <!-- Replace input with sl-tube -->
+              <div class="sl-tube">
+                <div 
+                  class="sl-liquid" 
+                  :style="{ 
+                    width: slFillWidth, 
+                    background: slColor 
+                  }"
+                >
+                  <div class="bubble-effect"></div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <div class="settings-group">
-        <h2>Daily Stats</h2>
-        <div class="setting-item">
-          <label>Trades Today:</label>
-          <span>{{ dailyStats?.trades || 0 }}</span>
-        </div>
-        <div class="setting-item wins-losses-row">
-          <div class="stat-column">
-            <label>Daily Wins:</label>
-            <span class="win">{{ dailyStats?.wins || 0 }}</span>
+      <div class="daily-stats-section">
+        <h2 class="section-title">Daily Stats</h2>
+        <div class="settings-group">
+          <div class="setting-item">
+            <label>Trades Today:</label>
+            <span>{{ dailyStats?.trades || 0 }}</span>
           </div>
-          <div class="stat-column">
-            <label>Daily Losses:</label>
-            <span class="loss">{{ dailyStats?.losses || 0 }}</span>
+          <div class="setting-item wins-losses-row">
+            <div class="stat-column">
+              <label>Daily Wins:</label>
+              <span class="win">{{ dailyStats?.wins || 0 }}</span>
+            </div>
+            <div class="stat-column">
+              <label>Daily Losses:</label>
+              <span class="loss">{{ dailyStats?.losses || 0 }}</span>
+            </div>
           </div>
-        </div>
-        <div class="setting-item">
-          <label style="display: block; text-align: center; margin-bottom: 4px;">Daily Net P/L:</label>
-          <div class="daily-pl">
-            <span :class="{ 'profit': dailyNet > 0, 'loss': dailyNet < 0 }">
-              ${{ Math.abs(dailyNet).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
-              <span class="pl-indicator">{{ dailyNet >= 0 ? '▲' : '▼' }}</span>
-            </span>
+          <div class="setting-item">
+            <label style="display: block; text-align: center; margin-bottom: 4px;">Daily Net P/L:</label>
+            <div class="daily-pl">
+              <span :class="{ 'profit': dailyNet > 0, 'loss': dailyNet < 0 }">
+                ${{ Math.abs(dailyNet).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+                <span class="pl-indicator">{{ dailyNet >= 0 ? '▲' : '▼' }}</span>
+              </span>
+            </div>
           </div>
+          <button class="reset-button" @click="resetStats">
+            <span>Reset Daily Stats</span>
+          </button>
         </div>
-        <button class="reset-button" @click="resetStats">
-          <span>Reset Daily Stats</span>
-        </button>
       </div>
     </div>
   </div>
@@ -234,6 +241,10 @@ export default {
   },
 
   methods: {
+    toggleSidebar() {
+      this.isCollapsed = !this.isCollapsed;
+      this.$emit('sidebar-toggle', this.isCollapsed);
+    },
     async handleGrassResponse(touched) {
       if (touched) {
         console.log('🌱 User touched grass, attempting to reset SL count');

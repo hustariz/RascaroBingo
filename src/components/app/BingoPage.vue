@@ -16,12 +16,12 @@
     <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }" style="overflow: visible !important;">
       <GridLayout
         v-model:layout="layout"
-        :col-num="12"
-        :row-height="50"
-        :is-draggable="true"
-        :is-resizable="true"
-        :vertical-compact="false"
-        :margin="[5, 5]"
+        :col-num="isMobile ? 6 : 12"
+        :row-height="isMobile ? 40 : 50"
+        :is-draggable="!isMobile"
+        :is-resizable="!isMobile"
+        :vertical-compact="isMobile"
+        :margin="isMobile ? [2, 2] : [5, 5]"
         :use-css-transforms="true"
         :width="gridWidth"
         :height="gridHeight"
@@ -413,6 +413,9 @@ export default defineComponent({
         opacity: this.workflowTooltipVisible ? 1 : 0,
         visibility: this.workflowTooltipVisible ? 'visible' : 'hidden'
       }
+    },
+    isMobile() {
+      return window.innerWidth < 768;
     }
   },
 

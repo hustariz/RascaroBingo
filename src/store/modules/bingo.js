@@ -11,48 +11,22 @@ if (!API_URL) {
 export default {
   namespaced: true,
 
-  state: () => ({
-    bingoPages: [{
-      id: 1,
-      name: 'Default Board',
-      bingoCells: Array.from({ length: 25 }, (_, i) => ({
-        id: i + 1,
-        title: '',
-        points: 0,
-        selected: false
-      }))
-    }],
+  state: {
+    bingoPages: [],
     currentPageIndex: 0,
-    loading: false
-  }),
+    isLoading: false,
+    lastSaved: null
+  },
 
   mutations: {
     SET_PAGES(state, pages) {
-      if (Array.isArray(pages)) {
-        console.log('📝 Setting pages state:', pages);
-        state.bingoPages = pages.map(page => ({
-          ...page,
-          bingoCells: page.bingoCells.map(cell => ({
-            id: cell.id,
-            title: cell.title || '',
-            points: Number(cell.points) || 0,
-            selected: !!cell.selected
-          }))
-        }));
-      }
+      console.log('📝 Setting pages state:', pages);
+      state.bingoPages = pages;
     },
 
     SET_CURRENT_PAGE(state, index) {
       console.log('Setting current page to:', index);
       state.currentPageIndex = Math.max(0, Math.min(index, state.bingoPages.length - 1));
-
-      // Save to localStorage
-      localStorage.setItem('bingoState', JSON.stringify({
-        bingoPages: state.bingoPages,
-        currentPageIndex: state.currentPageIndex,
-        lastModified: new Date().toISOString(),
-        version: '2.0'
-      }));
     },
 
     ADD_PAGE(state) {
@@ -70,9 +44,15 @@ export default {
     },
 
     DELETE_PAGE(state, index) {
-      if (index >= 0 && index < state.bingoPages.length) {
+      console.log('🗑️ Deleting page at index:', index);
+      if (state.bingoPages.length > 1) { // Ensure we always have at least one board
         state.bingoPages.splice(index, 1);
-        state.currentPageIndex = Math.min(state.currentPageIndex, state.bingoPages.length - 1);
+        // Adjust currentPageIndex if needed
+        if (state.currentPageIndex >= state.bingoPages.length) {
+          state.currentPageIndex = Math.max(0, state.bingoPages.length - 1);
+        }
+      } else {
+        console.warn('⚠️ Cannot delete last board');
       }
     },
 
@@ -80,14 +60,6 @@ export default {
       const currentPage = state.bingoPages[state.currentPageIndex];
       if (currentPage && currentPage.bingoCells[index]) {
         currentPage.bingoCells[index].selected = !currentPage.bingoCells[index].selected;
-
-        // Save to localStorage after cell toggle
-        localStorage.setItem('bingoState', JSON.stringify({
-          bingoPages: state.bingoPages,
-          currentPageIndex: state.currentPageIndex,
-          lastModified: new Date().toISOString(),
-          version: '2.0'
-        }));
       }
     },
 
@@ -102,14 +74,6 @@ export default {
             ...cell,
             id: page.bingoCells[cellIndex].id // Preserve the original ID
           };
-
-          // Save to localStorage after cell update
-          localStorage.setItem('bingoState', JSON.stringify({
-            bingoPages: state.bingoPages,
-            currentPageIndex: state.currentPageIndex,
-            lastModified: new Date().toISOString(),
-            version: '2.0'
-          }));
         }
       }
     },
@@ -121,19 +85,15 @@ export default {
           ...page,
           bingoCells: page.bingoCells || state.bingoPages[pageIndex].bingoCells
         };
-        
-        // Save to localStorage
-        localStorage.setItem('bingoState', JSON.stringify({
-          bingoPages: state.bingoPages,
-          currentPageIndex: state.currentPageIndex,
-          lastModified: new Date().toISOString(),
-          version: '2.0'
-        }));
       }
     },
 
     SET_LOADING(state, loading) {
-      state.loading = loading;
+      state.isLoading = loading;
+    },
+
+    SET_LAST_SAVED(state, timestamp) {
+      state.lastSaved = timestamp;
     },
   },
 
@@ -176,7 +136,12 @@ export default {
   },
 
   actions: {
-    async loadUserCard({ commit }) {
+    async loadUserCard({ commit, state }) {
+      if (state.isLoading) {
+        console.log('⏳ [LOAD] Already loading, skipping...');
+        return;
+      }
+
       console.log('📥 [LOAD] Starting loadUserCard');
       commit('SET_LOADING', true);
 
@@ -185,23 +150,52 @@ export default {
         const token = localStorage.getItem('token');
         if (token) {
           try {
+            console.log('🔑 [LOAD] Token found, trying server load');
             const response = await fetch(`${API_URL}/api/bingo/card`, {
+              method: 'GET',
               headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
               }
             });
 
             if (response.ok) {
-              const data = await response.json();
-              console.log('✅ [LOAD] Loaded from server:', data);
+              const { success, data } = await response.json();
+              console.log('✅ [LOAD] Loaded from server:', { success, data });
 
-              if (data && Array.isArray(data.bingoPages)) {
-                commit('SET_PAGES', data.bingoPages);
-                commit('SET_CURRENT_PAGE', data.currentPageIndex || 0);
+              if (success && data && Array.isArray(data.bingoPages)) {
+                // Ensure data structure matches our schema
+                const normalizedPages = data.bingoPages.map(page => ({
+                  id: page.id || Date.now(),
+                  name: page.name || 'Default Board',
+                  bingoCells: Array.from({ length: 25 }, (_, i) => {
+                    const cell = page.bingoCells[i] || {};
+                    return {
+                      id: cell.id || i + 1,
+                      title: cell.title || '',
+                      points: Number(cell.points || 0),
+                      selected: Boolean(cell.selected)
+                    };
+                  })
+                }));
+
+                commit('SET_PAGES', normalizedPages);
+                commit('SET_CURRENT_PAGE', Math.min(data.currentPageIndex || 0, normalizedPages.length - 1));
+                commit('SET_LAST_SAVED', data.lastModified || new Date().toISOString());
+                
+                // Update localStorage with normalized data
+                localStorage.setItem('bingoState', JSON.stringify({
+                  bingoPages: normalizedPages,
+                  currentPageIndex: data.currentPageIndex || 0,
+                  lastModified: data.lastModified || new Date().toISOString(),
+                  version: '2.0'
+                }));
+                
                 return true;
               }
             } else {
-              console.warn('⚠️ [LOAD] Failed to load from server');
+              const errorText = await response.text();
+              console.warn('⚠️ [LOAD] Failed to load from server:', response.status, errorText);
               if (response.status === 401) {
                 localStorage.removeItem('token');
               }
@@ -216,10 +210,27 @@ export default {
         if (localState) {
           try {
             const parsedState = JSON.parse(localState);
+            console.log('💾 [LOAD] Found localStorage state:', parsedState);
+            
             if (parsedState && Array.isArray(parsedState.bingoPages)) {
-              console.log('💾 [LOAD] Loaded from localStorage:', parsedState);
-              commit('SET_PAGES', parsedState.bingoPages);
-              commit('SET_CURRENT_PAGE', parsedState.currentPageIndex || 0);
+              // Ensure localStorage data structure matches our schema
+              const normalizedPages = parsedState.bingoPages.map(page => ({
+                id: page.id || Date.now(),
+                name: page.name || 'Default Board',
+                bingoCells: Array.from({ length: 25 }, (_, i) => {
+                  const cell = page.bingoCells[i] || {};
+                  return {
+                    id: cell.id || i + 1,
+                    title: cell.title || '',
+                    points: Number(cell.points || 0),
+                    selected: Boolean(cell.selected)
+                  };
+                })
+              }));
+
+              commit('SET_PAGES', normalizedPages);
+              commit('SET_CURRENT_PAGE', Math.min(parsedState.currentPageIndex || 0, normalizedPages.length - 1));
+              commit('SET_LAST_SAVED', parsedState.lastModified || new Date().toISOString());
               return true;
             }
           } catch (error) {
@@ -229,8 +240,8 @@ export default {
 
         // If all else fails, create default state
         console.log('📝 [LOAD] Creating default state');
-        const defaultState = {
-          id: 1,
+        const defaultState = [{
+          id: Date.now(),
           name: 'Default Board',
           bingoCells: Array.from({ length: 25 }, (_, i) => ({
             id: i + 1,
@@ -238,53 +249,131 @@ export default {
             points: 0,
             selected: false
           }))
-        };
+        }];
 
-        commit('SET_PAGES', [defaultState]);
+        commit('SET_PAGES', defaultState);
         commit('SET_CURRENT_PAGE', 0);
-
-        // Save default state to localStorage as backup
-        console.log('💾 [LOAD] Saving default state to localStorage');
-        localStorage.setItem('bingoState', JSON.stringify({
-          bingoPages: [defaultState],
-          currentPageIndex: 0,
-          lastModified: new Date().toISOString(),
-          version: '2.0'
-        }));
-
+        commit('SET_LAST_SAVED', new Date().toISOString());
         return false;
       } finally {
         commit('SET_LOADING', false);
       }
     },
 
-    updatePage({ commit, state }, { index, name }) {
-      const page = state.bingoPages[index];
-      if (page) {
-        commit('UPDATE_PAGE', {
-          pageIndex: index,
-          page: { ...page, name }
-        });
+    async saveCardState({ commit, state }) {
+      if (state.isLoading) {
+        console.log('⏳ [SAVE] Already saving, skipping...');
+        return;
+      }
+
+      console.log('💾 [SAVE] Starting saveCardState');
+      commit('SET_LOADING', true);
+
+      try {
+        // Convert Proxy objects to plain objects and ensure correct structure
+        const normalizedPages = state.bingoPages.map(page => ({
+          id: page.id || Date.now(),
+          name: page.name || 'Default Board',
+          bingoCells: Array.from({ length: 25 }, (_, i) => {
+            const cell = page.bingoCells[i] || {};
+            return {
+              id: cell.id || i + 1,
+              title: cell.title || '',
+              points: Number(cell.points || 0),
+              selected: Boolean(cell.selected)
+            };
+          })
+        }));
+
+        const stateToSave = {
+          bingoPages: normalizedPages,
+          currentPageIndex: state.currentPageIndex,
+          lastModified: new Date().toISOString(),
+          version: '2.0'
+        };
+
+        // Save to localStorage first as backup
+        localStorage.setItem('bingoState', JSON.stringify(stateToSave));
+
+        // Try to save to server if authenticated
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            console.log('📤 [SAVE] Sending to server:', stateToSave);
+            
+            const response = await fetch(`${API_URL}/api/bingo/card`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(stateToSave)
+            });
+
+            if (response.ok) {
+              const { success, data } = await response.json();
+              console.log('✅ [SAVE] Saved to server successfully:', { success, data });
+              commit('SET_LAST_SAVED', stateToSave.lastModified);
+              return true;
+            } else {
+              const errorText = await response.text();
+              console.error('❌ [SAVE] Server error:', response.status, errorText);
+              if (response.status === 401) {
+                localStorage.removeItem('token');
+              }
+              return false;
+            }
+          } catch (error) {
+            console.error('❌ [SAVE] Network error:', error);
+            return false;
+          }
+        } else {
+          console.warn('⚠️ [SAVE] No token found, skipping server save');
+        }
+
+        commit('SET_LAST_SAVED', stateToSave.lastModified);
+        return true;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
 
-    saveCardState({ state }) {
-      localStorage.setItem('bingoState', JSON.stringify({
-        bingoPages: state.bingoPages,
-        currentPageIndex: state.currentPageIndex,
-        lastModified: new Date().toISOString(),
-        version: '2.0'
-      }));
+    async updatePage({ commit, dispatch }, { index, name }) {
+      commit('UPDATE_PAGE', { pageIndex: index, page: { name } });
+      await dispatch('saveCardState');
     },
 
-    ADD_PAGE({ commit }) {
+    async toggleCell({ commit, dispatch }, index) {
+      commit('TOGGLE_CELL', { index });
+      await dispatch('saveCardState');
+    },
+
+    async updateCell({ commit, dispatch }, { pageIndex, cellIndex, cell }) {
+      commit('UPDATE_CELL', { pageIndex, cellIndex, cell });
+      await dispatch('saveCardState');
+    },
+
+    async setCurrentPage({ commit, dispatch }, index) {
+      commit('SET_CURRENT_PAGE', index);
+      await dispatch('saveCardState');
+    },
+
+    async addPage({ commit, dispatch }) {
       commit('ADD_PAGE');
-      return Promise.resolve();
+      await dispatch('saveCardState');
     },
 
-    DELETE_PAGE({ commit }, index) {
+    async deletePage({ commit, dispatch, state }, index) {
+      console.log('🗑️ [DELETE] Deleting page at index:', index);
+      
+      // Prevent deleting the last board
+      if (state.bingoPages.length <= 1) {
+        console.warn('⚠️ [DELETE] Cannot delete last board');
+        return;
+      }
+
       commit('DELETE_PAGE', index);
-      return Promise.resolve();
-    }
+      await dispatch('saveCardState');
+    },
   }
 };

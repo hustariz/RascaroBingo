@@ -79,13 +79,24 @@ export default defineComponent({
   },
 
   methods: {
-  ...mapActions('bingo', ['updatePage', 'saveCardState', 'DELETE_PAGE']), 
-  ...mapMutations('bingo', ['TOGGLE_CELL', 'ADD_PAGE', 'SET_CURRENT_PAGE']),
+    ...mapActions('bingo', [
+      'updatePage', 
+      'saveCardState', 
+      'toggleCell', 
+      'updateCell', 
+      'setCurrentPage', 
+      'addPage', 
+      'deletePage',
+      'loadUserCard'
+    ]),
+    ...mapMutations('bingo', ['TOGGLE_CELL', 'ADD_PAGE', 'SET_CURRENT_PAGE']),
 
-    handleCellClick(cellIndex) {
-      // Cell editing should work for all users
-      this.TOGGLE_CELL({ index: cellIndex });
-      this.saveCardState();
+    async handleCellClick(cellIndex) {
+      if (!this.isPremium) {
+        this.showPremiumLock = true;
+        return;
+      }
+      await this.toggleCell(cellIndex);
     },
 
     handleCellEdit(cellIndex) {
@@ -99,7 +110,7 @@ export default defineComponent({
       this.$emit('open-edit-modal', cellIndex);
     },
 
-    nextPage() {
+    async nextPage() {
       if (!this.isPremium) {
         this.showPremiumLock = true;
         return;
@@ -108,16 +119,15 @@ export default defineComponent({
       console.log('Current index:', this.currentPageIndex);
       console.log('Total pages:', this.totalPages);
       if (this.currentPageIndex < this.totalPages - 1) {
-        this.SET_CURRENT_PAGE(this.currentPageIndex + 1);
+        await this.setCurrentPage(this.currentPageIndex + 1);
       } else {
         console.log('Adding new page');
-        this.ADD_PAGE();
-        this.SET_CURRENT_PAGE(this.bingoPages.length - 1);
+        await this.addPage();
+        await this.setCurrentPage(this.bingoPages.length - 1);
       }
-      this.saveCardState();
     },
 
-    previousPage() {
+    async previousPage() {
       if (!this.isPremium) {
         this.showPremiumLock = true;
         return;
@@ -125,7 +135,7 @@ export default defineComponent({
       console.log('previousPage called');
       console.log('Current index:', this.currentPageIndex);
       if (this.currentPageIndex > 0) {
-        this.SET_CURRENT_PAGE(this.currentPageIndex - 1);
+        await this.setCurrentPage(this.currentPageIndex - 1);
         console.log('New index:', this.currentPageIndex - 1);
       }
     },
@@ -140,9 +150,9 @@ export default defineComponent({
       this.originalName = this.currentPageName;
     },
 
-    saveBoardName() {
+    async saveBoardName() {
       if (this.editedName.trim() !== this.originalName) {
-        this.updatePage({
+        await this.updatePage({
           index: this.currentPageIndex,
           name: this.editedName.trim()
         });
@@ -155,7 +165,7 @@ export default defineComponent({
       this.isEditingName = false;
     },
 
-    deletePage() {
+    async deletePage() {
       if (!this.isPremium) {
         this.showPremiumLock = true;
         return;
@@ -164,8 +174,12 @@ export default defineComponent({
         return;
       }
       if (confirm('Are you sure you want to delete this board?')) {
-        this.DELETE_PAGE(this.currentPageIndex);
-        this.saveCardState();
+        const currentIndex = this.currentPageIndex;
+        await this.$store.dispatch('bingo/deletePage', currentIndex);
+        // After deletion, ensure we're on a valid page
+        if (currentIndex >= this.totalPages) {
+          await this.setCurrentPage(Math.max(0, this.totalPages - 1));
+        }
       }
     },
 
@@ -226,8 +240,9 @@ export default defineComponent({
     }
   },
 
-  mounted() {
-    console.log('BingoWidget mounted');
+  async mounted() {
+    console.log('🎲 BingoWidget mounted');
+    await this.loadUserCard();
     this.$emit('mounted');
     // Emit an event to update the widget title area with navigation
     this.$emit('update-title-area', {
