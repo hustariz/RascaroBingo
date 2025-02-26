@@ -1,14 +1,30 @@
+Mars 2025:
 
-Correction, fix features:
-Add change Username / Mail functionnality(done) in the admin pannel:
-add a ResetPassword buton. (Add the mail reset password bouton somewhere)
-Correct the search user bug in admin Panel.
+Bugfix:
+TradeHistory button does not display the right amount of opened positions the first time you register a trade.
+Leaderboard page not working for non connected users.
 
-In the RegisterForm Add a verification if user as already an account, and if yes, redirect him directly to LoginForm with 
-mail already written.
+To Implement this month:
+-Kraken Api Test every usefull functionnalities working on the kraken test page.
+-Add a kraken API Fields in the profile page so user can register their api keys to trade.
+-Add a kraken API fields in the admin panel so I can change the public keys.
+-Test the system.
+-Add a kraken, ICON in the top right corner of the riskmanagement sidebar when user click on it while connected it check if user has a valid api key and if not,
+it display a prompt to register one, and if he already has one then the Icon click change the whole theme of the bingo page to match his api key.
+So that means the app turns purple if it's a kraken api keys and then the account value become his kraken one, and the trade he takes become kraken trades etc.
 
-Add a $ icon to all paid functionnality in the about pages.
+Rework:
+-The subscription page is not working yet, so it's not possible to buy a subscription -> Link the subscription buy button to a payment page:
+With paypals, visa and crypto options:
+-> Only developp the crypto options now and link and test it to a personnal exodus wallet specifically created for the app.
+when wallet is linked, test it and also developp the subscription time  in fullstack to know how much time a user still has prenium:
+-> Backend modals, Profile page display, Admin page CRUD.
 
+If you have some times left:
+-
+
+From February:
+Add a $ icon to all paid functionnality in the about pages. TO DO
 New features:
 Add a screenshot detector to the app.
 
@@ -16,8 +32,24 @@ Screenshot Detector if the app is open and it register you take a screenshot,
 Pop a windows saying, TAKE YOUR FUCKING PROFIT!
 ALso propose to close directly all open position at market price.
 
-Add the subscription page. (Now do the right subscription and link it to paypal or stripe)
-To link I need to delet my previous AE first and create a new one.
+Add the subscription page. (Now do the right subscription and link it to paypalpro when your auto entreprise account is created) Rework
+
+
+
+
+
+Février 2025:
+
+Correction, fix features:
+Add change Username / Mail functionnality(done) in the admin pannel: Done
+add a ResetPassword buton. (Add the mail reset password bouton somewhere) Done
+Correct the search user bug in admin Panel. Working
+
+In the RegisterForm Add a verification if user as already an account, and if yes, redirect him directly to LoginForm with 
+mail already written. Done
+
+Add a $ icon to all paid functionnality in the about pages. TO DO
+
 
 
 
