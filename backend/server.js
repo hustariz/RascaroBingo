@@ -129,6 +129,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 const userRoutes = require('./routes/userRoutes');
 const bingoRoutes = require('./routes/bingo');
 const tradeRoutes = require('./routes/tradeRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const emailVerificationRoutes = require('./routes/emailVerification');
 const krakenRoutes = require('./routes/krakenRoutes');
 const krakenFuturesRoutes = require('./routes/krakenFuturesRoutes');
@@ -138,6 +139,7 @@ const riskManagementRoutes = require('./routes/riskManagementRoutes');
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoRoutes);
 app.use('/api/trades', tradeRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/auth', emailVerificationRoutes);
 app.use('/api/kraken', krakenRoutes);
 app.use('/api/kraken/futures', krakenFuturesRoutes);

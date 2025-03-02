@@ -20,20 +20,10 @@ export default {
   },
   mutations: {
     SET_TRADES(state, trades) {
-      // Map MongoDB _id to id for frontend consistency and sort by newest first
-      state.trades = trades
-        .map(trade => ({
-          ...trade,
-          id: trade._id || trade.id
-        }))
-        .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+      state.trades = trades;
     },
     ADD_TRADE(state, trade) {
-      // Map MongoDB _id to id for frontend consistency
-      state.trades.unshift({
-        ...trade,
-        id: trade._id || trade.id
-      });
+      state.trades.unshift(trade); // Add new trade at the beginning of the array
     },
     UPDATE_TRADE(state, updatedTrade) {
       const index = state.trades.findIndex(t => t.id === updatedTrade.id || t.id === updatedTrade._id || t._id === updatedTrade.id || t._id === updatedTrade._id);
@@ -64,8 +54,8 @@ export default {
           id: trade._id || trade.id
         }));
     },
-    SET_LOADING(state, status) {
-      state.loading = status;
+    SET_LOADING(state, loading) {
+      state.loading = loading;
     },
     SET_ERROR(state, error) {
       state.error = error;
@@ -93,13 +83,8 @@ export default {
         console.log('Saving trade:', trade);
         
         const response = await api.post('/trades', trade);
-        const { trade: savedTrade, stats } = response.data;
-        
-        commit('ADD_TRADE', savedTrade);
-        if (stats) {
-          commit('riskManagement/SET_RISK_MANAGEMENT', { data: stats }, { root: true });
-        }
-        
+        const savedTrade = response.data;
+        commit('ADD_TRADE', savedTrade); // Use ADD_TRADE mutation for immediate update
         commit('SET_LOADING', false);
         return savedTrade;
       } catch (error) {
