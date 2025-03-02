@@ -123,11 +123,11 @@ export default {
       try {
         this.loading = true;
         this.error = null;
-        const stats = await api.getUserStats();
-        this.users = stats.users;
+        const response = await api.get('/leaderboard');
+        this.users = response.data;
       } catch (error) {
-        this.error = error.message || 'Failed to load leaderboard data';
         console.error('Error loading leaderboard:', error);
+        this.error = 'Failed to load leaderboard data. Please try again later.';
       } finally {
         this.loading = false;
       }
@@ -136,7 +136,7 @@ export default {
       this.sortBy = type;
     },
     formatWinrate(winrate) {
-      return `${(winrate * 100).toFixed(1)}%`;
+      return `${winrate.toFixed(1)}%`;
     },
     formatGain(gain) {
       return gain >= 0 

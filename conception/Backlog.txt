@@ -21,7 +21,9 @@ when wallet is linked, test it and also developp the subscription time  in fulls
 -> Backend modals, Profile page display, Admin page CRUD.
 
 If you have some times left:
--
+-Rework the Check Chart windows to be a mooving widget so you can drag it and resize it.
+-Add a widget toolbox where each widget is represented and can be toggle on and off.
+-Add a widget manager where you can add and remove widgets.
 
 From February:
 Add a $ icon to all paid functionnality in the about pages. TO DO
