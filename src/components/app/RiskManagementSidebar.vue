@@ -151,7 +151,6 @@ export default {
       isCollapsed: false,
       localAccountSize: 10000,
       localTradeSize: 1000,
-      currentPercentage: 10,
       showTooltip: false,
       askingForGrass: false,
       tooltipTimer: null
