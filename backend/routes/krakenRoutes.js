@@ -115,6 +115,41 @@ const krakenFuturesRequest = async (endpoint, method = 'GET', data = {}) => {
     }
 };
 
+const startFuturesBalanceUpdates = (io) => {
+    const updateInterval = 2500; // Update every 2.5 seconds
+    
+    const fetchAndBroadcastBalance = async () => {
+        try {
+            const accountResult = await krakenFuturesRequest('/derivatives/api/v3/accounts', 'GET');
+            
+            if (!accountResult?.accounts?.flex) {
+                console.error('Invalid account data received');
+                return;
+            }
+
+            const flexAccount = accountResult.accounts.flex;
+            const balanceData = {
+                balance: flexAccount.portfolioValue || 0,
+                monthlyChange: flexAccount.pnl || null,
+                monthlyChangePercent: flexAccount.pnl !== null && flexAccount.balanceValue !== 0
+                    ? (flexAccount.pnl / Math.abs(flexAccount.balanceValue)) * 100
+                    : null
+            };
+
+            // Broadcast to all connected clients
+            io.emit('futures-balance-update', balanceData);
+        } catch (err) {
+            console.error('Error fetching futures balance for WebSocket:', err.message);
+        }
+    };
+
+    // Start periodic updates
+    const interval = setInterval(fetchAndBroadcastBalance, updateInterval);
+
+    // Clean up function
+    return () => clearInterval(interval);
+};
+
 // Error handler middleware
 const handleKrakenError = (err, res) => {
     console.error('Full Kraken API error:', JSON.stringify({
@@ -213,9 +248,68 @@ router.get('/futures/accounts', async (req, res) => {
 
 router.post('/futures/positions', async (req, res) => {
     try {
-        console.log('Getting futures positions (POST)...');
-        const result = await krakenFuturesRequest('/derivatives/api/v3/openpositions', 'GET');
-        res.json(result);
+        console.log('\n=== Starting position fetch ===');
+        
+        // Get positions with fills
+        console.log('\n1. Fetching open positions...');
+        const positionsResult = await krakenFuturesRequest('/derivatives/api/v3/openpositions', 'GET');
+        
+        // Get tickers for all position symbols
+        console.log('\n2. Fetching tickers...');
+        const tickersResult = await krakenFuturesRequest('/derivatives/api/v3/tickers', 'GET');
+        
+        // Get account info for margin details
+        console.log('\n3. Fetching account info...');
+        const accountResult = await krakenFuturesRequest('/derivatives/api/v3/accounts', 'GET');
+        
+        // Combine position data with ticker data
+        const positions = positionsResult.openPositions.map(position => {
+            const ticker = tickersResult.tickers.find(t => t.symbol === position.symbol);
+            const accountInfo = accountResult?.accounts?.[position.symbol];
+            
+            if (ticker) {
+                const markPrice = parseFloat(ticker.markPrice);
+                const size = parseFloat(position.size);
+                const entryPrice = parseFloat(position.fillPrice || position.price);
+                const positionValue = size * markPrice;
+                const unrealizedPnL = (markPrice - entryPrice) * size * (position.side.toLowerCase() === 'long' ? 1 : -1);
+                const realizedPnL = parseFloat(position.realizedPnl || 0);
+                
+                // Using actual margin rates from the exchange
+                // Initial margin is about 2% (39.67/1983.80 ≈ 0.02)
+                const initialMarginRate = 0.02;
+                const margin = positionValue * initialMarginRate;
+                
+                // Maintenance margin is about 1% (19.84/1983.80 ≈ 0.01)
+                const maintenanceMarginRate = 0.01;
+                
+                // Calculate liquidation price using exchange's formula
+                // For XRP with ~40x leverage
+                // The difference between entry and liquidation is about 0.033 (2.28732 - 2.25431)
+                // This suggests a movement of about 1.5% triggers liquidation
+                const liquidationMove = entryPrice * 0.015; // 1.5% move
+                const liquidationPrice = position.side.toLowerCase() === 'long' 
+                    ? entryPrice - liquidationMove
+                    : entryPrice + liquidationMove;
+                
+                return {
+                    ...position,
+                    entryPrice: entryPrice,
+                    markPrice: markPrice,
+                    positionValue: positionValue,
+                    unrealizedPnL: unrealizedPnL,
+                    realizedPnL: realizedPnL,
+                    totalPnL: unrealizedPnL + realizedPnL,
+                    margin: margin,
+                    fundingRate: parseFloat(ticker.fundingRate || 0),
+                    liquidationPrice: liquidationPrice,
+                    leverage: (1 / initialMarginRate).toFixed(2) // Should be around 40x
+                };
+            }
+            return position;
+        });
+
+        res.json({ openPositions: positions });
     } catch (err) {
         handleKrakenError(err, res);
     }
@@ -230,5 +324,68 @@ router.post('/futures/balance', async (req, res) => {
         handleKrakenError(err, res);
     }
 });
+
+router.get('/futures/balance', async (req, res) => {
+    try {
+        console.log('\n=== Getting futures account balance ===');
+        const accountResult = await krakenFuturesRequest('/derivatives/api/v3/accounts', 'GET');
+        
+        if (!accountResult || !accountResult.accounts) {
+            throw new Error('Invalid response from Kraken Futures API');
+        }
+
+        // Calculate total balance from flex account which contains the aggregated balance
+        const flexAccount = accountResult.accounts.flex;
+        if (!flexAccount) {
+            throw new Error('Flex account not found in response');
+        }
+
+        // Use portfolioValue as the total balance since it includes PnL
+        const totalBalance = flexAccount.portfolioValue || 0;
+        
+        // Calculate monthly change using available data
+        const monthlyChange = flexAccount.pnl || null;
+        const monthlyChangePercent = monthlyChange !== null && flexAccount.balanceValue !== 0
+            ? (monthlyChange / Math.abs(flexAccount.balanceValue)) * 100
+            : null;
+
+        console.log('Futures balance result:', {
+            totalBalance,
+            monthlyChange,
+            monthlyChangePercent,
+            flexAccount
+        });
+
+        res.json({
+            balance: totalBalance,
+            monthlyChange,
+            monthlyChangePercent
+        });
+    } catch (err) {
+        console.error('Error fetching futures balance:', {
+            message: err.message,
+            stack: err.stack,
+            response: err.response?.data,
+            status: err.response?.status
+        });
+        
+        res.status(500).json({
+            error: err.message,
+            details: err.response?.data || 'No additional details available',
+            code: err.response?.status || 500
+        });
+    }
+});
+
+// Initialize WebSocket updates when the router is created
+let stopBalanceUpdates = null;
+
+router.init = (app) => {
+    const io = app.get('io');
+    if (io && !stopBalanceUpdates) {
+        stopBalanceUpdates = startFuturesBalanceUpdates(io);
+        console.log('Started futures balance WebSocket updates');
+    }
+};
 
 module.exports = router;

@@ -135,7 +135,7 @@ const krakenRoutes = require('./routes/krakenRoutes');
 const krakenFuturesRoutes = require('./routes/krakenFuturesRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
 
-// API routes
+// Initialize routes
 app.use('/api/users', userRoutes);
 app.use('/api/bingo', bingoRoutes);
 app.use('/api/trades', tradeRoutes);
@@ -144,6 +144,9 @@ app.use('/api/auth', emailVerificationRoutes);
 app.use('/api/kraken', krakenRoutes);
 app.use('/api/kraken/futures', krakenFuturesRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
+
+// Initialize WebSocket updates for routes that need it
+krakenRoutes.init(app);
 
 // API Info Route
 app.get('/api', (req, res) => {

@@ -8,6 +8,7 @@
           <span class="refresh-icon">↻</span> Refresh Data
         </button>
       </div>
+      
       <div class="spot-cards">
         <!-- Account Balance Card -->
         <div class="card">
@@ -105,7 +106,10 @@
           <span class="refresh-icon">↻</span> Refresh Data
         </button>
       </div>
-      <KrakenFuturesPositions ref="futuresPositionsRef" />
+      <div class="futures-cards">
+        <KrakenFuturesBalance class="card" />
+        <KrakenFuturesPositions ref="futuresPositionsRef" class="card" />
+      </div>
     </div>
   </div>
 </template>
@@ -114,11 +118,13 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import KrakenFuturesPositions from './KrakenFuturesPositions.vue';
+import KrakenFuturesBalance from './KrakenFuturesBalance.vue';
 
 export default {
   name: 'KrakenTest',
   components: {
-    KrakenFuturesPositions
+    KrakenFuturesPositions,
+    KrakenFuturesBalance
   },
   setup() {
     const accountBalance = ref(null);
@@ -463,6 +469,12 @@ h2 {
   margin-right: 4px;
 }
 
+.futures-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
 /* Responsive layout */
 @media (max-width: 1200px) {
   .spot-cards {
@@ -477,6 +489,10 @@ h2 {
   
   .kraken-test {
     padding: 12px;
+  }
+  
+  .futures-cards {
+    grid-template-columns: 1fr;
   }
 }
 </style>
