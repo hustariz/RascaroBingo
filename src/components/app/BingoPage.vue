@@ -362,6 +362,7 @@ export default defineComponent({
       exportTooltipVisible: false,
       exportTooltipX: 0,
       exportTooltipY: 0,
+      currentLayout: []
     };
   },
 
@@ -421,39 +422,44 @@ export default defineComponent({
     isMobile() {
       return window.innerWidth < 768;
     },
-    responsiveLayout() {
-      if (!this.isMobile) {
-        return this.layout;
+    responsiveLayout: {
+      get() {
+        if (!this.isMobile) {
+          return this.layout;
+        }
+
+        const mobileConfig = {
+          bingo: {
+            x: 0, y: 0, w: 4, h: 8,
+            minW: 4, minH: 8
+          },
+          risk: {
+            x: 0, y: 8, w: 4, h: 7,
+            minW: 4, minH: 7
+          },
+          'trade-idea': {
+            x: 0, y: 15, w: 4, h: 6,
+            minW: 4, minH: 6
+          },
+          'trade-details': {
+            x: 0, y: 21, w: 4, h: 8,
+            minW: 4, minH: 8
+          }
+        };
+
+        return this.layout.map(item => {
+          if (mobileConfig[item.i]) {
+            return {
+              ...item,
+              ...mobileConfig[item.i]
+            };
+          }
+          return item;
+        });
+      },
+      set(newLayout) {
+        this.currentLayout = newLayout;
       }
-
-      const mobileConfig = {
-        bingo: {
-          x: 0, y: 0, w: 4, h: 8,
-          minW: 4, minH: 8
-        },
-        risk: {
-          x: 0, y: 8, w: 4, h: 7,
-          minW: 4, minH: 7
-        },
-        'trade-idea': {
-          x: 0, y: 15, w: 4, h: 6,
-          minW: 4, minH: 6
-        },
-        'trade-details': {
-          x: 0, y: 21, w: 4, h: 8,
-          minW: 4, minH: 8
-        }
-      };
-
-      return this.layout.map(item => {
-        if (mobileConfig[item.i]) {
-          return {
-            ...item,
-            ...mobileConfig[item.i]
-          };
-        }
-        return item;
-      });
     }
   },
 
