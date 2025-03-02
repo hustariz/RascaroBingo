@@ -115,6 +115,41 @@ const krakenFuturesRequest = async (endpoint, method = 'GET', data = {}) => {
     }
 };
 
+const startFuturesBalanceUpdates = (io) => {
+    const updateInterval = 2500; // Update every 2.5 seconds
+    
+    const fetchAndBroadcastBalance = async () => {
+        try {
+            const accountResult = await krakenFuturesRequest('/derivatives/api/v3/accounts', 'GET');
+            
+            if (!accountResult?.accounts?.flex) {
+                console.error('Invalid account data received');
+                return;
+            }
+
+            const flexAccount = accountResult.accounts.flex;
+            const balanceData = {
+                balance: flexAccount.portfolioValue || 0,
+                monthlyChange: flexAccount.pnl || null,
+                monthlyChangePercent: flexAccount.pnl !== null && flexAccount.balanceValue !== 0
+                    ? (flexAccount.pnl / Math.abs(flexAccount.balanceValue)) * 100
+                    : null
+            };
+
+            // Broadcast to all connected clients
+            io.emit('futures-balance-update', balanceData);
+        } catch (err) {
+            console.error('Error fetching futures balance for WebSocket:', err.message);
+        }
+    };
+
+    // Start periodic updates
+    const interval = setInterval(fetchAndBroadcastBalance, updateInterval);
+
+    // Clean up function
+    return () => clearInterval(interval);
+};
+
 // Error handler middleware
 const handleKrakenError = (err, res) => {
     console.error('Full Kraken API error:', JSON.stringify({
@@ -289,5 +324,68 @@ router.post('/futures/balance', async (req, res) => {
         handleKrakenError(err, res);
     }
 });
+
+router.get('/futures/balance', async (req, res) => {
+    try {
+        console.log('\n=== Getting futures account balance ===');
+        const accountResult = await krakenFuturesRequest('/derivatives/api/v3/accounts', 'GET');
+        
+        if (!accountResult || !accountResult.accounts) {
+            throw new Error('Invalid response from Kraken Futures API');
+        }
+
+        // Calculate total balance from flex account which contains the aggregated balance
+        const flexAccount = accountResult.accounts.flex;
+        if (!flexAccount) {
+            throw new Error('Flex account not found in response');
+        }
+
+        // Use portfolioValue as the total balance since it includes PnL
+        const totalBalance = flexAccount.portfolioValue || 0;
+        
+        // Calculate monthly change using available data
+        const monthlyChange = flexAccount.pnl || null;
+        const monthlyChangePercent = monthlyChange !== null && flexAccount.balanceValue !== 0
+            ? (monthlyChange / Math.abs(flexAccount.balanceValue)) * 100
+            : null;
+
+        console.log('Futures balance result:', {
+            totalBalance,
+            monthlyChange,
+            monthlyChangePercent,
+            flexAccount
+        });
+
+        res.json({
+            balance: totalBalance,
+            monthlyChange,
+            monthlyChangePercent
+        });
+    } catch (err) {
+        console.error('Error fetching futures balance:', {
+            message: err.message,
+            stack: err.stack,
+            response: err.response?.data,
+            status: err.response?.status
+        });
+        
+        res.status(500).json({
+            error: err.message,
+            details: err.response?.data || 'No additional details available',
+            code: err.response?.status || 500
+        });
+    }
+});
+
+// Initialize WebSocket updates when the router is created
+let stopBalanceUpdates = null;
+
+router.init = (app) => {
+    const io = app.get('io');
+    if (io && !stopBalanceUpdates) {
+        stopBalanceUpdates = startFuturesBalanceUpdates(io);
+        console.log('Started futures balance WebSocket updates');
+    }
+};
 
 module.exports = router;
