@@ -9,7 +9,7 @@
           </button>
           <button class="action-button nuke-positions" title="Close All Positions" @click="confirmNukePositions">
             💣
-            <span v-if="openTradesCount > 0" class="notification-bubble">{{ openTradesCount }}</span>
+            <TradeCountBubble />
           </button>
         </div>
       </div>
@@ -150,9 +150,13 @@
 import '@/assets/styles/TradeHistorySection.css';
 import { ref, onMounted, watch, computed } from 'vue';
 import { useStore } from 'vuex';
+import TradeCountBubble from '@/components/little_components/TradeCountBubble.vue';
 
 export default {
   name: 'TradeHistorySection',
+  components: {
+    TradeCountBubble
+  },
   props: {
     isVisible: {
       type: Boolean,
@@ -167,7 +171,6 @@ export default {
     const store = useStore();
     const loading = ref(true);
     const editingTrade = ref(null);
-    const openTradesCount = computed(() => store.getters['trades/openTradesCount']);
 
     // Computed property to sort trades by status (open first) and then by date
     const trades = computed(() => {
@@ -332,7 +335,6 @@ export default {
       trades,
       loading,
       editingTrade,
-      openTradesCount,
       getStatusText,
       formatDate,
       updateTradeStatus,

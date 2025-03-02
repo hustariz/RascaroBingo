@@ -34,7 +34,8 @@ export default {
     }
   },
   methods: {
-    ...mapActions('user', ['getCurrentUser'])
+    ...mapActions('user', ['getCurrentUser']),
+    ...mapActions('trades', ['fetchTrades'])
   },
   async created() {
     // Check if auth state exists before accessing token
@@ -43,8 +44,12 @@ export default {
         // Load user data first
         const userData = await this.getCurrentUser();
         console.log('👤 User data initialized:', userData);
+        
+        // Then fetch trades
+        await this.fetchTrades();
+        console.log('📊 Trades initialized');
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('Error loading initial data:', error);
       }
     }
   }

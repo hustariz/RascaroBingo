@@ -99,7 +99,7 @@
         >
           <span class="tradedetails-history-icon">📊</span>
           Trade History
-          <span v-if="openTradesCount > 0" class="notification-bubble">{{ openTradesCount }}</span>
+          <TradeCountBubble />
         </button>
       </div>
     </div>
@@ -108,14 +108,17 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
+import { defineComponent } from 'vue';
 import { mapState } from 'vuex';
-import { useStore } from 'vuex';
 import TargetTooltip from '../little_components/TargetTooltip.vue';
+import TradeCountBubble from '@/components/little_components/TradeCountBubble.vue';
 
 export default defineComponent({
   name: 'TradeDetailsWidget',
-  components: { TargetTooltip },
+  components: { 
+    TargetTooltip,
+    TradeCountBubble
+  },
   emits: ['open-trade-history'],
   props: {
     score: {
@@ -123,14 +126,6 @@ export default defineComponent({
       required: true,
       default: 0
     }
-  },
-  setup() {
-    const store = useStore();
-    const openTradesCount = computed(() => store.getters['trades/openTradesCount']);
-
-    return {
-      openTradesCount
-    };
   },
   data() {
     return {
@@ -294,7 +289,6 @@ export default defineComponent({
         size: this.baseTradeSize,
         rr: parseFloat(this.currentRR),
         timestamp: new Date().toISOString(),
-        status: 'OPEN',
         pair: this.pair
       };
 
