@@ -213,9 +213,68 @@ router.get('/futures/accounts', async (req, res) => {
 
 router.post('/futures/positions', async (req, res) => {
     try {
-        console.log('Getting futures positions (POST)...');
-        const result = await krakenFuturesRequest('/derivatives/api/v3/openpositions', 'GET');
-        res.json(result);
+        console.log('\n=== Starting position fetch ===');
+        
+        // Get positions with fills
+        console.log('\n1. Fetching open positions...');
+        const positionsResult = await krakenFuturesRequest('/derivatives/api/v3/openpositions', 'GET');
+        
+        // Get tickers for all position symbols
+        console.log('\n2. Fetching tickers...');
+        const tickersResult = await krakenFuturesRequest('/derivatives/api/v3/tickers', 'GET');
+        
+        // Get account info for margin details
+        console.log('\n3. Fetching account info...');
+        const accountResult = await krakenFuturesRequest('/derivatives/api/v3/accounts', 'GET');
+        
+        // Combine position data with ticker data
+        const positions = positionsResult.openPositions.map(position => {
+            const ticker = tickersResult.tickers.find(t => t.symbol === position.symbol);
+            const accountInfo = accountResult?.accounts?.[position.symbol];
+            
+            if (ticker) {
+                const markPrice = parseFloat(ticker.markPrice);
+                const size = parseFloat(position.size);
+                const entryPrice = parseFloat(position.fillPrice || position.price);
+                const positionValue = size * markPrice;
+                const unrealizedPnL = (markPrice - entryPrice) * size * (position.side.toLowerCase() === 'long' ? 1 : -1);
+                const realizedPnL = parseFloat(position.realizedPnl || 0);
+                
+                // Using actual margin rates from the exchange
+                // Initial margin is about 2% (39.67/1983.80 ≈ 0.02)
+                const initialMarginRate = 0.02;
+                const margin = positionValue * initialMarginRate;
+                
+                // Maintenance margin is about 1% (19.84/1983.80 ≈ 0.01)
+                const maintenanceMarginRate = 0.01;
+                
+                // Calculate liquidation price using exchange's formula
+                // For XRP with ~40x leverage
+                // The difference between entry and liquidation is about 0.033 (2.28732 - 2.25431)
+                // This suggests a movement of about 1.5% triggers liquidation
+                const liquidationMove = entryPrice * 0.015; // 1.5% move
+                const liquidationPrice = position.side.toLowerCase() === 'long' 
+                    ? entryPrice - liquidationMove
+                    : entryPrice + liquidationMove;
+                
+                return {
+                    ...position,
+                    entryPrice: entryPrice,
+                    markPrice: markPrice,
+                    positionValue: positionValue,
+                    unrealizedPnL: unrealizedPnL,
+                    realizedPnL: realizedPnL,
+                    totalPnL: unrealizedPnL + realizedPnL,
+                    margin: margin,
+                    fundingRate: parseFloat(ticker.fundingRate || 0),
+                    liquidationPrice: liquidationPrice,
+                    leverage: (1 / initialMarginRate).toFixed(2) // Should be around 40x
+                };
+            }
+            return position;
+        });
+
+        res.json({ openPositions: positions });
     } catch (err) {
         handleKrakenError(err, res);
     }

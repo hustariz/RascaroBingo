@@ -22,41 +22,35 @@
           </div>
           <div class="detail-row">
             <span class="label">Entry Price:</span>
-            <span class="value">{{ formatPrice(position.price) }}</span>
+            <span class="value">{{ formatPrice(position.entryPrice, 5) }}</span>
           </div>
           <div class="detail-row">
             <span class="label">Mark Price:</span>
-            <span class="value">{{ formatPrice(position.markPrice) }}</span>
+            <span class="value">{{ formatPrice(position.markPrice, 5) }}</span>
           </div>
           <div class="detail-row">
             <span class="label">Position Value:</span>
-            <span class="value">{{ formatPrice(position.positionValue) }}</span>
+            <span class="value">{{ formatPrice(position.positionValue, 2) }}</span>
           </div>
           <div class="detail-row">
             <span class="label">Unrealized PnL:</span>
             <span :class="['value', getPnLClass(position.unrealizedPnL)]">
-              {{ formatPrice(position.unrealizedPnL) }}
-            </span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Realized PnL:</span>
-            <span :class="['value', getPnLClass(position.realizedPnL)]">
-              {{ formatPrice(position.realizedPnL) }}
+              {{ formatPrice(position.unrealizedPnL, 2) }}
             </span>
           </div>
           <div class="detail-row">
             <span class="label">Total PnL:</span>
             <span :class="['value', getPnLClass(position.totalPnL)]">
-              {{ formatPrice(position.totalPnL) }}
+              {{ formatPrice(position.totalPnL, 2) }}
             </span>
           </div>
           <div class="detail-row">
             <span class="label">Margin:</span>
-            <span class="value">{{ formatPrice(position.margin) }}</span>
+            <span class="value">{{ formatPrice(position.margin, 2) }}</span>
           </div>
           <div class="detail-row">
             <span class="label">Liquidation Price:</span>
-            <span class="value">{{ formatPrice(position.liquidationPrice) }}</span>
+            <span class="value">{{ formatPrice(position.liquidationPrice, 5) }}</span>
           </div>
           <div class="detail-row">
             <span class="label">Funding Rate:</span>
@@ -123,7 +117,12 @@ export default {
       try {
         this.loading = true;
         const response = await axios.post('/api/kraken/futures/positions');
-        this.positions = response.data.openPositions;
+        this.positions = response.data.openPositions.map(position => ({
+          ...position,
+          entryPrice: position.entryPrice || position.fillPrice || position.price,
+          margin: position.margin || 0,
+          liquidationPrice: position.liquidationPrice || 0
+        }));
         this.error = null;
       } catch (error) {
         console.error('Error fetching positions:', error);
@@ -133,13 +132,16 @@ export default {
       }
     },
     handlePositionUpdate(data) {
-      // Update the relevant position with new data
-      const index = this.positions.findIndex(p => p.symbol === data.symbol);
-      if (index !== -1) {
-        this.positions[index] = {
-          ...this.positions[index],
-          ...data
-        };
+      const position = this.positions.find(p => p.symbol === data.symbol);
+      if (position) {
+        const markPrice = parseFloat(data.markPrice);
+        const size = parseFloat(position.size);
+        const entryPrice = parseFloat(position.entryPrice);
+        
+        position.markPrice = markPrice;
+        position.positionValue = size * markPrice;
+        position.unrealizedPnL = (markPrice - entryPrice) * size * (position.side.toLowerCase() === 'long' ? 1 : -1);
+        position.totalPnL = position.unrealizedPnL + parseFloat(position.realizedPnL || 0);
       }
     },
     handlePriceUpdate(data) {
@@ -148,7 +150,7 @@ export default {
       if (position) {
         const markPrice = parseFloat(data.markPrice);
         const size = parseFloat(position.size);
-        const entryPrice = parseFloat(position.price);
+        const entryPrice = parseFloat(position.entryPrice);
         
         position.markPrice = markPrice;
         position.unrealizedPnL = position.side.toLowerCase() === 'long'
@@ -158,20 +160,21 @@ export default {
       }
     },
     formatNumber(value) {
+      if (!value || isNaN(value)) return '0';
       return new Intl.NumberFormat('en-US').format(value);
     },
-    formatPrice(value) {
+    formatPrice(value, decimals = 2) {
+      if (!value || isNaN(value)) return '$0.00';
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'USD',
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
       }).format(value);
     },
     formatPercentage(value) {
-      return new Intl.NumberFormat('en-US', {
-        style: 'percent',
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4
-      }).format(value);
+      if (!value || isNaN(value)) return '0.0000%';
+      return (value * 100).toFixed(4) + '%';
     },
     getPnLClass(value) {
       return value > 0 ? 'positive' : value < 0 ? 'negative' : '';
