@@ -144,19 +144,15 @@ export default {
         : `-$${Math.abs(gain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     },
     formatRR(rr) {
-      if (rr === null || rr === undefined) return '-';
+      if (rr === null || rr === undefined) return 'N/A';
       return Number(rr).toFixed(1);
     },
     getRRTitle(rr) {
-      if (rr >= 3) {
-        return `Exceptional R/R: ${rr} (Elite Level)`;
-      } else if (rr >= 1.5) {
-        return `Strong R/R: ${rr} (Professional Level)`;
-      } else if (rr >= 1) {
-        return `Acceptable R/R: ${rr} (Break Even Level)`;
-      } else {
-        return `Poor R/R: ${rr} (High Risk Level)`;
-      }
+      if (rr === null || rr === undefined) return 'No Risk/Reward data available';
+      if (rr >= 3) return 'Excellent Risk/Reward ratio';
+      if (rr >= 1.5) return 'Good Risk/Reward ratio';
+      if (rr >= 1) return 'Acceptable Risk/Reward ratio';
+      return 'Poor Risk/Reward ratio';
     },
     getRankClass(rank) {
       if (rank === 1) return 'gold';
@@ -410,92 +406,33 @@ export default {
   font-weight: bold;
   cursor: help;
   transition: all 0.3s ease;
-  padding: 4px 8px;
-  border-radius: 4px;
 }
 
-.rr.rr-golden {
-  color: #FFD700;
-  background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  animation: fireGlow 2s ease-in-out infinite;
+.golden-rr {
+  color: #ffd700;
+  font-weight: bold;
+  animation: fire 2s infinite;
+  text-shadow:
+    0 0 4px rgba(255, 215, 0, 0.5),
+    0 0 8px rgba(255, 165, 0, 0.5);
 }
 
-@keyframes fireGlow {
-  0% {
-    text-shadow: 
-      0 0 4px rgba(255, 215, 0, 0.5),
-      0 0 8px rgba(255, 165, 0, 0.5),
-      0 0 12px rgba(255, 140, 0, 0.5);
-    box-shadow: 
-      0 0 4px rgba(255, 215, 0, 0.2),
-      0 0 8px rgba(255, 165, 0, 0.2);
-  }
-  50% {
-    text-shadow: 
-      0 0 8px rgba(255, 215, 0, 0.8),
-      0 0 16px rgba(255, 165, 0, 0.8),
-      0 0 24px rgba(255, 140, 0, 0.8);
-    box-shadow: 
-      0 0 8px rgba(255, 215, 0, 0.4),
-      0 0 16px rgba(255, 165, 0, 0.4);
-  }
-  100% {
-    text-shadow: 
-      0 0 4px rgba(255, 215, 0, 0.5),
-      0 0 8px rgba(255, 165, 0, 0.5),
-      0 0 12px rgba(255, 140, 0, 0.5);
-    box-shadow: 
-      0 0 4px rgba(255, 215, 0, 0.2),
-      0 0 8px rgba(255, 165, 0, 0.2);
-  }
+.purple-rr {
+  color: #e0b0ff;
+  font-weight: bold;
+  animation: purpleGlow 2s infinite;
+  text-shadow:
+    0 0 4px rgba(157, 92, 240, 0.5),
+    0 0 8px rgba(122, 40, 138, 0.5);
 }
 
-.rr.rr-purple {
-  color: #9D5CF0;
-  background: linear-gradient(45deg, rgba(157, 92, 240, 0.1), rgba(122, 40, 138, 0.1));
-  border: 1px solid rgba(157, 92, 240, 0.3);
-  animation: purpleGlow 3s ease-in-out infinite;
+.normal-rr {
+  color: #ffffff;
 }
 
-@keyframes purpleGlow {
-  0% {
-    text-shadow: 
-      0 0 4px rgba(157, 92, 240, 0.5),
-      0 0 8px rgba(122, 40, 138, 0.5);
-    box-shadow: 
-      0 0 4px rgba(157, 92, 240, 0.2),
-      0 0 8px rgba(122, 40, 138, 0.2);
-  }
-  50% {
-    text-shadow: 
-      0 0 8px rgba(157, 92, 240, 0.8),
-      0 0 16px rgba(122, 40, 138, 0.8);
-    box-shadow: 
-      0 0 8px rgba(157, 92, 240, 0.4),
-      0 0 16px rgba(122, 40, 138, 0.4);
-  }
-  100% {
-    text-shadow: 
-      0 0 4px rgba(157, 92, 240, 0.5),
-      0 0 8px rgba(122, 40, 138, 0.5);
-    box-shadow: 
-      0 0 4px rgba(157, 92, 240, 0.2),
-      0 0 8px rgba(122, 40, 138, 0.2);
-  }
-}
-
-.rr.rr-normal {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.rr.rr-bad {
-  color: #f44336;
-  background: rgba(244, 67, 54, 0.1);
-  border: 1px solid rgba(244, 67, 54, 0.3);
-  animation: dangerPulse 2s ease-in-out infinite;
+.bad-rr {
+  color: #ff4444;
+  animation: dangerPulse 2s infinite;
 }
 
 @keyframes dangerPulse {
@@ -511,6 +448,18 @@ export default {
     text-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
     box-shadow: 0 0 4px rgba(244, 67, 54, 0.2);
   }
+}
+
+@keyframes fire {
+  0% { text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 15px #ff8c00, 0 0 20px #ff4500; }
+  50% { text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ff8c00, 0 0 40px #ff4500; }
+  100% { text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 15px #ff8c00, 0 0 20px #ff4500; }
+}
+
+@keyframes purpleGlow {
+  0% { text-shadow: 0 0 5px #9f00ff, 0 0 10px #9f00ff; }
+  50% { text-shadow: 0 0 10px #9f00ff, 0 0 15px #9f00ff; }
+  100% { text-shadow: 0 0 5px #9f00ff, 0 0 10px #9f00ff; }
 }
 
 .loading {
