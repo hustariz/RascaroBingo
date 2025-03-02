@@ -408,7 +408,7 @@ export default {
   transition: all 0.3s ease;
 }
 
-.golden-rr {
+.rr-golden {
   color: #ffd700;
   font-weight: bold;
   animation: fire 2s infinite;
@@ -417,7 +417,7 @@ export default {
     0 0 8px rgba(255, 165, 0, 0.5);
 }
 
-.purple-rr {
+.rr-purple {
   color: #e0b0ff;
   font-weight: bold;
   animation: purpleGlow 2s infinite;
@@ -426,13 +426,25 @@ export default {
     0 0 8px rgba(122, 40, 138, 0.5);
 }
 
-.normal-rr {
+.rr-normal {
   color: #ffffff;
 }
 
-.bad-rr {
+.rr-bad {
   color: #ff4444;
   animation: dangerPulse 2s infinite;
+}
+
+@keyframes fire {
+  0% { text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 15px #ff8c00, 0 0 20px #ff4500; }
+  50% { text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ff8c00, 0 0 40px #ff4500; }
+  100% { text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 15px #ff8c00, 0 0 20px #ff4500; }
+}
+
+@keyframes purpleGlow {
+  0% { text-shadow: 0 0 5px #9f00ff, 0 0 10px #9f00ff; }
+  50% { text-shadow: 0 0 10px #9f00ff, 0 0 15px #9f00ff; }
+  100% { text-shadow: 0 0 5px #9f00ff, 0 0 10px #9f00ff; }
 }
 
 @keyframes dangerPulse {
@@ -448,18 +460,6 @@ export default {
     text-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
     box-shadow: 0 0 4px rgba(244, 67, 54, 0.2);
   }
-}
-
-@keyframes fire {
-  0% { text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 15px #ff8c00, 0 0 20px #ff4500; }
-  50% { text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ff8c00, 0 0 40px #ff4500; }
-  100% { text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 15px #ff8c00, 0 0 20px #ff4500; }
-}
-
-@keyframes purpleGlow {
-  0% { text-shadow: 0 0 5px #9f00ff, 0 0 10px #9f00ff; }
-  50% { text-shadow: 0 0 10px #9f00ff, 0 0 15px #9f00ff; }
-  100% { text-shadow: 0 0 5px #9f00ff, 0 0 10px #9f00ff; }
 }
 
 .loading {
@@ -488,9 +488,15 @@ export default {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-10px); }
-  75% { transform: translateX(10px); }
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
 }
 
 .table-row:hover {
