@@ -23,7 +23,12 @@ export default {
       state.trades = trades;
     },
     ADD_TRADE(state, trade) {
-      state.trades.unshift(trade); // Add new trade at the beginning of the array
+      // Ensure trade has an ID before adding
+      const tradeWithId = {
+        ...trade,
+        id: trade._id || trade.id
+      };
+      state.trades.unshift(tradeWithId); // Add new trade at the beginning of the array
     },
     UPDATE_TRADE(state, updatedTrade) {
       const index = state.trades.findIndex(t => t.id === updatedTrade.id || t.id === updatedTrade._id || t._id === updatedTrade.id || t._id === updatedTrade._id);
@@ -82,9 +87,24 @@ export default {
         commit('SET_LOADING', true);
         console.log('Saving trade:', trade);
         
-        const response = await api.post('/trades', trade);
+        // Ensure trade has OPEN status
+        const tradeToSave = {
+          ...trade,
+          status: 'OPEN'
+        };
+        
+        const response = await api.post('/trades', tradeToSave);
         const savedTrade = response.data;
-        commit('ADD_TRADE', savedTrade); // Use ADD_TRADE mutation for immediate update
+        
+        // Ensure we have an ID and OPEN status before committing
+        const tradeWithId = {
+          ...savedTrade,
+          id: savedTrade._id || savedTrade.id,
+          status: 'OPEN'
+        };
+        
+        // Commit immediately for UI responsiveness
+        commit('ADD_TRADE', tradeWithId);
         commit('SET_LOADING', false);
         return savedTrade;
       } catch (error) {
@@ -99,6 +119,9 @@ export default {
         commit('SET_LOADING', true);
         console.log('🔄 Updating trade status:', { tradeId, status, profitLoss });
         
+        // Optimistically update UI
+        commit('UPDATE_TRADE_STATUS', { tradeId, status });
+        
         const response = await api.put(`/trades/${tradeId}/status`, { status, profitLoss });
         const { trade, stats } = response.data;
         
@@ -106,13 +129,13 @@ export default {
           throw new Error('No trade data received from server');
         }
         
-        // First update trade in store
+        // Update with server response
         commit('UPDATE_TRADE', {
           ...trade,
           id: trade._id || trade.id
         });
         
-        // Then ensure risk management is updated
+        // Update risk management if stats provided
         if (stats) {
           commit('riskManagement/SET_RISK_MANAGEMENT', { data: stats }, { root: true });
         }
