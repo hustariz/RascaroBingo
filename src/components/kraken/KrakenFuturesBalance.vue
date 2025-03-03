@@ -1,22 +1,27 @@
 <template>
-  <div class="futures-balance">
-    <h3>Futures Wallet</h3>
-    <div v-if="loading" class="loading">Loading...</div>
-    <div v-else-if="error" class="error-message">{{ error }}</div>
-    <div v-else class="balance-info">
-      <div class="balance-row">
-        <span class="label">Total Balance:</span>
-        <span class="value">{{ formatPrice(balance) }}</span>
+  <div class="kraken-futures-balance">
+    <div class="kraken-balance-header">
+      <h3>Futures Wallet</h3>
+    </div>
+    <div v-if="loading" class="kraken-loading">Loading...</div>
+    <div v-else-if="error" class="kraken-error-message">{{ error }}</div>
+    <div v-else class="kraken-balance-list">
+      <div class="kraken-balance-item">
+        <span class="kraken-balance-currency">Total Balance:</span>
+        <span class="kraken-balance-amount">{{ formatPrice(balance) }}</span>
       </div>
-      <div v-if="monthlyChange !== null" class="balance-row">
-        <span class="label">30d Change:</span>
-        <span :class="['value', monthlyChange >= 0 ? 'positive' : 'negative']">
+      <div v-if="monthlyChange !== null" class="kraken-balance-item">
+        <span class="kraken-balance-currency">30d Change:</span>
+        <span :class="['kraken-balance-amount', monthlyChange >= 0 ? '' : 'negative']">
           {{ formatPrice(monthlyChange) }} ({{ formatPercentage(monthlyChangePercent) }})
         </span>
       </div>
-      <div class="update-time">
-        Last update: {{ lastUpdateTime }}
-      </div>
+    </div>
+    <div v-if="!loading && !error && (!balance || balance === 0)" class="kraken-no-balance">
+      No balance available
+    </div>
+    <div class="kraken-update-time">
+      Last update: {{ lastUpdateTime }}
     </div>
   </div>
 </template>
@@ -156,58 +161,99 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.futures-balance {
-  width: 100%;
+.kraken-futures-balance {
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-h3 {
-  margin: 0 0 12px 0;
-  font-size: 1.1em;
-  color: var(--text-color, #333333);
-}
-
-.loading {
-  color: var(--text-secondary, #666666);
-  font-style: italic;
-}
-
-.error-message {
-  color: var(--error-color, #dc3545);
-  font-size: 0.9em;
-}
-
-.balance-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.balance-row {
+.kraken-balance-header {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #3d3d3d;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
 }
 
-.label {
-  color: var(--text-secondary, #666666);
+.kraken-balance-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  color: #4a9eff;
 }
 
-.value {
+.kraken-balance-list {
+  display: grid;
+  gap: 8px;
+}
+
+.kraken-balance-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: #252525;
+  border-radius: 6px;
+  border: 1px solid #3d3d3d;
+}
+
+.kraken-balance-currency {
   font-weight: 500;
+  color: #fff;
 }
 
-.positive {
-  color: var(--success-color, #28a745);
+.kraken-balance-amount {
+  font-family: monospace;
+  color: #2ebd85;
 }
 
-.negative {
-  color: var(--error-color, #dc3545);
+.kraken-balance-amount.negative {
+  color: #ff4842;
 }
 
-.update-time {
+.kraken-error-message {
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(255, 72, 66, 0.1);
+  color: #ff4842;
+  text-align: center;
+  border: 1px solid rgba(255, 72, 66, 0.5);
+  font-size: 0.9em;
+}
+
+.kraken-no-balance {
+  text-align: center;
+  padding: 8px;
+  color: #888;
+  font-size: 0.9em;
+}
+
+/* Scrollbar Styling */
+.kraken-futures-balance::-webkit-scrollbar {
+  width: 8px;
+}
+
+.kraken-futures-balance::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 4px;
+}
+
+.kraken-futures-balance::-webkit-scrollbar-thumb {
+  background: #3d3d3d;
+  border-radius: 4px;
+}
+
+.kraken-futures-balance::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+
+.kraken-update-time {
   font-size: 0.8em;
-  color: var(--text-secondary, #666666);
+  color: #888;
   text-align: right;
   margin-top: 8px;
 }

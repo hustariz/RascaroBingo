@@ -145,9 +145,6 @@ app.use('/api/kraken', krakenRoutes);
 app.use('/api/kraken/futures', krakenFuturesRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
-// Initialize WebSocket updates for routes that need it
-krakenRoutes.init(app);
-
 // API Info Route
 app.get('/api', (req, res) => {
   res.json({
@@ -246,6 +243,8 @@ server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔒 CORS enabled for:`, corsOptions.origin);
+  // Initialize WebSocket updates after server is listening
+  krakenRoutes.init(app);
 });
 
 module.exports = app;

@@ -1,60 +1,56 @@
 <template>
-  <div class="positions-container">
-    <h2>Futures Positions</h2>
-    <div v-if="loading" class="loading">
-      Loading positions...
-    </div>
-    <div v-else-if="error" class="error">
-      {{ error }}
-    </div>
-    <div v-else class="positions-grid">
-      <div v-for="position in positions" :key="position.symbol" class="position-card">
-        <div class="position-header">
+  <div class="kraken-futures-positions">
+    <h3>Futures Positions</h3>
+    <div v-if="error" class="kraken-error-message">{{ error }}</div>
+    <div v-else-if="!positions?.length" class="kraken-no-positions">No open positions</div>
+    <div v-else class="kraken-positions-list">
+      <div v-for="position in positions" :key="position.symbol" class="kraken-position-item">
+        <div class="kraken-position-header">
           <h3>{{ position.symbol }}</h3>
-          <span :class="['side-badge', position.side.toLowerCase()]">
+          <span :class="['kraken-side-badge', position.side.toLowerCase()]">
             {{ position.side }}
           </span>
         </div>
-        <div class="position-details">
-          <div class="detail-row">
-            <span class="label">Size:</span>
-            <span class="value">{{ formatNumber(position.size) }}</span>
+        <div class="kraken-position-details">
+          <div class="kraken-position-row">
+            <span class="kraken-label">Size:</span>
+            <span class="kraken-value">{{ formatNumber(position.size) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Entry Price:</span>
-            <span class="value">{{ formatPrice(position.entryPrice, 5) }}</span>
+          <div class="kraken-position-row">
+            <span class="kraken-label">Entry Price:</span>
+            <span class="kraken-value">{{ formatPrice(position.entryPrice, 5) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Mark Price:</span>
-            <span class="value">{{ formatPrice(position.markPrice, 5) }}</span>
+          <div class="kraken-position-row">
+            <span class="kraken-label">Mark Price:</span>
+            <span class="kraken-value">{{ formatPrice(position.markPrice, 5) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Position Value:</span>
-            <span class="value">{{ formatPrice(position.positionValue, 2) }}</span>
+          <div class="kraken-position-row">
+            <span class="kraken-label">Position Value:</span>
+            <span class="kraken-value">{{ formatPrice(position.positionValue, 2) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Unrealized PnL:</span>
-            <span :class="['value', getPnLClass(position.unrealizedPnL)]">
+          <div class="kraken-position-row">
+            <span class="kraken-label">Unrealized PnL:</span>
+            <span :class="['kraken-value', getPnLClass(position.unrealizedPnL)]">
               {{ formatPrice(position.unrealizedPnL, 2) }}
             </span>
           </div>
-          <div class="detail-row">
-            <span class="label">Total PnL:</span>
-            <span :class="['value', getPnLClass(position.totalPnL)]">
+          <div class="kraken-position-row">
+            <span class="kraken-label">Total PnL:</span>
+            <span :class="['kraken-value', getPnLClass(position.totalPnL)]">
               {{ formatPrice(position.totalPnL, 2) }}
             </span>
           </div>
-          <div class="detail-row">
-            <span class="label">Margin:</span>
-            <span class="value">{{ formatPrice(position.margin, 2) }}</span>
+          <div class="kraken-position-row">
+            <span class="kraken-label">Margin:</span>
+            <span class="kraken-value">{{ formatPrice(position.margin, 2) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Liquidation Price:</span>
-            <span class="value">{{ formatPrice(position.liquidationPrice, 5) }}</span>
+          <div class="kraken-position-row">
+            <span class="kraken-label">Liquidation Price:</span>
+            <span class="kraken-value">{{ formatPrice(position.liquidationPrice, 5) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Funding Rate:</span>
-            <span :class="['value', getFundingClass(position.fundingRate)]">
+          <div class="kraken-position-row">
+            <span class="kraken-label">Funding Rate:</span>
+            <span :class="['kraken-value', getFundingClass(position.fundingRate)]">
               {{ formatPercentage(position.fundingRate) }}
             </span>
           </div>
@@ -65,47 +61,28 @@
 </template>
 
 <script>
-import { io } from 'socket.io-client';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 export default {
   name: 'KrakenFuturesPositions',
-  expose: ['fetchPositions'],
   data() {
     return {
       positions: [],
-      loading: true,
+      tickers: {},
       error: null,
       socket: null,
       socketUrl: process.env.NODE_ENV === 'production' 
-        ? window.location.origin  // Use the same domain in production
-        : 'http://localhost:3004' // Use localhost in development
+        ? 'wss://futures.kraken.com/ws/v1'
+        : `${window.location.protocol}//${window.location.host}`
     };
   },
-  async created() {
-    // Connect to Socket.IO server
-    this.socket = io(this.socketUrl, {
-      withCredentials: true,
-      transports: ['websocket', 'polling']
-    });
-    
-    // Register this client
-    this.socket.emit('register', 'default'); // In a real app, use actual user ID
-    
-    // Listen for position updates
-    this.socket.on('position_update', this.handlePositionUpdate);
-    
-    // Listen for price updates
-    this.socket.on('price_update', this.handlePriceUpdate);
-
-    // Listen for connection errors
-    this.socket.on('connect_error', (error) => {
-      console.error('Socket.IO connection error:', error);
-      this.error = 'Failed to connect to real-time updates. Retrying...';
-    });
-    
+  created() {
     // Initial positions fetch
-    await this.fetchPositions();
+    this.fetchPositions();
+    
+    // Connect to WebSocket
+    this.connectWebSocket();
   },
   beforeUnmount() {
     if (this.socket) {
@@ -113,181 +90,248 @@ export default {
     }
   },
   methods: {
+    connectWebSocket() {
+      this.socket = io(this.socketUrl);
+      
+      this.socket.on('connect', () => {
+        console.log('WebSocket connected for positions updates');
+      });
+      
+      this.socket.on('futures-positions-update', (data) => {
+        console.log('Received positions update:', data);
+        if (data?.openPositions) {
+          this.positions = data.openPositions;
+        }
+      });
+      
+      this.socket.on('futures-tickers-update', (data) => {
+        console.log('Received tickers update:', data);
+        if (data?.tickers) {
+          // Update tickers map
+          this.tickers = data.tickers.reduce((acc, ticker) => {
+            acc[ticker.symbol] = ticker;
+            return acc;
+          }, {});
+          
+          // Update positions with new mark prices
+          this.updatePositionsWithTickers();
+        }
+      });
+      
+      this.socket.on('disconnect', () => {
+        console.log('WebSocket disconnected for positions updates');
+      });
+      
+      this.socket.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        this.error = 'Connection error. Retrying...';
+      });
+    },
+    updatePositionsWithTickers() {
+      this.positions = this.positions.map(pos => {
+        const ticker = this.tickers[pos.symbol];
+        if (!ticker) return pos;
+        
+        const markPrice = parseFloat(ticker.markPrice || 0);
+        const size = pos.size;
+        const entryPrice = pos.entryPrice;
+        
+        // Recalculate position metrics with new mark price
+        const positionValue = size * markPrice;
+        const unrealizedPnL = pos.side.toLowerCase() === 'short'
+          ? (entryPrice - markPrice) * size
+          : (markPrice - entryPrice) * size;
+          
+        // Margin rates
+        const maintenanceMarginRate = 0.01; // 1%
+        const initialMarginRate = 0.02; // 2%
+        
+        // Calculate margins
+        const initialMargin = positionValue * initialMarginRate;
+        
+        // Calculate liquidation price
+        const liquidationPrice = pos.side.toLowerCase() === 'short'
+          ? entryPrice * (1 + initialMarginRate + maintenanceMarginRate)
+          : entryPrice * (1 - initialMarginRate - maintenanceMarginRate);
+        
+        return {
+          ...pos,
+          markPrice,
+          positionValue,
+          unrealizedPnL,
+          totalPnL: unrealizedPnL + pos.realizedPnL,
+          margin: initialMargin,
+          liquidationPrice,
+          fundingRate: parseFloat(ticker.fundingRate || pos.fundingRate || 0)
+        };
+      });
+    },
+    formatNumber(value) {
+      if (value === null || value === undefined || isNaN(value)) return '0.00';
+      return Number(value).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 8
+      });
+    },
+    formatPrice(value, decimals = 2) {
+      if (value === null || value === undefined || isNaN(value)) return '$0.00';
+      return '$' + Number(value).toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    },
+    formatPercentage(value) {
+      if (value === null || value === undefined || isNaN(value)) return '0.0000%';
+      return (Number(value) * 100).toFixed(4) + '%';
+    },
+    getPnLClass(value) {
+      if (!value || isNaN(value)) return '';
+      return Number(value) > 0 ? 'positive' : Number(value) < 0 ? 'negative' : '';
+    },
+    getFundingClass(value) {
+      if (!value || isNaN(value)) return '';
+      return Number(value) >= 0 ? 'positive' : 'negative';
+    },
     async fetchPositions() {
       try {
-        this.loading = true;
-        const response = await axios.post('/api/kraken/futures/positions');
-        this.positions = response.data.openPositions.map(position => ({
-          ...position,
-          entryPrice: position.entryPrice || position.fillPrice || position.price,
-          margin: position.margin || 0,
-          liquidationPrice: position.liquidationPrice || 0
-        }));
+        console.log('Fetching positions...');
+        const response = await axios.get('/api/kraken/futures/positions');
+        console.log('Positions response:', response.data);
+        
+        if (!response.data || !response.data.openPositions) {
+          console.log('No positions data found');
+          this.positions = [];
+          return;
+        }
+        
+        this.positions = response.data.openPositions;
+        console.log('Processed positions:', this.positions);
         this.error = null;
       } catch (error) {
         console.error('Error fetching positions:', error);
         this.error = 'Failed to load positions. Please try again.';
-      } finally {
-        this.loading = false;
       }
-    },
-    handlePositionUpdate(data) {
-      const position = this.positions.find(p => p.symbol === data.symbol);
-      if (position) {
-        const markPrice = parseFloat(data.markPrice);
-        const size = parseFloat(position.size);
-        const entryPrice = parseFloat(position.entryPrice);
-        
-        position.markPrice = markPrice;
-        position.positionValue = size * markPrice;
-        position.unrealizedPnL = (markPrice - entryPrice) * size * (position.side.toLowerCase() === 'long' ? 1 : -1);
-        position.totalPnL = position.unrealizedPnL + parseFloat(position.realizedPnL || 0);
-      }
-    },
-    handlePriceUpdate(data) {
-      // Update mark price and recalculate PnL for the relevant position
-      const position = this.positions.find(p => p.symbol === data.product_id);
-      if (position) {
-        const markPrice = parseFloat(data.markPrice);
-        const size = parseFloat(position.size);
-        const entryPrice = parseFloat(position.entryPrice);
-        
-        position.markPrice = markPrice;
-        position.unrealizedPnL = position.side.toLowerCase() === 'long'
-          ? (markPrice - entryPrice) * size
-          : (entryPrice - markPrice) * size;
-        position.totalPnL = position.unrealizedPnL + position.realizedPnL;
-      }
-    },
-    formatNumber(value) {
-      if (!value || isNaN(value)) return '0';
-      return new Intl.NumberFormat('en-US').format(value);
-    },
-    formatPrice(value, decimals = 2) {
-      if (!value || isNaN(value)) return '$0.00';
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-      }).format(value);
-    },
-    formatPercentage(value) {
-      if (!value || isNaN(value)) return '0.0000%';
-      return (value * 100).toFixed(4) + '%';
-    },
-    getPnLClass(value) {
-      return value > 0 ? 'positive' : value < 0 ? 'negative' : '';
-    },
-    getFundingClass(value) {
-      return value > 0 ? 'negative' : value < 0 ? 'positive' : '';
     }
   }
 };
 </script>
 
 <style scoped>
-.positions-container {
+.kraken-futures-positions {
+  background: #1e1e1e;
+  border-radius: 12px;
   padding: 20px;
+  min-width: 0;
 }
 
-.positions-grid {
+.kraken-positions-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 20px;
   margin-top: 20px;
 }
 
-.position-card {
+.kraken-position-item {
   background: #252525;
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid #3d3d3d;
+  min-width: 0;
 }
 
-.position-header {
+.kraken-position-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  gap: 10px;
 }
 
-.position-header h3 {
+.kraken-position-header h3 {
   margin: 0;
   color: #4a9eff;
   font-size: 1.2em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.side-badge {
-  padding: 4px 8px;
+.kraken-side-badge {
+  padding: 4px 12px;
   border-radius: 4px;
-  font-size: 0.8em;
+  font-size: 0.9em;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.side-badge.long {
-  background: rgba(0, 171, 85, 0.2);
-  color: #00ab55;
+.kraken-side-badge.buy,
+.kraken-side-badge.long {
+  background: rgba(46, 189, 133, 0.2);
+  color: #2ebd85;
 }
 
-.side-badge.short {
+.kraken-side-badge.sell,
+.kraken-side-badge.short {
   background: rgba(255, 72, 66, 0.2);
   color: #ff4842;
 }
 
-.position-details {
-  display: grid;
+.kraken-position-details {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.detail-row {
+.kraken-position-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 4px 0;
 }
 
-.label {
+.kraken-label {
   color: #888;
   font-size: 0.9em;
+  white-space: nowrap;
+  margin-right: 10px;
 }
 
-.value {
-  color: #e0e0e0;
+.kraken-value {
   font-weight: 500;
+  text-align: right;
 }
 
-.value.positive {
-  color: #00ab55;
+.kraken-value.positive {
+  color: #2ebd85;
 }
 
-.value.negative {
+.kraken-value.negative {
   color: #ff4842;
 }
 
-.loading {
+.kraken-error-message {
+  margin: 20px 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 72, 66, 0.1);
+  color: #ff4842;
+  text-align: center;
+  border: 1px solid rgba(255, 72, 66, 0.5);
+}
+
+.kraken-no-positions {
   text-align: center;
   padding: 20px;
   color: #888;
 }
 
-.error {
-  text-align: center;
-  padding: 12px;
-  background: rgba(255, 72, 66, 0.2);
-  color: #ff4842;
-  border-radius: 6px;
-  margin-top: 8px;
-  border: 1px solid rgba(255, 72, 66, 0.5);
-}
-
 @media (max-width: 768px) {
-  .positions-container {
+  .kraken-futures-positions {
     padding: 12px;
   }
   
-  .positions-grid {
+  .kraken-positions-list {
     grid-template-columns: 1fr;
   }
 }
