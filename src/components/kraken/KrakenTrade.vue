@@ -7,10 +7,13 @@
           <input 
             type="text" 
             v-model="symbolSearch" 
-            placeholder="Search pairs..." 
+            :placeholder="tradeForm.symbol || 'Search pairs...'"
             class="kraken-trade-input kraken-search-input"
             @focus="showDropdown = true"
           />
+          <div class="selected-symbol" v-if="tradeForm.symbol && !showDropdown">
+            {{ tradeForm.symbol }}
+          </div>
           <div v-if="showDropdown" class="kraken-custom-dropdown">
             <div 
               v-for="pair in filteredPairs" 
@@ -95,10 +98,11 @@
 
       <button 
         class="kraken-place-trade-button" 
+        :class="{ 'long-button': tradeForm.side === 'buy', 'short-button': tradeForm.side === 'sell' }"
         :disabled="!isTradeFormValid"
         @click="placeTrade"
       >
-        Place Trade
+        {{ tradeForm.side === 'buy' ? 'LONG' : 'SHORT' }}
       </button>
 
       <div v-if="tradeError" class="kraken-error-message">
@@ -174,64 +178,64 @@ export default {
 
     const fetchSymbolMarketData = async (symbol) => {
       try {
-        const response = await axios.get(`https://futures.kraken.com/derivatives/api/v3/tickers`);
-        if (response.data && response.data.tickers) {
+        const response = await axios.get('/api/kraken/futures/tickers');
+        console.log('Market data response:', response.data); // Debug log
+        
+        if (response.data && Array.isArray(response.data.tickers)) {
           const ticker = response.data.tickers.find(t => t.symbol === symbol);
           if (ticker) {
             marketData.value[symbol] = {
-              price: parseFloat(ticker.last).toFixed(2),
-              change: parseFloat(ticker.change24h).toFixed(2),
-              volume: (parseFloat(ticker.vol24h) / 1000).toFixed(2),
+              price: parseFloat(ticker.last || ticker.markPrice || 0).toFixed(2),
+              change: parseFloat(ticker.change24h || 0).toFixed(2),
+              volume: parseFloat(ticker.vol24h || 0).toFixed(2),
               fundingRate: parseFloat(ticker.fundingRate || 0).toFixed(4)
             };
+          } else {
+            console.warn(`No ticker found for symbol: ${symbol}`);
           }
+        } else {
+          console.error('Invalid response format:', response.data);
         }
       } catch (error) {
-        console.error('Error fetching market data:', error);
+        console.error('Error fetching market data:', error.response?.data || error);
+        // Don't update marketData on error to keep previous valid data
       }
     };
 
     const placeTrade = async () => {
-      if (!isTradeFormValid.value) {
-        tradeError.value = 'Please fill in all required fields';
-        return;
-      }
-
       try {
-        // Validate trade parameters
-        const price = parseFloat(tradeForm.value.price);
+        tradeError.value = null;
         
-        if (price <= 0) {
-          tradeError.value = 'Invalid price';
-          return;
-        }
-
-        // Send trade to backend
-        const response = await axios.post('/api/kraken/futures/trade', {
+        const tradeRequest = {
           symbol: tradeForm.value.symbol,
           side: tradeForm.value.side,
           size: parseFloat(tradeForm.value.size),
-          price: price,
-          stopLoss: tradeForm.value.stopLoss ? parseFloat(tradeForm.value.stopLoss) : null,
-          takeProfit: tradeForm.value.takeProfit ? parseFloat(tradeForm.value.takeProfit) : null
-        });
+          price: parseFloat(tradeForm.value.price),
+          stopLoss: tradeForm.value.stopLoss ? parseFloat(tradeForm.value.stopLoss) : undefined,
+          takeProfit: tradeForm.value.takeProfit ? parseFloat(tradeForm.value.takeProfit) : undefined
+        };
 
-        if (response.data.success) {
-          // Clear form and error
-          tradeForm.value.size = null;
-          tradeForm.value.price = null;
-          tradeForm.value.stopLoss = null;
-          tradeForm.value.takeProfit = null;
-          tradeError.value = null;
+        console.log('Sending trade request:', tradeRequest);
+        const response = await axios.post('/api/kraken/futures/trade', tradeRequest);
+        console.log('Trade response:', response.data);
 
-          // Emit event to refresh positions
-          emit('trade-placed');
-        } else {
-          tradeError.value = response.data.error || 'Failed to place trade';
+        if (response.data.error) {
+          tradeError.value = `Trade failed: ${response.data.error}`;
+          return;
         }
+
+        // Clear form after successful trade
+        tradeForm.value.size = null;
+        tradeForm.value.price = null;
+        tradeForm.value.stopLoss = null;
+        tradeForm.value.takeProfit = null;
+
+        // Emit event to refresh positions
+        emit('trade-placed');
+
       } catch (error) {
         console.error('Trade error:', error);
-        tradeError.value = error.response?.data?.error || 'Failed to place trade';
+        tradeError.value = error.response?.data?.error || error.response?.data?.details || 'Failed to place trade';
       }
     };
 
@@ -287,19 +291,17 @@ export default {
 
 <style scoped>
 .kraken-trade-section {
-  width: 400px;
   padding: 20px;
-  background: #252525;
-  border-radius: 8px;
-  margin-right: 20px;
-  border: 1px solid #3d3d3d;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 .kraken-trade-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  background: #252525;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #3d3d3d;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .kraken-form-group {
@@ -313,6 +315,16 @@ export default {
   flex-direction: column;
   gap: 0.5rem;
   position: relative;
+}
+
+.selected-symbol {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-weight: 500;
+  pointer-events: none;
 }
 
 .kraken-custom-dropdown {
@@ -439,24 +451,33 @@ export default {
 }
 
 .kraken-place-trade-button {
+  width: 100%;
   padding: 12px;
-  border: none;
   border-radius: 4px;
-  background: #1e88e5;
-  color: white;
-  font-weight: 500;
+  border: 1px solid;
+  font-weight: bold;
+  font-size: 1.1em;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
-.kraken-place-trade-button:hover:not(:disabled) {
-  background: #1976d2;
+.kraken-place-trade-button:hover {
+  opacity: 0.9;
 }
 
 .kraken-place-trade-button:disabled {
-  background: #444;
+  opacity: 0.5;
   cursor: not-allowed;
-  opacity: 0.7;
+}
+
+.long-button {
+  background: #26a69a !important;
+  border-color: #26a69a !important;
+}
+
+.short-button {
+  background: #ef5350 !important;
+  border-color: #ef5350 !important;
 }
 
 .kraken-error-message {
