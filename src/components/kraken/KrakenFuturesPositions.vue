@@ -1,60 +1,60 @@
 <template>
-  <div class="positions-container">
+  <div class="kraken-positions-container">
     <h2>Futures Positions</h2>
-    <div v-if="loading" class="loading">
+    <div v-if="loading" class="kraken-loading">
       Loading positions...
     </div>
-    <div v-else-if="error" class="error">
+    <div v-else-if="error" class="kraken-error-message">
       {{ error }}
     </div>
-    <div v-else class="positions-grid">
-      <div v-for="position in positions" :key="position.symbol" class="position-card">
-        <div class="position-header">
+    <div v-else class="kraken-positions-grid">
+      <div v-for="position in positions" :key="position.symbol" class="kraken-position-card">
+        <div class="kraken-position-header">
           <h3>{{ position.symbol }}</h3>
-          <span :class="['side-badge', position.side.toLowerCase()]">
+          <span :class="['kraken-side-badge', position.side.toLowerCase()]">
             {{ position.side }}
           </span>
         </div>
-        <div class="position-details">
-          <div class="detail-row">
-            <span class="label">Size:</span>
-            <span class="value">{{ formatNumber(position.size) }}</span>
+        <div class="kraken-position-details">
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Size:</span>
+            <span class="kraken-value">{{ formatNumber(position.size) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Entry Price:</span>
-            <span class="value">{{ formatPrice(position.entryPrice, 5) }}</span>
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Entry Price:</span>
+            <span class="kraken-value">{{ formatPrice(position.entryPrice, 5) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Mark Price:</span>
-            <span class="value">{{ formatPrice(position.markPrice, 5) }}</span>
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Mark Price:</span>
+            <span class="kraken-value">{{ formatPrice(position.markPrice, 5) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Position Value:</span>
-            <span class="value">{{ formatPrice(position.positionValue, 2) }}</span>
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Position Value:</span>
+            <span class="kraken-value">{{ formatPrice(position.positionValue, 2) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Unrealized PnL:</span>
-            <span :class="['value', getPnLClass(position.unrealizedPnL)]">
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Unrealized PnL:</span>
+            <span :class="['kraken-value', getPnLClass(position.unrealizedPnL)]">
               {{ formatPrice(position.unrealizedPnL, 2) }}
             </span>
           </div>
-          <div class="detail-row">
-            <span class="label">Total PnL:</span>
-            <span :class="['value', getPnLClass(position.totalPnL)]">
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Total PnL:</span>
+            <span :class="['kraken-value', getPnLClass(position.totalPnL)]">
               {{ formatPrice(position.totalPnL, 2) }}
             </span>
           </div>
-          <div class="detail-row">
-            <span class="label">Margin:</span>
-            <span class="value">{{ formatPrice(position.margin, 2) }}</span>
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Margin:</span>
+            <span class="kraken-value">{{ formatPrice(position.margin, 2) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Liquidation Price:</span>
-            <span class="value">{{ formatPrice(position.liquidationPrice, 5) }}</span>
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Liquidation Price:</span>
+            <span class="kraken-value">{{ formatPrice(position.liquidationPrice, 5) }}</span>
           </div>
-          <div class="detail-row">
-            <span class="label">Funding Rate:</span>
-            <span :class="['value', getFundingClass(position.fundingRate)]">
+          <div class="kraken-detail-row">
+            <span class="kraken-label">Funding Rate:</span>
+            <span :class="['kraken-value', getFundingClass(position.fundingRate)]">
               {{ formatPercentage(position.fundingRate) }}
             </span>
           </div>
@@ -187,18 +187,18 @@ export default {
 </script>
 
 <style scoped>
-.positions-container {
+.kraken-positions-container {
   padding: 20px;
 }
 
-.positions-grid {
+.kraken-positions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   margin-top: 20px;
 }
 
-.position-card {
+.kraken-position-card {
   background: #252525;
   border-radius: 8px;
   padding: 16px;
@@ -206,73 +206,73 @@ export default {
   border: 1px solid #3d3d3d;
 }
 
-.position-header {
+.kraken-position-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
 }
 
-.position-header h3 {
+.kraken-position-header h3 {
   margin: 0;
   color: #4a9eff;
   font-size: 1.2em;
 }
 
-.side-badge {
+.kraken-side-badge {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.8em;
   font-weight: 600;
 }
 
-.side-badge.long {
+.kraken-side-badge.long {
   background: rgba(0, 171, 85, 0.2);
   color: #00ab55;
 }
 
-.side-badge.short {
+.kraken-side-badge.short {
   background: rgba(255, 72, 66, 0.2);
   color: #ff4842;
 }
 
-.position-details {
+.kraken-position-details {
   display: grid;
   gap: 8px;
 }
 
-.detail-row {
+.kraken-detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 4px 0;
 }
 
-.label {
+.kraken-label {
   color: #888;
   font-size: 0.9em;
 }
 
-.value {
+.kraken-value {
   color: #e0e0e0;
   font-weight: 500;
 }
 
-.value.positive {
+.kraken-value.positive {
   color: #00ab55;
 }
 
-.value.negative {
+.kraken-value.negative {
   color: #ff4842;
 }
 
-.loading {
+.kraken-loading {
   text-align: center;
   padding: 20px;
   color: #888;
 }
 
-.error {
+.kraken-error-message {
   text-align: center;
   padding: 12px;
   background: rgba(255, 72, 66, 0.2);
@@ -283,11 +283,11 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .positions-container {
+  .kraken-positions-container {
     padding: 12px;
   }
   
-  .positions-grid {
+  .kraken-positions-grid {
     grid-template-columns: 1fr;
   }
 }

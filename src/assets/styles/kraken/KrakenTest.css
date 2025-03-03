@@ -1,0 +1,408 @@
+.kraken-test {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 80px auto 0;
+    background: #1a1a1a;
+    min-height: calc(100vh - 80px);
+    color: #e0e0e0;
+  }
+  
+  .kraken-test h2 {
+    color: #4a9eff;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+  }
+  
+  .kraken-spot-trading-section {
+    margin-bottom: 30px;
+  }
+  
+  .kraken-spot-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  
+  .kraken-card {
+    background: #252525;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    border: 1px solid #3d3d3d;
+    height: 100%;
+    min-height: 200px;
+    overflow: auto;
+  }
+  
+  .kraken-card h3 {
+    color: #4a9eff;
+    margin: 0 0 16px 0;
+    font-size: 1.2em;
+  }
+  
+  .kraken-balance-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .kraken-balance-bubbles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+  }
+  
+  .kraken-balance-bubble {
+    background: #2d2d2d;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #3d3d3d;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .kraken-balance-bubble:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .kraken-balance-bubble .kraken-currency {
+    display: block;
+    color: #4a9eff;
+    font-weight: 600;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+  }
+  
+  .kraken-balance-bubble .kraken-amount {
+    display: block;
+    color: #e0e0e0;
+    font-weight: 500;
+    font-size: 0.9em;
+  }
+  
+  .kraken-toggle-button {
+    background: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    color: #4a9eff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+    width: 100%;
+  }
+  
+  .kraken-toggle-button:hover {
+    background: #353535;
+  }
+  
+  .kraken-remaining-balances {
+    display: grid;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #3d3d3d;
+  }
+  
+  .kraken-remaining-balances .kraken-balance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    background: #2d2d2d;
+    border-radius: 6px;
+  }
+  
+  .kraken-ticker-info, .kraken-orders-list {
+    display: grid;
+    gap: 8px;
+  }
+  
+  .kraken-ticker-row, .kraken-order-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+  }
+  
+  .kraken-label {
+    color: #888;
+    font-size: 0.9em;
+  }
+  
+  .kraken-value {
+    color: #e0e0e0;
+    font-weight: 500;
+  }
+  
+  .kraken-loading {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+  }
+  
+  .kraken-error-message {
+    color: #ff4842;
+    padding: 12px;
+    background: rgba(255, 72, 66, 0.2);
+    border-radius: 6px;
+    margin-top: 8px;
+    border: 1px solid rgba(255, 72, 66, 0.5);
+  }
+  
+  .kraken-no-orders {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+  }
+  
+  .kraken-order-item {
+    background: #2d2d2d;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .kraken-order-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .kraken-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .kraken-refresh-button {
+    background: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    color: #4a9eff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+  }
+  
+  .kraken-refresh-button:hover {
+    background: #353535;
+  }
+  
+  .kraken-refresh-icon {
+    font-size: 1.2em;
+    margin-right: 4px;
+  }
+  
+  .kraken-futures-trading-section {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+  }
+  
+  .kraken-futures-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .kraken-trade-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .kraken-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .kraken-form-group label {
+    font-weight: 500;
+    color: var(--text-color);
+  }
+  
+  .kraken-trade-input {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+    width: 100%;
+  }
+  
+  .kraken-trade-input option {
+    padding: 8px;
+    background: #2d2d2d;
+    color: #e0e0e0;
+    font-family: monospace;
+    white-space: pre;
+  }
+  
+  .kraken-trade-input option:hover {
+    background: #353535;
+  }
+  
+  .kraken-trade-number-input {
+    text-align: right;
+  }
+  
+  .kraken-side-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .kraken-side-button {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px solid #3d3d3d;
+    border-radius: 6px;
+    background: #2d2d2d;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .kraken-side-button.active {
+    background: #4a9eff;
+    color: white;
+    border-color: #4a9eff;
+    box-shadow: 0 0 10px rgba(74, 158, 255, 0.3);
+  }
+  
+  .kraken-side-button:hover:not(.active) {
+    background: #353535;
+    border-color: #4a9eff;
+  }
+  
+  .kraken-place-trade-button {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border: 2px solid #4a9eff;
+    border-radius: 6px;
+    background: #4a9eff;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+  }
+  
+  .kraken-place-trade-button:hover:not(:disabled) {
+    background: #3a8eff;
+    box-shadow: 0 4px 16px rgba(74, 158, 255, 0.4);
+    transform: translateY(-1px);
+  }
+  
+  .kraken-place-trade-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-color: #3d3d3d;
+    background: #2d2d2d;
+    box-shadow: none;
+  }
+  
+  .kraken-symbol-search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+  }
+
+  .kraken-custom-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    border-radius: 4px;
+    z-index: 1000;
+    margin-top: 4px;
+  }
+
+  .kraken-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .kraken-dropdown-item:hover,
+  .kraken-dropdown-item.active {
+    background: #353535;
+  }
+
+  .kraken-pair-info {
+    font-family: monospace;
+    white-space: pre;
+    color: #e0e0e0;
+  }
+
+  .kraken-crypto-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  .kraken-search-input {
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    border-radius: 4px;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    width: 100%;
+  }
+
+  .kraken-search-input:focus {
+    border-color: #4a9eff;
+    outline: none;
+  }
+
+  .kraken-search-input::placeholder {
+    color: #666;
+  }
+
+  .kraken-pair-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  /* Responsive layout */
+  @media (max-width: 1200px) {
+    .kraken-spot-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .kraken-spot-cards {
+      grid-template-columns: 1fr;
+    }
+    
+    .kraken-test {
+      padding: 12px;
+    }
+    
+    .kraken-futures-cards {
+      grid-template-columns: 1fr;
+    }
+  }

@@ -1,20 +1,20 @@
 <template>
-  <div class="futures-balance">
+  <div class="kraken-card">
     <h3>Futures Wallet</h3>
-    <div v-if="loading" class="loading">Loading...</div>
-    <div v-else-if="error" class="error-message">{{ error }}</div>
-    <div v-else class="balance-info">
-      <div class="balance-row">
-        <span class="label">Total Balance:</span>
-        <span class="value">{{ formatPrice(balance) }}</span>
+    <div v-if="loading" class="kraken-loading">Loading...</div>
+    <div v-else-if="error" class="kraken-error-message">{{ error }}</div>
+    <div v-else class="kraken-balance-info">
+      <div class="kraken-balance-row">
+        <span class="kraken-label">Total Balance:</span>
+        <span class="kraken-value">{{ formatPrice(balance) }}</span>
       </div>
-      <div v-if="monthlyChange !== null" class="balance-row">
-        <span class="label">30d Change:</span>
-        <span :class="['value', monthlyChange >= 0 ? 'positive' : 'negative']">
+      <div v-if="monthlyChange !== null" class="kraken-balance-row">
+        <span class="kraken-label">30d Change:</span>
+        <span :class="['kraken-value', monthlyChange >= 0 ? 'kraken-positive' : 'kraken-negative']">
           {{ formatPrice(monthlyChange) }} ({{ formatPercentage(monthlyChangePercent) }})
         </span>
       </div>
-      <div class="update-time">
+      <div class="kraken-update-time">
         Last update: {{ lastUpdateTime }}
       </div>
     </div>
@@ -156,7 +156,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.futures-balance {
+.kraken-card {
   width: 100%;
 }
 
@@ -166,46 +166,46 @@ h3 {
   color: var(--text-color, #333333);
 }
 
-.loading {
+.kraken-loading {
   color: var(--text-secondary, #666666);
   font-style: italic;
 }
 
-.error-message {
+.kraken-error-message {
   color: var(--error-color, #dc3545);
   font-size: 0.9em;
 }
 
-.balance-info {
+.kraken-balance-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.balance-row {
+.kraken-balance-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 4px 0;
 }
 
-.label {
+.kraken-label {
   color: var(--text-secondary, #666666);
 }
 
-.value {
+.kraken-value {
   font-weight: 500;
 }
 
-.positive {
+.kraken-positive {
   color: var(--success-color, #28a745);
 }
 
-.negative {
+.kraken-negative {
   color: var(--error-color, #dc3545);
 }
 
-.update-time {
+.kraken-update-time {
   font-size: 0.8em;
   color: var(--text-secondary, #666666);
   text-align: right;

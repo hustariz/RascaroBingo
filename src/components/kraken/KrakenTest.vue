@@ -1,96 +1,96 @@
 <template>
   <div class="kraken-test">
     <!-- Spot Trading Section -->
-    <div class="spot-trading-section">
-      <div class="section-header">
+    <div class="kraken-spot-trading-section">
+      <div class="kraken-section-header">
         <h2>Spot Trading</h2>
-        <button @click="refreshData" class="refresh-button">
-          <span class="refresh-icon">↻</span> Refresh Data
+        <button @click="refreshData" class="kraken-refresh-button">
+          <span class="kraken-refresh-icon">↻</span> Refresh Data
         </button>
       </div>
       
-      <div class="spot-cards">
+      <div class="kraken-spot-cards">
         <!-- Account Balance Card -->
-        <div class="card">
+        <div class="kraken-card">
           <h3>Account Balance</h3>
-          <div v-if="balanceError" class="error-message">{{ balanceError }}</div>
-          <div v-else-if="loadingBalance" class="loading">Loading...</div>
-          <div v-else-if="accountBalance" class="balance-info">
+          <div v-if="balanceError" class="kraken-error-message">{{ balanceError }}</div>
+          <div v-else-if="loadingBalance" class="kraken-loading">Loading...</div>
+          <div v-else-if="accountBalance" class="kraken-balance-info">
             <!-- Top 5 non-zero balances in bubbles -->
-            <div class="balance-bubbles">
-              <div v-for="balance in topBalances" :key="balance.currency" class="balance-bubble">
-                <span class="currency">{{ balance.currency }}</span>
-                <span class="amount">{{ formatNumber(balance.amount) }}</span>
+            <div class="kraken-balance-bubbles">
+              <div v-for="balance in topBalances" :key="balance.currency" class="kraken-balance-bubble">
+                <span class="kraken-currency">{{ balance.currency }}</span>
+                <span class="kraken-amount">{{ formatNumber(balance.amount) }}</span>
               </div>
             </div>
             
             <!-- Toggle button for remaining balances -->
             <button v-if="hasMoreBalances" 
                     @click="showAllBalances = !showAllBalances" 
-                    class="toggle-button">
+                    class="kraken-toggle-button">
               {{ showAllBalances ? 'Show Less ▲' : `Show More (${remainingBalancesCount}) ▼` }}
             </button>
 
             <!-- Remaining balances in list format -->
-            <div v-if="showAllBalances" class="remaining-balances">
+            <div v-if="showAllBalances" class="kraken-remaining-balances">
               <div v-for="balance in remainingBalances" 
                    :key="balance.currency" 
-                   class="balance-row">
-                <span class="currency">{{ balance.currency }}</span>
-                <span class="amount">{{ formatNumber(balance.amount) }}</span>
+                   class="kraken-balance-row">
+                <span class="kraken-currency">{{ balance.currency }}</span>
+                <span class="kraken-amount">{{ formatNumber(balance.amount) }}</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- BTC/USD Ticker Card -->
-        <div class="card">
+        <div class="kraken-card">
           <h3>BTC/USD Ticker</h3>
-          <div v-if="tickerError" class="error-message">{{ tickerError }}</div>
-          <div v-else-if="loadingTicker" class="loading">Loading...</div>
-          <div v-else-if="ticker" class="ticker-info">
-            <div class="ticker-row">
-              <span class="label">Last Price:</span>
-              <span class="value">${{ formatNumber(ticker.lastPrice) }}</span>
+          <div v-if="tickerError" class="kraken-error-message">{{ tickerError }}</div>
+          <div v-else-if="loadingTicker" class="kraken-loading">Loading...</div>
+          <div v-else-if="ticker" class="kraken-ticker-info">
+            <div class="kraken-ticker-row">
+              <span class="kraken-label">Last Price:</span>
+              <span class="kraken-value">${{ formatNumber(ticker.lastPrice) }}</span>
             </div>
-            <div class="ticker-row">
-              <span class="label">24h Volume:</span>
-              <span class="value">{{ formatNumber(ticker.volume) }} BTC</span>
+            <div class="kraken-ticker-row">
+              <span class="kraken-label">24h Volume:</span>
+              <span class="kraken-value">{{ formatNumber(ticker.volume) }} BTC</span>
             </div>
-            <div class="ticker-row">
-              <span class="label">24h High:</span>
-              <span class="value">${{ formatNumber(ticker.high) }}</span>
+            <div class="kraken-ticker-row">
+              <span class="kraken-label">24h High:</span>
+              <span class="kraken-value">${{ formatNumber(ticker.high) }}</span>
             </div>
-            <div class="ticker-row">
-              <span class="label">24h Low:</span>
-              <span class="value">${{ formatNumber(ticker.low) }}</span>
+            <div class="kraken-ticker-row">
+              <span class="kraken-label">24h Low:</span>
+              <span class="kraken-value">${{ formatNumber(ticker.low) }}</span>
             </div>
           </div>
         </div>
 
         <!-- Open Orders Card -->
-        <div class="card">
+        <div class="kraken-card">
           <h3>Open Orders</h3>
-          <div v-if="ordersError" class="error-message">{{ ordersError }}</div>
-          <div v-else-if="loadingOrders" class="loading">Loading...</div>
-          <div v-else-if="!orders?.open || Object.keys(orders.open).length === 0" class="no-orders">No open orders</div>
-          <div v-else class="orders-list">
-            <div v-for="(order, orderId) in orders.open" :key="orderId" class="order-item">
-              <div class="order-row">
-                <span class="label">Order ID:</span>
-                <span class="value">{{ orderId }}</span>
+          <div v-if="ordersError" class="kraken-error-message">{{ ordersError }}</div>
+          <div v-else-if="loadingOrders" class="kraken-loading">Loading...</div>
+          <div v-else-if="!orders?.open || Object.keys(orders.open).length === 0" class="kraken-no-orders">No open orders</div>
+          <div v-else class="kraken-orders-list">
+            <div v-for="(order, orderId) in orders.open" :key="orderId" class="kraken-order-item">
+              <div class="kraken-order-row">
+                <span class="kraken-label">Order ID:</span>
+                <span class="kraken-value">{{ orderId }}</span>
               </div>
-              <div class="order-row">
-                <span class="label">Type:</span>
-                <span class="value">{{ order.descr.type }} {{ order.descr.ordertype }}</span>
+              <div class="kraken-order-row">
+                <span class="kraken-label">Type:</span>
+                <span class="kraken-value">{{ order.descr.type }} {{ order.descr.ordertype }}</span>
               </div>
-              <div class="order-row">
-                <span class="label">Price:</span>
-                <span class="value">${{ formatNumber(order.descr.price) }}</span>
+              <div class="kraken-order-row">
+                <span class="kraken-label">Price:</span>
+                <span class="kraken-value">${{ formatNumber(order.descr.price) }}</span>
               </div>
-              <div class="order-row">
-                <span class="label">Volume:</span>
-                <span class="value">{{ formatNumber(order.vol) }}</span>
+              <div class="kraken-order-row">
+                <span class="kraken-label">Volume:</span>
+                <span class="kraken-value">{{ formatNumber(order.vol) }}</span>
               </div>
             </div>
           </div>
@@ -99,16 +99,27 @@
     </div>
 
     <!-- Futures Trading Section -->
-    <div class="futures-section">
-      <div class="section-header">
+    <div class="kraken-futures-trading-section">
+      <div class="kraken-section-header">
         <h2>Futures Trading</h2>
-        <button @click="refreshFuturesData" class="refresh-button">
-          <span class="refresh-icon">↻</span> Refresh Data
-        </button>
       </div>
-      <div class="futures-cards">
-        <KrakenFuturesBalance class="card" />
-        <KrakenFuturesPositions ref="futuresPositionsRef" class="card" />
+      
+      <div class="kraken-futures-trading-container">
+        <KrakenTrade @trade-placed="handleTradePlaced" />
+        <div class="kraken-futures-data">
+          <KrakenFuturesBalance 
+            ref="futuresBalanceRef"
+            :account-balance="accountBalance"
+            :loading="loadingBalance"
+            :error="balanceError"
+          />
+          <KrakenFuturesPositions 
+            ref="futuresPositionsRef"
+            :positions="positions"
+            :loading="loadingPositions"
+            :error="positionsError"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -119,128 +130,133 @@ import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import KrakenFuturesPositions from './KrakenFuturesPositions.vue';
 import KrakenFuturesBalance from './KrakenFuturesBalance.vue';
+import KrakenTrade from './KrakenTrade.vue';
 
 export default {
   name: 'KrakenTest',
   components: {
     KrakenFuturesPositions,
-    KrakenFuturesBalance
+    KrakenFuturesBalance,
+    KrakenTrade
   },
+
   setup() {
     const accountBalance = ref(null);
-    const loadingBalance = ref(false);
     const balanceError = ref(null);
-    const showAllBalances = ref(false);
-
+    const loadingBalance = ref(false);
+    const positions = ref([]);
+    const positionsError = ref(null);
+    const loadingPositions = ref(false);
+    const futuresPositionsRef = ref(null);
     const ticker = ref(null);
     const tickerError = ref(null);
     const loadingTicker = ref(false);
-
     const orders = ref(null);
     const ordersError = ref(null);
     const loadingOrders = ref(false);
+    const showAllBalances = ref(false);
 
-    const futuresPositionsRef = ref(null);
+    const formatNumber = (value) => {
+      if (value === undefined || value === null) return '0';
+      
+      // Convert to number if it's a string
+      const num = typeof value === 'string' ? parseFloat(value) : value;
+      
+      // Handle different ranges
+      if (Math.abs(num) >= 1000000) {
+        return (num / 1000000).toFixed(2) + 'M';
+      } else if (Math.abs(num) >= 1000) {
+        return (num / 1000).toFixed(2) + 'K';
+      } else if (Math.abs(num) < 0.01) {
+        return num.toFixed(8);
+      } else {
+        return num.toFixed(2);
+      }
+    };
 
-    // Computed properties for balance display
     const topBalances = computed(() => {
       if (!accountBalance.value) return [];
-      
-      // Convert balance object to array and sort by amount
-      const balanceArray = Object.entries(accountBalance.value)
-        .map(([currency, amount]) => ({ 
-          currency, 
-          amount: parseFloat(amount) 
-        }))
-        .filter(balance => balance.amount > 0)
-        .sort((a, b) => b.amount - a.amount)
-        .slice(0, 5);
-
-      return balanceArray;
+      return Object.keys(accountBalance.value).slice(0, 5).map(currency => ({
+        currency,
+        amount: accountBalance.value[currency]
+      }));
     });
 
     const remainingBalances = computed(() => {
       if (!accountBalance.value) return [];
-      
-      // Get all non-zero balances after the top 5
-      return Object.entries(accountBalance.value)
-        .map(([currency, amount]) => ({ 
-          currency, 
-          amount: parseFloat(amount) 
-        }))
-        .filter(balance => balance.amount > 0)
-        .sort((a, b) => b.amount - a.amount)
-        .slice(5);
+      return Object.keys(accountBalance.value).slice(5).map(currency => ({
+        currency,
+        amount: accountBalance.value[currency]
+      }));
     });
 
-    const hasMoreBalances = computed(() => {
-      return remainingBalances.value.length > 0;
-    });
+    const hasMoreBalances = computed(() => remainingBalances.value.length > 0);
 
-    const remainingBalancesCount = computed(() => {
-      return remainingBalances.value.length;
-    });
+    const remainingBalancesCount = computed(() => remainingBalances.value.length);
+
+    const handleTradePlaced = () => {
+      // Refresh positions and balance after trade
+      fetchData();
+    };
 
     const fetchData = async () => {
-      // Fetch balance
+      // Fetch spot balance
       loadingBalance.value = true;
-      balanceError.value = null;
       try {
         const balanceResponse = await axios.post('/api/kraken/balance');
         accountBalance.value = balanceResponse.data.result;
+        balanceError.value = null;
       } catch (error) {
-        balanceError.value = error.response?.data?.error || error.message;
+        balanceError.value = error.response?.data?.error || 'Failed to fetch balance';
+        console.error('Balance error:', error);
       } finally {
         loadingBalance.value = false;
       }
 
-      // Fetch ticker
+      // Fetch BTC/USD ticker
       loadingTicker.value = true;
-      tickerError.value = null;
       try {
         const tickerResponse = await axios.get('/api/kraken/public/ticker?pair=BTC/USD');
-        const result = tickerResponse.data.result['XXBTZUSD'];
+        const tickerData = tickerResponse.data.result.XXBTZUSD;
         ticker.value = {
-          lastPrice: result.c[0],
-          volume: result.v[1],
-          high: result.h[1],
-          low: result.l[1]
+          lastPrice: tickerData.c[0],
+          volume: tickerData.v[1],
+          high: tickerData.h[1],
+          low: tickerData.l[1]
         };
+        tickerError.value = null;
       } catch (error) {
-        tickerError.value = error.response?.data?.error || error.message;
+        tickerError.value = error.response?.data?.error || 'Failed to fetch ticker';
+        console.error('Ticker error:', error);
       } finally {
         loadingTicker.value = false;
       }
 
-      // Fetch orders
+      // Fetch open orders
       loadingOrders.value = true;
-      ordersError.value = null;
       try {
         const ordersResponse = await axios.post('/api/kraken/openOrders');
         orders.value = ordersResponse.data.result;
+        ordersError.value = null;
       } catch (error) {
-        ordersError.value = error.response?.data?.error || error.message;
+        ordersError.value = error.response?.data?.error || 'Failed to fetch orders';
+        console.error('Orders error:', error);
       } finally {
         loadingOrders.value = false;
       }
-    };
 
-    const refreshData = async () => {
-      await fetchData();
-    };
-
-    const refreshFuturesData = async () => {
-      if (futuresPositionsRef.value) {
-        await futuresPositionsRef.value.fetchPositions();
+      // Fetch futures positions
+      loadingPositions.value = true;
+      try {
+        const positionsResponse = await axios.get('/api/kraken/futures/positions');
+        positions.value = positionsResponse.data;
+        positionsError.value = null;
+      } catch (error) {
+        positionsError.value = error.response?.data?.error || 'Failed to fetch positions';
+        console.error('Positions error:', error);
+      } finally {
+        loadingPositions.value = false;
       }
-    };
-
-    const formatNumber = (value) => {
-      if (!value) return '0';
-      return new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 8
-      }).format(value);
     };
 
     onMounted(() => {
@@ -251,248 +267,41 @@ export default {
       accountBalance,
       balanceError,
       loadingBalance,
-      showAllBalances,
-      topBalances,
-      remainingBalances,
-      hasMoreBalances,
-      remainingBalancesCount,
+      positions,
+      positionsError,
+      loadingPositions,
+      futuresPositionsRef,
+      handleTradePlaced,
       ticker,
       tickerError,
       loadingTicker,
       orders,
       ordersError,
       loadingOrders,
-      formatNumber,
-      refreshData,
-      refreshFuturesData,
-      futuresPositionsRef
+      showAllBalances,
+      topBalances,
+      remainingBalances,
+      hasMoreBalances,
+      remainingBalancesCount,
+      fetchData,
+      formatNumber
     };
   }
 };
 </script>
 
 <style scoped>
-.kraken-test {
-  padding: 20px;
-  max-width: 1400px;
-  margin: 80px auto 0;
-  background: #1a1a1a;
-  min-height: calc(100vh - 80px);
-  color: #e0e0e0;
-}
+@import '@/assets/styles/kraken/KrakenTest.css';
 
-h2 {
-  color: #4a9eff;
-  margin-bottom: 20px;
-  font-size: 1.5em;
-}
-
-.spot-trading-section {
-  margin-bottom: 30px;
-}
-
-.spot-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.kraken-futures-trading-container {
+  display: flex;
   gap: 20px;
 }
 
-.card {
-  background: #252525;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  border: 1px solid #3d3d3d;
-  height: 100%;
-  min-height: 200px;
-  overflow: auto;
-}
-
-.card h3 {
-  color: #4a9eff;
-  margin: 0 0 16px 0;
-  font-size: 1.2em;
-}
-
-.balance-info {
+.kraken-futures-data {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.balance-bubbles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 12px;
-}
-
-.balance-bubble {
-  background: #2d2d2d;
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-  border: 1px solid #3d3d3d;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.balance-bubble:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.balance-bubble .currency {
-  display: block;
-  color: #4a9eff;
-  font-weight: 600;
-  font-size: 0.9em;
-  margin-bottom: 4px;
-}
-
-.balance-bubble .amount {
-  display: block;
-  color: #e0e0e0;
-  font-weight: 500;
-  font-size: 0.9em;
-}
-
-.toggle-button {
-  background: #2d2d2d;
-  border: 1px solid #3d3d3d;
-  color: #4a9eff;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background-color 0.2s;
-  width: 100%;
-}
-
-.toggle-button:hover {
-  background: #353535;
-}
-
-.remaining-balances {
-  display: grid;
-  gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #3d3d3d;
-}
-
-.remaining-balances .balance-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 8px;
-  background: #2d2d2d;
-  border-radius: 6px;
-}
-
-.ticker-info, .orders-list {
-  display: grid;
-  gap: 8px;
-}
-
-.ticker-row, .order-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 0;
-}
-
-.label {
-  color: #888;
-  font-size: 0.9em;
-}
-
-.value {
-  color: #e0e0e0;
-  font-weight: 500;
-}
-
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #888;
-}
-
-.error-message {
-  color: #ff4842;
-  padding: 12px;
-  background: rgba(255, 72, 66, 0.2);
-  border-radius: 6px;
-  margin-top: 8px;
-  border: 1px solid rgba(255, 72, 66, 0.5);
-}
-
-.no-orders {
-  text-align: center;
-  color: #888;
-  padding: 20px;
-}
-
-.order-item {
-  background: #2d2d2d;
-  border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 8px;
-}
-
-.order-item:last-child {
-  margin-bottom: 0;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.refresh-button {
-  background: #2d2d2d;
-  border: 1px solid #3d3d3d;
-  color: #4a9eff;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9em;
-  transition: background-color 0.2s;
-}
-
-.refresh-button:hover {
-  background: #353535;
-}
-
-.refresh-icon {
-  font-size: 1.2em;
-  margin-right: 4px;
-}
-
-.futures-cards {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-}
-
-/* Responsive layout */
-@media (max-width: 1200px) {
-  .spot-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .spot-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .kraken-test {
-    padding: 12px;
-  }
-  
-  .futures-cards {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

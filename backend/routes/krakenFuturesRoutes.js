@@ -543,4 +543,86 @@ router.post('/editorder', async (req, res) => {
     }
 });
 
+// Place a futures trade
+router.post('/trade', async (req, res) => {
+    try {
+        const { symbol, side, size, price, stopLoss, takeProfit } = req.body;
+        const nonce = Date.now();
+        
+        // Validate required fields
+        if (!symbol || !side || !size || !price) {
+            return res.status(400).json({
+                error: 'Missing required fields',
+                details: 'symbol, side, size, and price are required'
+            });
+        }
+
+        // Prepare the order data
+        const orderData = {
+            orderType: 'lmt',
+            symbol,
+            side,
+            size: size.toString(),
+            limitPrice: price.toString(),
+            cliOrdId: `trade_${nonce}`,
+        };
+
+        // Add stop loss if provided
+        if (stopLoss) {
+            orderData.stopPrice = stopLoss.toString();
+        }
+
+        // Add take profit if provided
+        if (takeProfit) {
+            // Create a separate take profit order
+            const tpOrderData = {
+                orderType: 'take_profit',
+                symbol,
+                side: side === 'buy' ? 'sell' : 'buy',
+                size: size.toString(),
+                limitPrice: takeProfit.toString(),
+                cliOrdId: `tp_${nonce}`,
+                reduceOnly: true
+            };
+        }
+
+        const endpoint = '/api/v3/sendorder';
+        const signature = createSignature(endpoint, orderData, nonce);
+
+        // Place the main order
+        const response = await axios.post(`${FUTURES_API_URL}${endpoint}`, orderData, {
+            headers: {
+                'APIKey': process.env.KRAKEN_FUTURES_API_KEY,
+                'Nonce': nonce,
+                'Authent': signature
+            }
+        });
+
+        // If take profit was specified, place the TP order
+        if (takeProfit) {
+            const tpNonce = Date.now();
+            const tpSignature = createSignature(endpoint, tpOrderData, tpNonce);
+            
+            await axios.post(`${FUTURES_API_URL}${endpoint}`, tpOrderData, {
+                headers: {
+                    'APIKey': process.env.KRAKEN_FUTURES_API_KEY,
+                    'Nonce': tpNonce,
+                    'Authent': tpSignature
+                }
+            });
+        }
+
+        res.json({
+            success: true,
+            data: response.data
+        });
+    } catch (error) {
+        console.error('Error placing trade:', error);
+        res.status(500).json({
+            error: 'Failed to place trade',
+            details: error.response?.data || error.message
+        });
+    }
+});
+
 module.exports = router;
