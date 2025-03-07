@@ -45,7 +45,7 @@
         </div>
         <div class="kraken-order-actions">
           <button 
-            @click="cancelOrder(order.orderId, order.symbol)" 
+            @click="cancelOrder(order.orderId)" 
             :disabled="cancellingOrders.includes(order.orderId)"
             class="kraken-order-button"
           >
@@ -129,7 +129,8 @@ export default {
         this.orders = response.data.openOrders.map(order => ({
           ...order,
           orderId: order.orderId || order.order_id, // Handle both formats
-          symbol: order.symbol || order.instrument, // Handle both formats
+          cliOrdId: order.cliOrdId, // Store the client order ID
+          symbol: (order.symbol || order.instrument || '').replace('PF_', 'PI_'), // Handle both formats and fix PF_ prefix
           size: parseFloat(order.size || 0),
           limitPrice: parseFloat(order.limitPrice || order.price || 0),
           stopPrice: parseFloat(order.stopPrice || 0),
@@ -142,29 +143,35 @@ export default {
         this.error = 'Failed to load orders. Please try again.';
       }
     },
-    async cancelOrder(orderId, symbol) {
-      // Prevent multiple cancel attempts
-      if (this.cancellingOrders.includes(orderId)) {
+    async cancelOrder(orderId) {
+      if (!orderId || this.cancellingOrders.includes(orderId)) {
         return;
       }
 
-      const order = this.orders.find(o => o.orderId === orderId);
-      if (!order) {
-        this.$emit('show-notification', {
-          type: 'error',
-          message: 'Order not found in the current list'
-        });
-        return;
-      }
-
-      console.log('Cancelling order:', orderId, 'for symbol:', symbol);
       this.cancellingOrders.push(orderId);
       this.error = null;
 
       try {
-        const response = await axios.post('/api/kraken/futures/cancel-order', { 
-          orderId,
-          symbol: order.symbol // Use the symbol from the order object
+        // Find the order to get its actual order_id from Kraken
+        const order = this.orders.find(o => o.orderId === orderId);
+        if (!order) {
+          throw new Error('Order not found');
+        }
+
+        // Use the order_id from the order object
+        const krakenOrderId = order.order_id || order.orderId;
+        if (!krakenOrderId) {
+          throw new Error('Missing Kraken order ID');
+        }
+
+        // Generate a unique client order ID if not present
+        const cliOrdId = order.cliOrdId || 
+          `cancel-${krakenOrderId}-${Date.now()}`;
+
+        const response = await axios.post('/api/kraken/futures/cancel-order', {
+          order_id: krakenOrderId,
+          cliOrdId: cliOrdId,
+          symbol: order.symbol // Add the symbol to the request
         });
         
         if (response.data.error) {
@@ -181,10 +188,16 @@ export default {
         });
         
         // Always refresh orders to ensure our list is up to date
-        this.fetchOrders();
+        await this.fetchOrders();
       } catch (error) {
         console.error('Error canceling order:', error);
-        const errorMessage = error.response?.data?.details || error.message || 'Failed to cancel order';
+        
+        // Extract error message, prioritizing API error details
+        const errorMessage = error.response?.data?.error || 
+                           error.response?.data?.details || 
+                           error.message || 
+                           'Failed to cancel order';
+        
         this.error = errorMessage;
         
         // Show error notification
@@ -194,9 +207,13 @@ export default {
         });
         
         // Refresh orders list in case the error was due to order already being cancelled
-        this.fetchOrders();
+        try {
+          await this.fetchOrders();
+        } catch (fetchError) {
+          console.error('Error refreshing orders after cancel failure:', fetchError);
+        }
       } finally {
-        // Remove the order from cancelling state
+        // Remove the order from the cancelling list
         this.cancellingOrders = this.cancellingOrders.filter(id => id !== orderId);
       }
     }

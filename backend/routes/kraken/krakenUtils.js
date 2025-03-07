@@ -3,17 +3,47 @@ const axios = require('axios');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
-// Nonce management
-let lastNonce = Date.now();
+// Nonce management - match Python's time.time() * 1000
 const getNonce = () => {
-    const now = Date.now();
-    lastNonce = Math.max(now, lastNonce + 1);
-    return lastNonce.toString();
+    return Math.floor(Date.now()).toString();
+};
+
+// Custom URL encode to match Python implementation
+const customUrlEncode = (params) => {
+    // First, ensure dates are in the correct format
+    const processedParams = Object.fromEntries(
+        Object.entries(params).map(([key, value]) => {
+            if (key === 'processBefore') {
+                // Format: YYYY-MM-ddTHH:mm:ss.SSSZ
+                const date = new Date(value);
+                return [key, date.toISOString()];
+            }
+            return [key, value];
+        })
+    );
+
+    return Object.entries(processedParams)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, value]) => {
+            if (Array.isArray(value)) {
+                return value.map(item => `${key}=${encodeURIComponent(item)}`).join('&');
+            }
+            return `${key}=${encodeURIComponent(value)}`;
+        })
+        .join('&');
 };
 
 // Kraken Futures API helper functions
-const createSignature = (endpoint, nonce, apiKey, secretKey, postData = '') => {
-    const message = `${postData}${nonce}${endpoint}`;
+const createSignature = (endpoint, nonce, apiKey, secretKey, data = {}) => {
+    // Remove /derivatives and ensure endpoint starts with /
+    const cleanEndpoint = endpoint.replace('/derivatives', '');
+    const signaturePath = cleanEndpoint.startsWith('/') ? cleanEndpoint : '/' + cleanEndpoint;
+    
+    // Create message in exact order: data + nonce + path (matching Python)
+    const encodedParams = customUrlEncode(data);
+    const message = encodedParams + nonce + signaturePath;
+    console.log('Creating signature with message:', message);
+    
     const messageHash = crypto.createHash('sha256').update(message).digest();
     const decodedSecret = Buffer.from(secretKey, 'base64');
     const hmac = crypto.createHmac('sha512', decodedSecret);
@@ -47,55 +77,11 @@ const handleRateLimit = async (endpoint) => {
 
 const updateBackoff = (endpoint, success) => {
     if (success) {
-        // Reset backoff on success
         rateLimitState.backoffTime[endpoint] = rateLimitState.minInterval;
     } else {
-        // Exponential backoff on failure
         const currentBackoff = rateLimitState.backoffTime[endpoint] || rateLimitState.minInterval;
         rateLimitState.backoffTime[endpoint] = Math.min(currentBackoff * 2, rateLimitState.maxBackoff);
     }
-};
-
-// Error handling helper
-const handleKrakenError = (err, res) => {
-    console.error('Kraken API error:', err);
-    
-    // Handle rate limit errors
-    if (err.message?.includes('Rate limit exceeded')) {
-        res.status(429).json({
-            error: 'Rate limit exceeded, please try again later',
-            retryAfter: 5 // seconds
-        });
-        return;
-    }
-    
-    // Handle authentication errors
-    if (err.message?.includes('Invalid API key')) {
-        res.status(401).json({
-            error: 'Invalid API credentials'
-        });
-        return;
-    }
-    
-    // Return test data for other errors in development
-    if (process.env.NODE_ENV !== 'production') {
-        if (err.config?.url?.includes('Balance')) {
-            res.json({
-                result: {
-                    ZUSD: '150000.00',
-                    XXBT: '2.50000000',
-                    XETH: '25.00000000',
-                    XXRP: '10000.00'
-                }
-            });
-            return;
-        }
-    }
-    
-    // Generic error response
-    res.status(500).json({
-        error: err.message || 'Internal server error'
-    });
 };
 
 // Kraken Futures API request function
@@ -108,27 +94,64 @@ const krakenFuturesRequestOriginal = async (endpoint, method = 'GET', data = {})
     }
 
     const nonce = getNonce();
-    const path = endpoint.replace('/derivatives', '');
-    const postData = method === 'POST' ? JSON.stringify(data) : '';
-    const signature = createSignature(path, nonce, apiKey, secretKey, postData);
+    
+    // Add processBefore for POST requests (30 seconds from now)
+    if (method === 'POST' && !data.processBefore) {
+        const processBeforeDate = new Date(Date.now() + 30000);
+        data.processBefore = processBeforeDate.toISOString();
+    }
+    
+    // Create signature with the raw data object
+    const signature = createSignature(endpoint, nonce, apiKey, secretKey, data);
 
+    // Headers exactly as in the Python example
     const headers = {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'APIKey': apiKey,
         'Nonce': nonce,
         'Authent': signature
     };
 
     try {
-        const response = await axios({
+        await handleRateLimit(endpoint);
+
+        const url = `https://futures.kraken.com${endpoint}`;
+        console.log(`Making Kraken API request to: ${url}`);
+        console.log('Request data:', data);
+        
+        const requestConfig = {
             method,
-            url: `https://futures.kraken.com${endpoint}`,
+            url,
             headers,
-            data: method === 'POST' ? data : undefined,
+            maxBodyLength: Infinity,
             validateStatus: null
+        };
+
+        if (method === 'POST') {
+            requestConfig.data = data;
+        }
+
+        console.log('Request config:', {
+            ...requestConfig,
+            headers: {
+                ...requestConfig.headers,
+                APIKey: '[REDACTED]',
+                Authent: '[REDACTED]'
+            }
+        });
+
+        const response = await axios(requestConfig);
+
+        // Log the full response for debugging
+        console.log('Response:', {
+            status: response.status,
+            data: response.data,
+            headers: response.headers
         });
 
         if (response.status !== 200) {
+            console.error('API Error Response:', response.data);
             throw new Error(`API returned status ${response.status}: ${JSON.stringify(response.data)}`);
         }
 
@@ -136,23 +159,15 @@ const krakenFuturesRequestOriginal = async (endpoint, method = 'GET', data = {})
             throw new Error(response.data.error);
         }
 
+        updateBackoff(endpoint, true);
         return response.data;
     } catch (error) {
-        console.error('Kraken API error:', {
-            endpoint,
-            status: error.response?.status,
-            error: error.response?.data?.error || error.message
-        });
+        updateBackoff(endpoint, false);
+        console.error('Full error details:', error);
         throw error;
     }
 };
 
 module.exports = {
-    getNonce,
-    createSignature,
-    handleRateLimit,
-    updateBackoff,
-    handleKrakenError,
-    krakenFuturesRequestOriginal,
-    sleep
+    krakenFuturesRequestOriginal
 };
