@@ -87,29 +87,45 @@ app.use(express.json());
 
 // Logging middleware
 app.use((req, res, next) => {
-  const start = Date.now();
-  console.log(`🔄 ${new Date().toISOString()} - ${req.method} ${req.url}`);
-  console.log('📨 Headers:', {
-    ...req.headers,
-    authorization: req.headers.authorization ? 'Bearer [REDACTED]' : undefined
-  });
-  
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('📦 Body:', {
-      ...req.body,
-      password: req.body.password ? '[REDACTED]' : undefined
-    });
-  }
+  // Only log important operations (trades, user actions, errors)
+  const shouldLog = 
+    req.method === 'POST' || // Log all POST requests
+    req.method === 'PUT' ||  // Log all PUT requests
+    req.method === 'DELETE' || // Log all DELETE requests
+    req.url.includes('/trade') || // Log trade-related requests
+    req.url.includes('/auth') ||  // Log authentication requests
+    req.url.includes('/users');   // Log user-related requests
 
-  const oldSend = res.send;
-  res.send = function(data) {
-    const duration = Date.now() - start;
-    console.log(`✅ Response sent in ${duration}ms:`, {
-      status: res.statusCode,
-      contentLength: data?.length || 0
-    });
-    return oldSend.apply(res, arguments);
-  };
+  if (shouldLog) {
+    const start = Date.now();
+    console.log(`🔄 ${new Date().toISOString()} - ${req.method} ${req.url}`);
+
+    // Only log headers for auth/user operations
+    if (req.url.includes('/auth') || req.url.includes('/users')) {
+      console.log('📨 Headers:', {
+        ...req.headers,
+        authorization: req.headers.authorization ? 'Bearer [REDACTED]' : undefined
+      });
+    }
+    
+    // Only log body for POST/PUT operations
+    if ((req.method === 'POST' || req.method === 'PUT') && req.body && Object.keys(req.body).length > 0) {
+      console.log('📦 Body:', {
+        ...req.body,
+        password: req.body.password ? '[REDACTED]' : undefined
+      });
+    }
+
+    const oldSend = res.send;
+    res.send = function(data) {
+      const duration = Date.now() - start;
+      console.log(`✅ Response sent in ${duration}ms:`, {
+        status: res.statusCode,
+        contentLength: data?.length || 0
+      });
+      return oldSend.apply(res, arguments);
+    };
+  }
 
   next();
 });

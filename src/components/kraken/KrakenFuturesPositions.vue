@@ -1,6 +1,12 @@
 <template>
   <div class="kraken-futures-positions">
-    <h3>Futures Positions</h3>
+    <div class="kraken-positions-header">
+      <h3>Futures Positions</h3>
+      <button class="kraken-refresh-button" @click="fetchPositions" :disabled="loading">
+        <span v-if="loading">Loading...</span>
+        <span v-else>Refresh</span>
+      </button>
+    </div>
     <div v-if="error" class="kraken-error-message">{{ error }}</div>
     <div v-else-if="!positions?.length" class="kraken-no-positions">No open positions</div>
     <div v-else class="kraken-positions-list">
@@ -71,6 +77,7 @@ export default {
       positions: [],
       tickers: {},
       error: null,
+      loading: false,
       socket: null,
       socketUrl: process.env.NODE_ENV === 'production' 
         ? 'wss://futures.kraken.com/ws/v1'
@@ -94,77 +101,43 @@ export default {
       this.socket = io(this.socketUrl);
       
       this.socket.on('connect', () => {
-        console.log('WebSocket connected for positions updates');
+        console.debug('WebSocket connected for positions updates');
       });
       
-      this.socket.on('futures-positions-update', (data) => {
-        console.log('Received positions update:', data);
-        if (data?.openPositions) {
-          this.positions = data.openPositions;
-        }
-      });
-      
-      this.socket.on('futures-tickers-update', (data) => {
-        console.log('Received tickers update:', data);
-        if (data?.tickers) {
-          // Update tickers map
-          this.tickers = data.tickers.reduce((acc, ticker) => {
-            acc[ticker.symbol] = ticker;
-            return acc;
-          }, {});
-          
-          // Update positions with new mark prices
-          this.updatePositionsWithTickers();
-        }
+      // Only update positions on trade events
+      this.socket.on('futures-trade-executed', () => {
+        this.fetchPositions();
       });
       
       this.socket.on('disconnect', () => {
-        console.log('WebSocket disconnected for positions updates');
+        console.debug('WebSocket disconnected for positions updates');
       });
       
       this.socket.on('error', (error) => {
         console.error('WebSocket error:', error);
-        this.error = 'Connection error. Retrying...';
+        this.error = 'Connection error. Please refresh manually.';
       });
     },
-    updatePositionsWithTickers() {
-      this.positions = this.positions.map(pos => {
-        const ticker = this.tickers[pos.symbol];
-        if (!ticker) return pos;
+    async fetchPositions() {
+      if (this.loading) return;
+      
+      this.loading = true;
+      try {
+        const response = await axios.get('/api/kraken/futures/positions');
         
-        const markPrice = parseFloat(ticker.markPrice || 0);
-        const size = pos.size;
-        const entryPrice = pos.entryPrice;
+        if (!response.data || !response.data.openPositions) {
+          this.positions = [];
+          return;
+        }
         
-        // Recalculate position metrics with new mark price
-        const positionValue = size * markPrice;
-        const unrealizedPnL = pos.side.toLowerCase() === 'short'
-          ? (entryPrice - markPrice) * size
-          : (markPrice - entryPrice) * size;
-          
-        // Margin rates
-        const maintenanceMarginRate = 0.01; // 1%
-        const initialMarginRate = 0.02; // 2%
-        
-        // Calculate margins
-        const initialMargin = positionValue * initialMarginRate;
-        
-        // Calculate liquidation price
-        const liquidationPrice = pos.side.toLowerCase() === 'short'
-          ? entryPrice * (1 + initialMarginRate + maintenanceMarginRate)
-          : entryPrice * (1 - initialMarginRate - maintenanceMarginRate);
-        
-        return {
-          ...pos,
-          markPrice,
-          positionValue,
-          unrealizedPnL,
-          totalPnL: unrealizedPnL + pos.realizedPnL,
-          margin: initialMargin,
-          liquidationPrice,
-          fundingRate: parseFloat(ticker.fundingRate || pos.fundingRate || 0)
-        };
-      });
+        this.positions = response.data.openPositions;
+        this.error = null;
+      } catch (error) {
+        console.error('Error fetching positions:', error);
+        this.error = 'Failed to load positions. Please try again.';
+      } finally {
+        this.loading = false;
+      }
     },
     formatNumber(value) {
       if (value === null || value === undefined || isNaN(value)) return '0.00';
@@ -191,26 +164,6 @@ export default {
     getFundingClass(value) {
       if (!value || isNaN(value)) return '';
       return Number(value) >= 0 ? 'positive' : 'negative';
-    },
-    async fetchPositions() {
-      try {
-        console.log('Fetching positions...');
-        const response = await axios.get('/api/kraken/futures/positions');
-        console.log('Positions response:', response.data);
-        
-        if (!response.data || !response.data.openPositions) {
-          console.log('No positions data found');
-          this.positions = [];
-          return;
-        }
-        
-        this.positions = response.data.openPositions;
-        console.log('Processed positions:', this.positions);
-        this.error = null;
-      } catch (error) {
-        console.error('Error fetching positions:', error);
-        this.error = 'Failed to load positions. Please try again.';
-      }
     }
   }
 };
@@ -222,6 +175,45 @@ export default {
   border-radius: 12px;
   padding: 20px;
   min-width: 0;
+}
+
+.kraken-positions-header {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #3d3d3d;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kraken-positions-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  color: #4a9eff;
+}
+
+.kraken-refresh-button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8em;
+  background-color: #4a4a4a;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.kraken-refresh-button:hover {
+  background-color: #5a5a5a;
+}
+
+.kraken-refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kraken-refresh-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .kraken-positions-list {

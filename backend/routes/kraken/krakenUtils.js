@@ -42,7 +42,10 @@ const createSignature = (endpoint, nonce, apiKey, secretKey, data = {}) => {
     // Create message in exact order: data + nonce + path (matching Python)
     const encodedParams = customUrlEncode(data);
     const message = encodedParams + nonce + signaturePath;
-    console.log('Creating signature with message:', message);
+    // Only log for trade operations
+    if (signaturePath.includes('/trade')) {
+        console.log('Creating signature with message:', message);
+    }
     
     const messageHash = crypto.createHash('sha256').update(message).digest();
     const decodedSecret = Buffer.from(secretKey, 'base64');
@@ -117,9 +120,20 @@ const krakenFuturesRequestOriginal = async (endpoint, method = 'GET', data = {})
         await handleRateLimit(endpoint);
 
         const url = `https://futures.kraken.com${endpoint}`;
-        console.log(`Making Kraken API request to: ${url}`);
-        console.log('Request data:', data);
-        
+        // Only log for trade operations
+        if (endpoint.includes('/trade')) {
+            console.log(`Making Kraken API request to: ${url}`);
+            console.log('Request data:', data);
+            console.log('Request config:', {
+                ...requestConfig,
+                headers: {
+                    ...requestConfig.headers,
+                    APIKey: '[REDACTED]',
+                    Authent: '[REDACTED]'
+                }
+            });
+        }
+
         const requestConfig = {
             method,
             url,
@@ -132,23 +146,16 @@ const krakenFuturesRequestOriginal = async (endpoint, method = 'GET', data = {})
             requestConfig.data = data;
         }
 
-        console.log('Request config:', {
-            ...requestConfig,
-            headers: {
-                ...requestConfig.headers,
-                APIKey: '[REDACTED]',
-                Authent: '[REDACTED]'
-            }
-        });
-
         const response = await axios(requestConfig);
 
-        // Log the full response for debugging
-        console.log('Response:', {
-            status: response.status,
-            data: response.data,
-            headers: response.headers
-        });
+        // Only log full response for trade operations or errors
+        if (endpoint.includes('/trade') || response.status !== 200) {
+            console.log('Response:', {
+                status: response.status,
+                data: response.data,
+                headers: response.headers
+            });
+        }
 
         if (response.status !== 200) {
             console.error('API Error Response:', response.data);

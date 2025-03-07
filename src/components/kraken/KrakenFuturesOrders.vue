@@ -2,6 +2,10 @@
   <div class="kraken-futures-orders">
     <div class="kraken-orders-header">
       <h3>Futures Orders</h3>
+      <button class="kraken-refresh-button" @click="fetchOrders" :disabled="loading">
+        <span v-if="loading">Loading...</span>
+        <span v-else>Refresh</span>
+      </button>
     </div>
     <div v-if="error" class="kraken-error-message">{{ error }}</div>
     <div v-else-if="!orders?.length" class="kraken-no-orders">No open orders</div>
@@ -66,21 +70,13 @@ export default {
     return {
       orders: [],
       error: null,
-      refreshInterval: null,
+      loading: false,
       cancellingOrders: [] // Track orders being cancelled
     };
   },
   created() {
     // Initial orders fetch
     this.fetchOrders();
-    
-    // Set up automatic refresh every 5 seconds
-    this.refreshInterval = setInterval(this.fetchOrders, 5000);
-  },
-  beforeUnmount() {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
-    }
   },
   methods: {
     formatNumber(value) {
@@ -115,12 +111,13 @@ export default {
       return date.toLocaleTimeString();
     },
     async fetchOrders() {
+      if (this.loading) return;
+      
+      this.loading = true;
       try {
-        console.log('Fetching orders...');
         const response = await axios.get('/api/kraken/futures/orders');
         
         if (!response.data || !response.data.openOrders) {
-          console.log('No orders data found');
           this.orders = [];
           return;
         }
@@ -141,6 +138,8 @@ export default {
       } catch (error) {
         console.error('Error fetching orders:', error);
         this.error = 'Failed to load orders. Please try again.';
+      } finally {
+        this.loading = false;
       }
     },
     async cancelOrder(orderId) {
@@ -232,8 +231,8 @@ export default {
 }
 
 .kraken-orders-header {
-  margin-bottom: 8px;
-  padding-bottom: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #3d3d3d;
   display: flex;
   justify-content: space-between;
@@ -244,6 +243,30 @@ export default {
   margin: 0;
   font-size: 1.1em;
   color: #4a9eff;
+}
+
+.kraken-refresh-button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8em;
+  background-color: #4a4a4a;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.kraken-refresh-button:hover {
+  background-color: #5a5a5a;
+}
+
+.kraken-refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kraken-refresh-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .kraken-orders-list {

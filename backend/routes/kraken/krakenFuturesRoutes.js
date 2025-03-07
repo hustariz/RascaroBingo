@@ -5,13 +5,16 @@ const crypto = require('crypto');
 
 // Custom request logger that only shows relevant data
 const logRequest = (req) => {
-    const { method, originalUrl } = req;
-    const timestamp = new Date().toISOString();
-    console.log(`${timestamp} - ${method} ${originalUrl}`);
-    
-    if (req.body && Object.keys(req.body).length > 0) {
-        const { password, authorization, ...safeBody } = req.body;
-        console.log('Request data:', safeBody);
+    // Only log trade-related requests or errors
+    if (req.originalUrl.includes('/trade') || req.method === 'POST') {
+        const { method, originalUrl } = req;
+        const timestamp = new Date().toISOString();
+        console.log(`${timestamp} - ${method} ${originalUrl}`);
+        
+        if (req.body && Object.keys(req.body).length > 0) {
+            const { password, authorization, ...safeBody } = req.body;
+            console.log('Request data:', safeBody);
+        }
     }
 };
 
