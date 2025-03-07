@@ -1,10 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const { handleKrakenError, krakenFuturesRequestOriginal } = require('./krakenUtils');
+const crypto = require('crypto');
+
+// Custom request logger that only shows relevant data
+const logRequest = (req) => {
+    const { method, originalUrl } = req;
+    const timestamp = new Date().toISOString();
+    console.log(`${timestamp} - ${method} ${originalUrl}`);
+    
+    if (req.body && Object.keys(req.body).length > 0) {
+        const { password, authorization, ...safeBody } = req.body;
+        console.log('Request data:', safeBody);
+    }
+};
 
 // Futures trading routes
 router.get('/positions', async (req, res) => {
     try {
+        logRequest(req);
+
         const result = await krakenFuturesRequestOriginal('/derivatives/api/v3/openpositions', 'GET');
         
         if (!result?.openPositions) {
@@ -65,6 +80,8 @@ router.get('/positions', async (req, res) => {
 
 router.get('/orders', async (req, res) => {
     try {
+        logRequest(req);
+
         const result = await krakenFuturesRequestOriginal('/derivatives/api/v3/openorders', 'GET');
         
         // If in development mode and no API credentials, return test data
@@ -72,6 +89,7 @@ router.get('/orders', async (req, res) => {
             return res.json({
                 openOrders: [{
                     orderId: 'test-order-1',
+                    order_id: 'test-order-1',
                     symbol: 'PI_XBTUSD',
                     side: 'buy',
                     orderType: 'lmt',
@@ -92,6 +110,8 @@ router.get('/orders', async (req, res) => {
         // Transform orders to a consistent format
         const openOrders = result.openOrders.map(order => ({
             orderId: order.order_id || order.orderId,
+            order_id: order.order_id || order.orderId, // Include client order ID
+            cliOrdId: order.cliOrdId, // Include client order ID
             symbol: order.symbol || order.instrument,
             side: order.side?.toLowerCase(),
             orderType: order.type || order.orderType,
@@ -116,6 +136,8 @@ router.get('/orders', async (req, res) => {
 
 router.get('/balance', async (req, res) => {
     try {
+        logRequest(req);
+
         const accountResult = await krakenFuturesRequestOriginal('/derivatives/api/v3/accounts', 'GET');
         
         if (!accountResult || !accountResult.accounts) {
@@ -157,6 +179,8 @@ router.get('/balance', async (req, res) => {
 
 router.get('/tickers', async (req, res) => {
     try {
+        logRequest(req);
+
         const result = await krakenFuturesRequestOriginal('/derivatives/api/v3/tickers', 'GET');
         if (!result || !result.tickers) {
             // Return test data if API call fails
@@ -190,6 +214,8 @@ router.get('/tickers', async (req, res) => {
 
 router.post('/trade', async (req, res) => {
     try {
+        logRequest(req);
+
         const { symbol, side, size, price, stopLoss, takeProfit } = req.body;
         
         if (!symbol || !side || !size || !price) {
@@ -198,13 +224,17 @@ router.post('/trade', async (req, res) => {
             });
         }
 
+        // Generate a unique client order ID
+        const cliOrdId = `RB_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
         // Format the main limit order
         const orderData = {
             orderType: 'lmt',
             symbol: symbol,
             side: side.toLowerCase(),
             size: parseFloat(size),
-            limitPrice: parseFloat(price)
+            limitPrice: parseFloat(price),
+            cliOrdId: cliOrdId
         };
 
         try {
@@ -220,7 +250,8 @@ router.post('/trade', async (req, res) => {
                     size: parseFloat(size),
                     stopPrice: parseFloat(stopLoss),
                     triggerSignal: 'mark',
-                    reduceOnly: true
+                    reduceOnly: true,
+                    cliOrdId: `${cliOrdId}_sl` // Add _sl suffix for stop loss
                 };
                 await krakenFuturesRequestOriginal('/derivatives/api/v3/sendorder', 'POST', stopLossOrder);
             }
@@ -232,23 +263,20 @@ router.post('/trade', async (req, res) => {
                     symbol: symbol,
                     side: side.toLowerCase() === 'buy' ? 'sell' : 'buy',
                     size: parseFloat(size),
-                    stopPrice: parseFloat(takeProfit),
+                    limitPrice: parseFloat(takeProfit),
                     triggerSignal: 'mark',
-                    reduceOnly: true
+                    reduceOnly: true,
+                    cliOrdId: `${cliOrdId}_tp` // Add _tp suffix for take profit
                 };
                 await krakenFuturesRequestOriginal('/derivatives/api/v3/sendorder', 'POST', takeProfitOrder);
             }
 
             res.json(result);
         } catch (err) {
-            console.error('Trade error:', err.message);
-            res.status(500).json({
-                error: 'Failed to place trade',
-                details: err.response?.data?.error || err.message
-            });
+            throw err;
         }
     } catch (err) {
-        console.error('Trade error:', err.message);
+        console.error('Error placing trade:', err.message);
         res.status(500).json({
             error: 'Failed to place trade',
             details: err.response?.data?.error || err.message
@@ -258,90 +286,52 @@ router.post('/trade', async (req, res) => {
 
 router.post('/cancel-order', async (req, res) => {
     try {
-        const { orderId, symbol } = req.body;
+        const { order_id, symbol } = req.body;
         
-        if (!orderId || !symbol) {
+        if (!order_id || !symbol) {
             return res.status(400).json({
                 error: 'Missing required parameters',
-                details: 'Both orderId and symbol are required to cancel an order'
+                details: 'order_id and symbol are required to cancel an order'
             });
         }
 
-        // First, get the order details to get the side
-        const ordersResult = await krakenFuturesRequestOriginal('/derivatives/api/v3/openorders', 'GET');
-        const order = ordersResult?.openOrders?.find(o => o.order_id === orderId);
-        
-        if (!order) {
-            return res.json({
-                success: true,
-                message: 'Order is already cancelled or expired',
-                orderId: orderId
-            });
-        }
+        // Generate a unique client order ID
+        const cliOrdId = `cancel-${order_id}-${Date.now()}`;
 
-        // Try to cancel the order using the original request function
-        const result = await krakenFuturesRequestOriginal('/derivatives/api/v3/cancelorder', 'POST', {
-            order_id: orderId,
-            symbol: symbol
-        });
-        
-        // Log the cancel request and response for debugging
-        console.error('Cancel order request/response:', {
-            request: { orderId, symbol },
-            response: result
-        });
+        // Set processBefore to 1 minute from now in Kraken's expected format
+        const now = new Date(Date.now() + 60000);
+        const processBefore = now.toISOString()
+            .replace('T', ' ')
+            .replace('Z', '+00:00')
+            .replace(/\.\d{3}/, '.000000');
 
-        // Check for API-level errors
+        // Create request data with required fields in exact order
+        const requestData = {
+            processBefore,
+            order_id: order_id.toString(),
+            cliOrdId,
+            symbol
+        };
+
+        console.log('Sending cancel order request:', requestData);
+        
+        const result = await krakenFuturesRequestOriginal('/derivatives/api/v3/cancelorder', 'POST', requestData);
+        
         if (!result || result.error) {
-            throw new Error(result?.error || 'Failed to send cancel request');
+            throw new Error(result?.error || 'Failed to cancel order');
         }
 
-        // Check the status
-        if (result.status === 'error' || result.result === 'error') {
-            // If the error is that the order doesn't exist, consider it a success
-            if (result.message?.includes('not found') || 
-                result.message?.includes('does not exist')) {
-                return res.json({
-                    success: true,
-                    message: 'Order is already cancelled or expired',
-                    orderId: orderId,
-                    details: result
-                });
-            }
-            // Otherwise it's a real error
-            throw new Error(result.message || 'Failed to cancel order');
-        }
-        
         res.json({
             success: true,
-            message: 'Order cancellation request sent successfully',
-            orderId: orderId,
-            details: result
+            message: 'Order cancelled successfully',
+            orderId: order_id,
+            result
         });
     } catch (err) {
-        console.error('Cancel order error details:', {
-            orderId: req.body.orderId,
-            symbol: req.body.symbol,
-            error: err.message,
-            response: err.response?.data,
-            stack: err.stack
-        });
-        
-        // Don't treat "not found" errors as real errors
-        if (err.message?.includes('not found') || err.message?.includes('does not exist')) {
-            return res.json({
-                success: true,
-                message: 'Order is already cancelled or expired',
-                orderId: req.body.orderId,
-                details: { status: 'not_found', message: err.message }
-            });
-        }
-        
+        console.error('Error cancelling order:', err.message);
         res.status(500).json({
             error: 'Failed to cancel order',
-            details: err.response?.data?.error || err.message,
-            code: err.response?.status || 500,
-            orderId: req.body.orderId
+            details: err.response?.data?.error || err.message
         });
     }
 });
