@@ -2,6 +2,10 @@
   <div class="kraken-futures-balance">
     <div class="kraken-balance-header">
       <h3>Futures Wallet</h3>
+      <button class="kraken-refresh-button" @click="fetchBalance" :disabled="loading">
+        <span v-if="loading">Loading...</span>
+        <span v-else>Refresh</span>
+      </button>
     </div>
     <div v-if="loading" class="kraken-loading">Loading...</div>
     <div v-else-if="error" class="kraken-error-message">{{ error }}</div>
@@ -42,7 +46,6 @@ export default defineComponent({
     const error = ref(null);
     const lastUpdateTime = ref('Never');
     const socket = ref(null);
-    const updateInterval = ref(null);
     const isUnmounted = ref(false);
     
     const fetchBalance = async () => {
@@ -73,13 +76,6 @@ export default defineComponent({
           : err.message || 'Failed to load balance';
           
         error.value = errorMessage;
-        
-        if (!err.response || err.response.status === 401) {
-          console.log('Retrying in 5 seconds...');
-          if (!isUnmounted.value) {
-            setTimeout(fetchBalance, 5000);
-          }
-        }
       } finally {
         if (!isUnmounted.value) {
           loading.value = false;
@@ -111,25 +107,15 @@ export default defineComponent({
       // Connect to WebSocket
       socket.value = io();
       
-      // Listen for balance updates
-      socket.value.on('futures-balance-update', (data) => {
+      // Listen for balance updates only from manual trades
+      socket.value.on('futures-trade-executed', () => {
         if (!isUnmounted.value) {
-          balance.value = data.balance;
-          monthlyChange.value = data.monthlyChange;
-          monthlyChangePercent.value = data.monthlyChangePercent;
-          lastUpdateTime.value = new Date().toLocaleTimeString();
+          fetchBalance();
         }
       });
       
       // Register as default user (or use actual user ID if you have authentication)
       socket.value.emit('register', 'default');
-      
-      // Fetch every 15 seconds as fallback
-      updateInterval.value = setInterval(() => {
-        if (!isUnmounted.value) {
-          fetchBalance();
-        }
-      }, 15000);
     });
     
     onUnmounted(() => {
@@ -139,10 +125,6 @@ export default defineComponent({
       if (socket.value) {
         socket.value.disconnect();
         socket.value = null;
-      }
-      if (updateInterval.value) {
-        clearInterval(updateInterval.value);
-        updateInterval.value = null;
       }
     });
     
@@ -154,7 +136,8 @@ export default defineComponent({
       error,
       formatPrice,
       formatPercentage,
-      lastUpdateTime
+      lastUpdateTime,
+      fetchBalance
     };
   }
 });
@@ -183,6 +166,30 @@ export default defineComponent({
   margin: 0;
   font-size: 1.1em;
   color: #4a9eff;
+}
+
+.kraken-refresh-button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8em;
+  background-color: #4a4a4a;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.kraken-refresh-button:hover {
+  background-color: #5a5a5a;
+}
+
+.kraken-refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kraken-refresh-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .kraken-balance-list {

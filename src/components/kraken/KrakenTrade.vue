@@ -105,6 +105,13 @@
         {{ tradeForm.side === 'buy' ? 'LONG' : 'SHORT' }}
       </button>
 
+      <button 
+        class="kraken-refresh-button"
+        @click="fetchSymbolMarketData(tradeForm.symbol)"
+      >
+        Fresh Data
+      </button>
+
       <div v-if="tradeError" class="kraken-error-message">
         {{ tradeError }}
       </div>
@@ -240,31 +247,24 @@ export default {
     };
 
     // Start market data polling
-    let marketDataInterval;
+    const handleClickOutside = (e) => {
+      const dropdown = document.querySelector('.kraken-custom-dropdown');
+      const searchInput = document.querySelector('.kraken-search-input');
+      if (dropdown && !dropdown.contains(e.target) && !searchInput.contains(e.target)) {
+        showDropdown.value = false;
+      }
+    };
+
     onMounted(() => {
       // Initial fetch
       fetchSymbolMarketData(tradeForm.value.symbol);
       
-      // Poll every 5 seconds
-      marketDataInterval = setInterval(() => {
-        fetchSymbolMarketData(tradeForm.value.symbol);
-      }, 5000);
-
       // Handle dropdown clicks
-      document.addEventListener('click', (e) => {
-        const dropdown = document.querySelector('.kraken-custom-dropdown');
-        const searchInput = document.querySelector('.kraken-search-input');
-        if (dropdown && !dropdown.contains(e.target) && !searchInput.contains(e.target)) {
-          showDropdown.value = false;
-        }
-      });
+      document.addEventListener('click', handleClickOutside);
     });
 
-    // Clean up interval
     onUnmounted(() => {
-      if (marketDataInterval) {
-        clearInterval(marketDataInterval);
-      }
+      document.removeEventListener('click', handleClickOutside);
     });
 
     // Watch for symbol changes to update market data
@@ -283,6 +283,7 @@ export default {
       selectPair,
       formatOptionText,
       placeTrade,
+      fetchSymbolMarketData,
       FUTURES_PAIRS
     };
   }
@@ -453,12 +454,13 @@ export default {
 .kraken-place-trade-button {
   width: 100%;
   padding: 12px;
+  border: none;
   border-radius: 4px;
-  border: 1px solid;
-  font-weight: bold;
-  font-size: 1.1em;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  margin-top: 20px;
+  transition: all 0.2s;
 }
 
 .kraken-place-trade-button:hover {
@@ -478,6 +480,28 @@ export default {
 .short-button {
   background: #ef5350 !important;
   border-color: #ef5350 !important;
+}
+
+.kraken-refresh-button {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 10px;
+  background-color: #4a4a4a;
+  color: white;
+  transition: all 0.2s;
+}
+
+.kraken-refresh-button:hover {
+  background-color: #5a5a5a;
+}
+
+.kraken-refresh-button:active {
+  transform: scale(0.98);
 }
 
 .kraken-error-message {
