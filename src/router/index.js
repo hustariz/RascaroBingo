@@ -9,8 +9,8 @@ import ShopPage from '@/components/app/ShopPage.vue'
 import AboutPage from '@/components/app/AboutPage.vue'
 import PaymentPage from '@/components/app/PaymentPage.vue'
 import EmailVerification from '@/components/forms/EmailVerificationForm.vue'
-import KrakenTest from '@/components/kraken/KrakenTest.vue'
 import ResetPassword from '@/components/forms/ResetPasswordForm.vue'
+import HyperliquidDashboard from '@/components/hyperliquid/HyperliquidDashboard.vue'
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -69,9 +69,9 @@ const routes = [
     meta: { requiresAuth: false }
   },
   { 
-    path: '/kraken-test', 
-    name: 'KrakenTest',
-    component: KrakenTest,
+    path: '/hyperliquid', 
+    name: 'HyperliquidDashboard',
+    component: HyperliquidDashboard,
     beforeEnter: authGuard,
     meta: { requiresAuth: true }
   },
@@ -127,15 +127,6 @@ const routes = [
     path: '/reset-password/:token',
     name: 'ResetPassword',
     component: ResetPassword
-  },
-  {
-    path: '/futures',
-    name: 'KrakenFuturesPositions',
-    component: () => import('@/components/kraken/KrakenFuturesPositions.vue'),
-    meta: {
-      requiresAuth: true,
-      title: 'Futures Positions'
-    }
   },
   {
     path: '/admin',

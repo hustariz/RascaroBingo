@@ -16,13 +16,9 @@ require('dotenv').config({ path: envPath });
 console.log('Environment Variables Status:', {
   hasEmailUser: !!process.env.EMAIL_USER,
   hasEmailPassword: !!process.env.EMAIL_PASSWORD,
-  hasKrakenApiKey: !!process.env.KRAKEN_API_KEY,
-  hasKrakenApiSecret: !!process.env.KRAKEN_API_SECRET,
-  frontendUrl: process.env.FRONTEND_URL,
+  hasFrontendUrl: !!process.env.FRONTEND_URL,
   nodeEnv: process.env.NODE_ENV,
-  availableEnvKeys: Object.keys(process.env),
-  krakenKeyLength: process.env.KRAKEN_API_KEY?.length,
-  krakenSecretLength: process.env.KRAKEN_API_SECRET?.length
+  availableEnvKeys: Object.keys(process.env)
 });
 
 // Configure CORS options
@@ -147,8 +143,7 @@ const bingoRoutes = require('./routes/bingo');
 const tradeRoutes = require('./routes/tradeRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const emailVerificationRoutes = require('./routes/emailVerification');
-const krakenRoutes = require('./routes/krakenRoutes');
-const krakenFuturesRoutes = require('./routes/krakenFuturesRoutes');
+const hyperliquidRoutes = require('./routes/hyperliquidRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
 
 // Initialize routes
@@ -157,8 +152,7 @@ app.use('/api/bingo', bingoRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/auth', emailVerificationRoutes);
-app.use('/api/kraken', krakenRoutes);
-app.use('/api/kraken/futures', krakenFuturesRoutes);
+app.use('/api/hyperliquid', hyperliquidRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
 // API Info Route
@@ -200,7 +194,7 @@ app.use((req, res) => {
   });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header('Access-Control-Allow-Credentials', true);
   
@@ -260,7 +254,6 @@ server.listen(PORT, () => {
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔒 CORS enabled for:`, corsOptions.origin);
   // Initialize WebSocket updates after server is listening
-  krakenRoutes.init(app);
 });
 
 module.exports = app;
