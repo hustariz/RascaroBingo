@@ -17,6 +17,188 @@
         </div>
       </div>
 
+      <!-- Real-time Data Section -->
+      <div class="test-section">
+        <h2>Real-time Data</h2>
+        <div class="test-controls">
+          <div class="form-group">
+            <label for="websocket-type">Data Type:</label>
+            <select id="websocket-type" v-model="websocket.type">
+              <option value="ticker">Ticker</option>
+              <option value="orderbook">Orderbook</option>
+              <option value="trades">Trades</option>
+              <option value="user">User Data</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="websocket-coin">Coin:</label>
+            <select id="websocket-coin" v-model="websocket.coin">
+              <option value="BTC">BTC</option>
+              <option value="ETH">ETH</option>
+              <option value="SOL">SOL</option>
+              <option value="DOGE">DOGE</option>
+            </select>
+          </div>
+          
+          <button 
+            @click="startWebsocket" 
+            :disabled="websocket.active || loading.websocket"
+            class="primary-button"
+          >
+            Start Real-time Updates
+          </button>
+          
+          <button 
+            @click="stopWebsocket" 
+            :disabled="!websocket.active || loading.websocket"
+            class="secondary-button"
+          >
+            Stop Updates
+          </button>
+          
+          <div v-if="loading.websocket" class="loading">
+            Setting up real-time data...
+          </div>
+        </div>
+        
+        <div v-if="websocket.active" class="websocket-status">
+          <div class="status-indicator active"></div>
+          Real-time updates active for {{ websocket.type }} data
+          <span v-if="websocket.coin">({{ websocket.coin }})</span>
+        </div>
+        
+        <div v-if="websocket.error" class="error">
+          {{ websocket.error }}
+        </div>
+        
+        <div v-if="websocket.data" class="data-display">
+          <h3>Real-time Data</h3>
+          <div class="last-update">Last update: {{ websocket.lastUpdate }}</div>
+          
+          <!-- Ticker Data Display -->
+          <div v-if="websocket.type === 'ticker' && websocket.data" class="data-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Price</th>
+                  <th>24h Change</th>
+                  <th>24h Volume</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{ websocket.data.coin || websocket.coin }}</td>
+                  <td>{{ websocket.data.price || 'N/A' }}</td>
+                  <td :class="getChangeClass(websocket.data.change24h)">
+                    {{ websocket.data.change24h || '0' }}%
+                  </td>
+                  <td>{{ websocket.data.volume24h || 'N/A' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Orderbook Data Display -->
+          <div v-if="websocket.type === 'orderbook' && websocket.data" class="data-table">
+            <div class="orderbook-container">
+              <div class="orderbook-column">
+                <h4>Bids</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Price</th>
+                      <th>Size</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(bid, index) in websocket.data.bids?.slice(0, 5)" :key="'bid-' + index">
+                      <td class="positive">{{ bid.price }}</td>
+                      <td>{{ bid.size }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="orderbook-column">
+                <h4>Asks</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Price</th>
+                      <th>Size</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(ask, index) in websocket.data.asks?.slice(0, 5)" :key="'ask-' + index">
+                      <td class="negative">{{ ask.price }}</td>
+                      <td>{{ ask.size }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Trades Data Display -->
+          <div v-if="websocket.type === 'trades' && websocket.data" class="data-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Price</th>
+                  <th>Size</th>
+                  <th>Side</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(trade, index) in websocket.data.trades?.slice(0, 10)" :key="'trade-' + index">
+                  <td>{{ formatTime(trade.time) }}</td>
+                  <td :class="trade.side === 'buy' ? 'positive' : 'negative'">
+                    {{ trade.price }}
+                  </td>
+                  <td>{{ trade.size }}</td>
+                  <td :class="trade.side === 'buy' ? 'positive' : 'negative'">
+                    {{ trade.side }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- User Data Display -->
+          <div v-if="websocket.type === 'user' && websocket.data" class="data-table">
+            <h4>Positions</h4>
+            <table v-if="websocket.data.positions && websocket.data.positions.length">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Size</th>
+                  <th>Entry Price</th>
+                  <th>Mark Price</th>
+                  <th>PnL</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="position in websocket.data.positions" :key="position.symbol">
+                  <td>{{ position.symbol }}</td>
+                  <td :class="position.size >= 0 ? 'positive' : 'negative'">
+                    {{ position.size }}
+                  </td>
+                  <td>{{ position.entryPrice }}</td>
+                  <td>{{ position.markPrice }}</td>
+                  <td :class="position.pnl >= 0 ? 'positive' : 'negative'">
+                    {{ position.pnl }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-else class="no-data">No open positions</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Market Data Section -->
       <div class="test-section">
         <h2>Market Data</h2>
@@ -198,6 +380,7 @@
 
 <script>
 import hyperliquidApi from '@/services/hyperliquidApi';
+import hyperliquidWebsocketService from '@/services/hyperliquidWebsocketService';
 
 export default {
   name: 'HyperliquidTest',
@@ -208,7 +391,8 @@ export default {
         markets: false,
         account: false,
         positions: false,
-        order: false
+        order: false,
+        websocket: false
       },
       results: {
         connection: null,
@@ -223,6 +407,15 @@ export default {
         type: 'market',
         size: 0.01,
         price: null
+      },
+      websocket: {
+        active: false,
+        type: 'ticker',
+        coin: 'BTC',
+        subscriptionId: null,
+        data: null,
+        error: null,
+        lastUpdate: null
       }
     };
   },
@@ -317,6 +510,83 @@ export default {
       } finally {
         this.loading.order = false;
       }
+    },
+    
+    // WebSocket methods
+    async startWebsocket() {
+      if (this.websocket.active) {
+        return;
+      }
+      
+      this.loading.websocket = true;
+      this.websocket.error = null;
+      
+      try {
+        // Subscribe to the selected data feed
+        const subscriptionId = await hyperliquidWebsocketService.subscribe(
+          this.websocket.type,
+          this.websocket.coin,
+          this.handleWebsocketData
+        );
+        
+        if (subscriptionId) {
+          this.websocket.subscriptionId = subscriptionId;
+          this.websocket.active = true;
+          this.websocket.data = null;
+          this.websocket.lastUpdate = null;
+        } else {
+          this.websocket.error = 'Failed to start real-time updates';
+        }
+      } catch (error) {
+        console.error('Error starting WebSocket:', error);
+        this.websocket.error = `Error: ${error.message || 'Failed to start real-time updates'}`;
+      } finally {
+        this.loading.websocket = false;
+      }
+    },
+    
+    async stopWebsocket() {
+      if (!this.websocket.active || !this.websocket.subscriptionId) {
+        return;
+      }
+      
+      this.loading.websocket = true;
+      
+      try {
+        // Unsubscribe from the data feed
+        await hyperliquidWebsocketService.unsubscribe(this.websocket.subscriptionId);
+        
+        this.websocket.active = false;
+        this.websocket.subscriptionId = null;
+      } catch (error) {
+        console.error('Error stopping WebSocket:', error);
+        this.websocket.error = `Error: ${error.message || 'Failed to stop real-time updates'}`;
+      } finally {
+        this.loading.websocket = false;
+      }
+    },
+    
+    handleWebsocketData(data) {
+      this.websocket.data = data;
+      this.websocket.lastUpdate = new Date().toLocaleTimeString();
+    },
+    
+    getChangeClass(change) {
+      if (!change) return '';
+      return parseFloat(change) >= 0 ? 'positive' : 'negative';
+    },
+    
+    formatTime(timestamp) {
+      if (!timestamp) return 'N/A';
+      
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString();
+    }
+  },
+  beforeUnmount() {
+    // Clean up any active subscriptions when component is destroyed
+    if (this.websocket.active && this.websocket.subscriptionId) {
+      hyperliquidWebsocketService.unsubscribe(this.websocket.subscriptionId);
     }
   }
 };
@@ -512,6 +782,57 @@ input:focus, select:focus {
 .order-form button {
   grid-column: 1 / -1;
   margin-top: 10px;
+}
+
+.websocket-status {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+  color: #e0e0e0;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.status-indicator.active {
+  background-color: #4caf50;
+  box-shadow: 0 0 8px #4caf50;
+}
+
+.last-update {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.orderbook-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.orderbook-column {
+  flex: 1;
+}
+
+.orderbook-column h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #e0e0e0;
+}
+
+.no-data {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {

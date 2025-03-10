@@ -144,6 +144,7 @@ const tradeRoutes = require('./routes/tradeRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const emailVerificationRoutes = require('./routes/emailVerification');
 const hyperliquidRoutes = require('./routes/hyperliquidRoutes');
+const hyperliquidWebsocketRoutes = require('./routes/hyperliquidWebsocketRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
 
 // Initialize routes
@@ -153,6 +154,7 @@ app.use('/api/trades', tradeRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/auth', emailVerificationRoutes);
 app.use('/api/hyperliquid', hyperliquidRoutes);
+app.use('/api/hyperliquid-ws', hyperliquidWebsocketRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
 
 // API Info Route
