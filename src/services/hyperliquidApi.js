@@ -1,7 +1,7 @@
 /**
  * Hyperliquid API Service
  * 
- * This service handles all interactions with the Hyperliquid API
+ * This service handles all interactions with the Hyperliquid API through our backend
  */
 
 import axios from 'axios';
@@ -9,6 +9,20 @@ import axios from 'axios';
 const API_BASE_URL = '/api/hyperliquid';
 
 const hyperliquidApi = {
+  /**
+   * Test connection to the Hyperliquid API
+   * @returns {Promise} Connection test result
+   */
+  testConnection: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/connection-test`);
+      return response.data;
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      throw error;
+    }
+  },
+
   /**
    * Get account information
    * @returns {Promise} Account information
@@ -33,6 +47,20 @@ const hyperliquidApi = {
       return response.data;
     } catch (error) {
       console.error('Error fetching market data:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get positions
+   * @returns {Promise} Positions data
+   */
+  getPositions: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/positions`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching positions:', error);
       throw error;
     }
   },

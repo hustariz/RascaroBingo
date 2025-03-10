@@ -11,6 +11,7 @@ import PaymentPage from '@/components/app/PaymentPage.vue'
 import EmailVerification from '@/components/forms/EmailVerificationForm.vue'
 import ResetPassword from '@/components/forms/ResetPasswordForm.vue'
 import HyperliquidDashboard from '@/components/hyperliquid/HyperliquidDashboard.vue'
+import HyperliquidTest from '@/components/hyperliquid/HyperliquidTest.vue'
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -72,6 +73,13 @@ const routes = [
     path: '/hyperliquid', 
     name: 'HyperliquidDashboard',
     component: HyperliquidDashboard,
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/hyperliquid-test', 
+    name: 'HyperliquidTest',
+    component: HyperliquidTest,
     beforeEnter: authGuard,
     meta: { requiresAuth: true }
   },
