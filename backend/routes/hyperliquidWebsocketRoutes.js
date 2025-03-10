@@ -12,7 +12,8 @@ const hyperliquidWebsocket = require('../services/hyperliquidWebsocket');
 const HYPERLIQUID_WALLET_ADDRESS = process.env.HYPERLIQUID_WALLET_ADDRESS;
 
 // Initialize WebSocket connection
-hyperliquidWebsocket.connect();
+// Comment out the auto-connect to prevent connection attempts since we're using mock data
+// hyperliquidWebsocket.connect();
 
 // Listen for WebSocket events
 hyperliquidWebsocket.on('connected', () => {

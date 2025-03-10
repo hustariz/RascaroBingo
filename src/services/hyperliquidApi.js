@@ -25,14 +25,16 @@ const hyperliquidApi = {
 
   /**
    * Get account information
+   * @param {boolean} refresh - Whether to bypass cache and refresh data
    * @returns {Promise} Account information
    */
-  getAccountInfo: async () => {
+  getAccountInfo: async (refresh = false) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/account`);
+      const url = refresh ? `${API_BASE_URL}/account?refresh=true` : `${API_BASE_URL}/account`;
+      const response = await axios.get(url);
       return response.data;
     } catch (error) {
-      console.error('Error fetching account information:', error);
+      console.error('Error fetching account info:', error);
       throw error;
     }
   },
@@ -53,11 +55,13 @@ const hyperliquidApi = {
 
   /**
    * Get positions
+   * @param {boolean} refresh - Whether to bypass cache and refresh data
    * @returns {Promise} Positions data
    */
-  getPositions: async () => {
+  getPositions: async (refresh = false) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/positions`);
+      const url = refresh ? `${API_BASE_URL}/positions?refresh=true` : `${API_BASE_URL}/positions`;
+      const response = await axios.get(url);
       return response.data;
     } catch (error) {
       console.error('Error fetching positions:', error);
@@ -76,6 +80,63 @@ const hyperliquidApi = {
       return response.data;
     } catch (error) {
       console.error('Error placing order:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get open orders
+   * @returns {Promise} Open orders data
+   */
+  getOpenOrders: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/open-orders`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching open orders:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Cancel an order
+   * @param {String} orderId Order ID to cancel
+   * @returns {Promise} Cancel order result
+   */
+  cancelOrder: async (orderId) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/cancel-order`, { orderId });
+      return response.data;
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Cancel all orders
+   * @returns {Promise} Cancel all orders result
+   */
+  cancelAllOrders: async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/cancel-all-orders`);
+      return response.data;
+    } catch (error) {
+      console.error('Error cancelling all orders:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Check environment variables
+   * @returns {Promise} Environment variables status
+   */
+  checkEnvironmentVariables: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/env-check`);
+      return response.data;
+    } catch (error) {
+      console.error('Error checking environment variables:', error);
       throw error;
     }
   }

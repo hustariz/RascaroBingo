@@ -1,5 +1,255 @@
+/* Main container */
+.hyperliquid-test-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  margin-top: 60px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #e0e0e0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Data sections layout */
+.data-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.data-section {
+  flex: 1;
+  min-width: 300px;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Full width section */
+.data-section.full-width {
+  flex-basis: 100%;
+  width: 100%;
+}
+
+/* Make positions section wider */
+.data-section.positions-section {
+  min-width: 700px;
+}
+
+/* Section header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #e0e0e0;
+}
+
+/* Tables */
+.data-table {
+  overflow-x: auto;
+  margin-bottom: 10px;
+}
+
+.data-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.data-table th,
+.data-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+.data-table th {
+  background-color: #333;
+  font-weight: bold;
+}
+
+/* Compact table style */
+.compact-table table {
+  font-size: 13px;
+}
+
+.compact-table th,
+.compact-table td {
+  padding: 6px 4px;
+}
+
+/* Make compact tables even more compact */
+.compact-table table {
+  font-size: 12px;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.compact-table th,
+.compact-table td {
+  padding: 5px 3px;
+  white-space: nowrap;
+}
+
+/* Adjust column widths for positions table */
+.positions-table th.symbol-col,
+.positions-table td.symbol-col {
+  width: 10%;
+}
+
+.positions-table th.side-col,
+.positions-table td.side-col {
+  width: 8%;
+}
+
+.positions-table th.size-col,
+.positions-table td.size-col {
+  width: 10%;
+}
+
+.positions-table th.price-col,
+.positions-table td.price-col {
+  width: 10%;
+}
+
+.positions-table th.pnl-col,
+.positions-table td.pnl-col {
+  width: 15%;
+}
+
+.positions-table th.liq-col,
+.positions-table td.liq-col {
+  width: 10%;
+}
+
+.positions-table th.margin-col,
+.positions-table td.margin-col {
+  width: 10%;
+}
+
+/* Buttons */
+.refresh-all-button,
+.refresh-button,
+.cancel-all-button,
+.cancel-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.refresh-all-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.refresh-all-button:hover {
+  background-color: #45a049;
+}
+
+.refresh-button {
+  background-color: #2196F3;
+  color: white;
+}
+
+.refresh-button:hover {
+  background-color: #0b7dda;
+}
+
+.cancel-all-button,
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.cancel-all-button:hover,
+.cancel-button:hover {
+  background-color: #d32f2f;
+}
+
+button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+  color: #888;
+}
+
+/* Status indicators */
+.loading-indicator {
+  padding: 10px;
+  text-align: center;
+  color: #aaa;
+}
+
+.error-message {
+  padding: 10px;
+  color: #ff6b6b;
+  background-color: rgba(244, 67, 54, 0.1);
+  border-radius: 4px;
+}
+
+.no-data-message {
+  padding: 10px;
+  text-align: center;
+  color: #aaa;
+}
+
+.empty-state {
+  padding: 20px;
+  text-align: center;
+  color: #aaa;
+}
+
+/* Color classes */
+.text-green {
+  color: #4caf50;
+}
+
+.text-red {
+  color: #f44336;
+}
+
+/* Section actions */
+.section-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Hyperliquid test styles */
 .hyperliquid-test {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
   background-color: #1a1a1a;
@@ -238,6 +488,145 @@ input:focus, select:focus {
   text-align: center;
   color: #888;
   font-style: italic;
+}
+
+.open-orders-section {
+  margin-top: 20px;
+}
+
+.open-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.open-orders-table th, .open-orders-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+.open-orders-table th {
+  background-color: #333333;
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.open-orders-table tr:hover {
+  background-color: #333333;
+}
+
+/* Cancel button styling */
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cancel-button:hover {
+  background-color: #d32f2f;
+}
+
+.cancel-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Order actions */
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.cancel-all-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cancel-all-button:hover {
+  background-color: #d32f2f;
+}
+
+.cancel-all-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Global actions */
+.global-actions {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.refresh-all-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-all-button:hover {
+  background-color: #388e3c;
+}
+
+.refresh-all-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.refresh-all-button::before {
+  content: "↻";
+  font-size: 16px;
+}
+
+/* Section actions */
+.section-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.refresh-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.refresh-button:hover {
+  background-color: #45a049;
+}
+
+.refresh-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

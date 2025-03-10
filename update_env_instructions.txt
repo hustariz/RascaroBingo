@@ -1,0 +1,7 @@
+Please update your backend/.env file to include the following Hyperliquid wallet address:
+
+HYPERLIQUID_WALLET_ADDRESS=0x836f01E63BD0FCbe673dCd905F882A5A808DD36e
+
+Make sure this replaces any existing placeholder value like "your_ethereum_wallet_address".
+
+After updating the file, restart your backend server for the changes to take effect.
