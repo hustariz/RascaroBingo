@@ -1,0 +1,660 @@
+/* Main container */
+.hyperliquid-test-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  margin-top: 60px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #e0e0e0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Data sections layout */
+.data-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.data-section {
+  flex: 1;
+  min-width: 300px;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Full width section */
+.data-section.full-width {
+  flex-basis: 100%;
+  width: 100%;
+}
+
+/* Make positions section wider */
+.data-section.positions-section {
+  min-width: 700px;
+}
+
+/* Section header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #e0e0e0;
+}
+
+/* Tables */
+.data-table {
+  overflow-x: auto;
+  margin-bottom: 10px;
+}
+
+.data-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.data-table th,
+.data-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+.data-table th {
+  background-color: #333;
+  font-weight: bold;
+}
+
+/* Compact table style */
+.compact-table table {
+  font-size: 13px;
+}
+
+.compact-table th,
+.compact-table td {
+  padding: 6px 4px;
+}
+
+/* Make compact tables even more compact */
+.compact-table table {
+  font-size: 12px;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.compact-table th,
+.compact-table td {
+  padding: 5px 3px;
+  white-space: nowrap;
+}
+
+/* Adjust column widths for positions table */
+.positions-table th.symbol-col,
+.positions-table td.symbol-col {
+  width: 10%;
+}
+
+.positions-table th.side-col,
+.positions-table td.side-col {
+  width: 8%;
+}
+
+.positions-table th.size-col,
+.positions-table td.size-col {
+  width: 10%;
+}
+
+.positions-table th.price-col,
+.positions-table td.price-col {
+  width: 10%;
+}
+
+.positions-table th.pnl-col,
+.positions-table td.pnl-col {
+  width: 15%;
+}
+
+.positions-table th.liq-col,
+.positions-table td.liq-col {
+  width: 10%;
+}
+
+.positions-table th.margin-col,
+.positions-table td.margin-col {
+  width: 10%;
+}
+
+/* Buttons */
+.refresh-all-button,
+.refresh-button,
+.cancel-all-button,
+.cancel-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.refresh-all-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.refresh-all-button:hover {
+  background-color: #45a049;
+}
+
+.refresh-button {
+  background-color: #2196F3;
+  color: white;
+}
+
+.refresh-button:hover {
+  background-color: #0b7dda;
+}
+
+.cancel-all-button,
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.cancel-all-button:hover,
+.cancel-button:hover {
+  background-color: #d32f2f;
+}
+
+button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+  color: #888;
+}
+
+/* Status indicators */
+.loading-indicator {
+  padding: 10px;
+  text-align: center;
+  color: #aaa;
+}
+
+.error-message {
+  padding: 10px;
+  color: #ff6b6b;
+  background-color: rgba(244, 67, 54, 0.1);
+  border-radius: 4px;
+}
+
+.no-data-message {
+  padding: 10px;
+  text-align: center;
+  color: #aaa;
+}
+
+.empty-state {
+  padding: 20px;
+  text-align: center;
+  color: #aaa;
+}
+
+/* Color classes */
+.text-green {
+  color: #4caf50;
+}
+
+.text-red {
+  color: #f44336;
+}
+
+/* Section actions */
+.section-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Hyperliquid test styles */
+.hyperliquid-test {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #4caf50;
+  text-align: center;
+}
+
+h2 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #e0e0e0;
+  border-bottom: 1px solid #333;
+  padding-bottom: 8px;
+}
+
+h3 {
+  font-size: 18px;
+  margin: 15px 0;
+  color: #bdbdbd;
+}
+
+.test-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 25px;
+}
+
+.test-section {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.test-controls {
+  margin-bottom: 15px;
+}
+
+button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background-color: #45a049;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+button:disabled {
+  background-color: #555555;
+  color: #888888;
+  cursor: not-allowed;
+}
+
+.loading {
+  margin-top: 10px;
+  color: #bdbdbd;
+  font-style: italic;
+}
+
+.result {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.success {
+  background-color: rgba(46, 125, 50, 0.2);
+  color: #81c784;
+  border: 1px solid #2e7d32;
+}
+
+.error {
+  background-color: rgba(198, 40, 40, 0.2);
+  color: #ef9a9a;
+  border: 1px solid #c62828;
+}
+
+.data-display {
+  margin-top: 15px;
+}
+
+.data-table {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+th {
+  background-color: #333333;
+  font-weight: bold;
+  color: #4caf50;
+}
+
+tr:hover {
+  background-color: #333333;
+}
+
+.positive {
+  color: #81c784;
+}
+
+.negative {
+  color: #ef9a9a;
+}
+
+.placeholder-data {
+  background-color: #333333;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  background-color: #333333;
+  padding: 10px;
+  border-radius: 4px;
+  color: #e0e0e0;
+}
+
+.order-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #bdbdbd;
+}
+
+input, select {
+  padding: 8px 12px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #333333;
+  color: #e0e0e0;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.order-form button {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+}
+
+.websocket-status {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+  color: #e0e0e0;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.status-indicator.active {
+  background-color: #4caf50;
+  box-shadow: 0 0 8px #4caf50;
+}
+
+.last-update {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.orderbook-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.orderbook-column {
+  flex: 1;
+}
+
+.orderbook-column h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #e0e0e0;
+}
+
+.no-data {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+.open-orders-section {
+  margin-top: 20px;
+}
+
+.open-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.open-orders-table th, .open-orders-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+}
+
+.open-orders-table th {
+  background-color: #333333;
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.open-orders-table tr:hover {
+  background-color: #333333;
+}
+
+/* Result Messages */
+.result-message {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.success-message {
+  background-color: rgba(0, 128, 0, 0.2);
+  color: #00c853;
+  border: 1px solid #00c853;
+}
+
+.error-message {
+  background-color: rgba(255, 0, 0, 0.2);
+  color: #ff5252;
+  border: 1px solid #ff5252;
+}
+
+/* Cancel Button */
+.cancel-button {
+  background-color: #ff5252;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.3s;
+}
+
+.cancel-button:hover {
+  background-color: #ff1744;
+}
+
+.cancel-button:disabled {
+  background-color: #757575;
+  cursor: not-allowed;
+}
+
+/* Order actions */
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.cancel-all-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cancel-all-button:hover {
+  background-color: #d32f2f;
+}
+
+.cancel-all-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Global actions */
+.global-actions {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.refresh-all-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-all-button:hover {
+  background-color: #388e3c;
+}
+
+.refresh-all-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.refresh-all-button::before {
+  content: "↻";
+  font-size: 16px;
+}
+
+/* Section actions */
+.section-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.refresh-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.refresh-button:hover {
+  background-color: #45a049;
+}
+
+.refresh-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .test-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .order-form {
+    grid-template-columns: 1fr;
+  }
+}

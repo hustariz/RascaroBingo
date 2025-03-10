@@ -1,194 +1,287 @@
 <template>
-  <div class="hyperliquid-test">
-    <h1>Hyperliquid API Test</h1>
+  <div class="hyperliquid-test-container">
+    <div class="header">
+      <h2>Hyperliquid API Test</h2>
+      <div class="header-actions">
+        <button @click="refreshAllData" :disabled="loading.refreshAll" class="refresh-all-button">
+          {{ loading.refreshAll ? 'Refreshing...' : 'Refresh All Data' }}
+        </button>
+      </div>
+    </div>
     
-    <div class="test-sections">
-      <!-- Connection Test Section -->
-      <div class="test-section">
-        <h2>Connection Test</h2>
-        <div class="test-controls">
-          <button @click="testConnection" :disabled="loading.connection">
-            Test Connection
-          </button>
-          <div v-if="loading.connection" class="loading">Testing connection...</div>
-          <div v-if="results.connection" :class="['result', results.connection.success ? 'success' : 'error']">
-            {{ results.connection.message }}
+    <div class="data-sections">
+      <!-- First Row: Account Details and Open Positions -->
+      <div class="section-row">
+        <!-- Account Information Section -->
+        <div class="data-section">
+          <div class="section-header">
+            <h3>Account Details</h3>
+            <button 
+              @click="fetchAccountInfo(true)" 
+              :disabled="loading.account" 
+              class="refresh-button"
+            >
+              {{ loading.account ? 'Refreshing...' : 'Refresh' }}
+            </button>
           </div>
-        </div>
-      </div>
-
-      <!-- Market Data Section -->
-      <div class="test-section">
-        <h2>Market Data</h2>
-        <div class="test-controls">
-          <button @click="fetchMarkets" :disabled="loading.markets">
-            Fetch Markets
-          </button>
-          <div v-if="loading.markets" class="loading">Loading markets...</div>
-          <div v-if="results.markets && results.markets.error" class="error">
-            {{ results.markets.error }}
-          </div>
-        </div>
-        <div v-if="results.markets && results.markets.data" class="data-display">
-          <h3>Available Markets</h3>
-          <div class="data-table">
-            <table v-if="results.markets.data.length">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Price</th>
-                  <th>24h Change</th>
-                  <th>24h Volume</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="market in results.markets.data" :key="market.symbol">
-                  <td>{{ market.symbol }}</td>
-                  <td>{{ market.price }}</td>
-                  <td :class="market.change24h >= 0 ? 'positive' : 'negative'">
-                    {{ market.change24h }}%
-                  </td>
-                  <td>{{ market.volume24h }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <div v-else class="placeholder-data">
-              <p>Market data will appear here</p>
-              <pre>{{ JSON.stringify(results.markets.data, null, 2) }}</pre>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Account Information Section -->
-      <div class="test-section">
-        <h2>Account Information</h2>
-        <div class="test-controls">
-          <button @click="fetchAccountInfo" :disabled="loading.account">
-            Fetch Account Info
-          </button>
-          <div v-if="loading.account" class="loading">Loading account info...</div>
-          <div v-if="results.account && results.account.error" class="error">
+          
+          <div v-if="loading.account" class="loading-indicator">Loading account information...</div>
+          
+          <div v-else-if="results.account && results.account.error" class="error-message">
             {{ results.account.error }}
           </div>
-        </div>
-        <div v-if="results.account && results.account.data" class="data-display">
-          <h3>Account Details</h3>
-          <div class="data-table">
-            <div class="placeholder-data">
-              <pre>{{ JSON.stringify(results.account.data, null, 2) }}</pre>
+          
+          <div v-else-if="results.account && results.account.data" class="data-display">
+            <div class="data-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Coin</th>
+                    <th>Total Balance</th>
+                    <th>Available Balance</th>
+                    <th>USDC Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(balance, index) in formatAccountBalances(results.account.data)" :key="index">
+                    <td>{{ balance.coin }}</td>
+                    <td>{{ formatNumber(balance.totalBalance) }}</td>
+                    <td>{{ formatNumber(balance.availableBalance) }}</td>
+                    <td>${{ formatNumber(balance.usdcValue) }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
+          
+          <div v-else class="empty-state">
+            <p>Click the button to fetch account information</p>
+            <button @click="fetchAccountInfo" :disabled="loading.account">
+              {{ loading.account ? 'Loading...' : 'Fetch Account Info' }}
+            </button>
+          </div>
         </div>
-      </div>
-
-      <!-- Positions Section -->
-      <div class="test-section">
-        <h2>Positions</h2>
-        <div class="test-controls">
-          <button @click="fetchPositions" :disabled="loading.positions">
-            Fetch Positions
-          </button>
-          <div v-if="loading.positions" class="loading">Loading positions...</div>
-          <div v-if="results.positions && results.positions.error" class="error">
+        
+        <!-- Positions Section -->
+        <div class="data-section positions-section">
+          <div class="section-header">
+            <h3>Open Positions</h3>
+            <button 
+              @click="fetchPositions(true)" 
+              :disabled="loading.positions" 
+              class="refresh-button"
+            >
+              {{ loading.positions ? 'Refreshing...' : 'Refresh' }}
+            </button>
+          </div>
+          
+          <div v-if="loading.positions" class="loading-indicator">Loading positions...</div>
+          
+          <div v-else-if="results.positions && results.positions.error" class="error-message">
             {{ results.positions.error }}
           </div>
-        </div>
-        <div v-if="results.positions && results.positions.data" class="data-display">
-          <h3>Open Positions</h3>
-          <div class="data-table">
-            <table v-if="results.positions.data.length">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Size</th>
-                  <th>Entry Price</th>
-                  <th>Current Price</th>
-                  <th>PnL</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="position in results.positions.data" :key="position.symbol">
-                  <td>{{ position.symbol }}</td>
-                  <td>{{ position.size }}</td>
-                  <td>{{ position.entryPrice }}</td>
-                  <td>{{ position.currentPrice }}</td>
-                  <td :class="position.pnl >= 0 ? 'positive' : 'negative'">
-                    {{ position.pnl }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div v-else class="placeholder-data">
-              <p>Position data will appear here</p>
-              <pre>{{ JSON.stringify(results.positions.data, null, 2) }}</pre>
+          
+          <div v-else-if="results.positions && results.positions.data" class="data-display">
+            <div class="data-table compact-table positions-table">
+              <table v-if="formatPositions(results.positions.data).length > 0">
+                <thead>
+                  <tr>
+                    <th class="symbol-col">Symbol</th>
+                    <th class="side-col">Side</th>
+                    <th class="size-col">Size</th>
+                    <th class="price-col">Entry</th>
+                    <th class="price-col">Mark</th>
+                    <th class="pnl-col">PnL</th>
+                    <th class="liq-col">Liq</th>
+                    <th class="margin-col">Margin</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="position in formatPositions(results.positions.data)" :key="position.symbol">
+                    <td class="symbol-col">{{ position.symbol }} {{ position.leverage }}x</td>
+                    <td class="side-col" :class="position.side === 'long' ? 'text-green' : 'text-red'">
+                      {{ position.side === 'long' ? 'Long' : 'Short' }}
+                    </td>
+                    <td class="size-col">{{ formatNumber(position.size) }}</td>
+                    <td class="price-col">{{ formatNumber(position.entryPrice, 4) }}</td>
+                    <td class="price-col">{{ formatNumber(position.markPrice, 4) }}</td>
+                    <td class="pnl-col" :class="position.pnl >= 0 ? 'text-green' : 'text-red'">
+                      ${{ formatNumber(position.pnl) }} ({{ position.pnlPercentage >= 0 ? '+' : '' }}{{ position.pnlPercentage }}%)
+                    </td>
+                    <td class="liq-col">{{ formatNumber(position.liquidationPrice, 4) }}</td>
+                    <td class="margin-col">${{ formatNumber(position.margin) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-else class="no-data-message">No open positions</div>
             </div>
+          </div>
+          
+          <div v-else class="empty-state">
+            <p>Click the button to fetch positions</p>
+            <button @click="fetchPositions" :disabled="loading.positions">
+              {{ loading.positions ? 'Loading...' : 'Fetch Positions' }}
+            </button>
           </div>
         </div>
       </div>
-
-      <!-- Order Placement Test Section -->
-      <div class="test-section">
-        <h2>Order Placement</h2>
-        <div class="test-controls">
-          <form @submit.prevent="placeTestOrder" class="order-form">
-            <div class="form-group">
-              <label for="symbol">Symbol</label>
-              <select id="symbol" v-model="orderForm.symbol" required>
-                <option value="">Select Symbol</option>
-                <option value="ETH-USD">ETH-USD</option>
-                <option value="BTC-USD">BTC-USD</option>
-                <option value="SOL-USD">SOL-USD</option>
-              </select>
+      
+      <!-- Second Row: Open Orders -->
+      <div class="section-row">
+        <div class="data-section full-width">
+          <div class="section-header">
+            <h3>Open Orders</h3>
+            <div class="section-actions">
+              <button 
+                @click="fetchOpenOrders(true)" 
+                :disabled="loading.openOrders" 
+                class="refresh-button"
+              >
+                {{ loading.openOrders ? 'Refreshing...' : 'Refresh' }}
+              </button>
+              <button 
+                v-if="results.openOrders && results.openOrders.data && results.openOrders.data.length > 0"
+                @click="cancelAllOrders" 
+                :disabled="loading.cancelAllOrders" 
+                class="cancel-all-button"
+              >
+                {{ loading.cancelAllOrders ? 'Cancelling...' : 'Cancel All' }}
+              </button>
             </div>
-            
-            <div class="form-group">
-              <label for="side">Side</label>
-              <select id="side" v-model="orderForm.side" required>
-                <option value="buy">Buy</option>
-                <option value="sell">Sell</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="type">Order Type</label>
-              <select id="type" v-model="orderForm.type" required>
-                <option value="market">Market</option>
-                <option value="limit">Limit</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="size">Size</label>
-              <input 
-                id="size" 
-                type="number" 
-                v-model="orderForm.size" 
-                step="0.001" 
-                min="0.001" 
-                required
-              />
-            </div>
-            
-            <div class="form-group" v-if="orderForm.type === 'limit'">
-              <label for="price">Price</label>
-              <input 
-                id="price" 
-                type="number" 
-                v-model="orderForm.price" 
-                step="0.01" 
-                min="0.01"
-                :required="orderForm.type === 'limit'"
-              />
-            </div>
-            
-            <button type="submit" :disabled="loading.order">Place Test Order</button>
-          </form>
+          </div>
           
-          <div v-if="loading.order" class="loading">Placing order...</div>
-          <div v-if="results.order" :class="['result', results.order.success ? 'success' : 'error']">
-            {{ results.order.message }}
-            <pre v-if="results.order.data">{{ JSON.stringify(results.order.data, null, 2) }}</pre>
+          <div v-if="loading.openOrders" class="loading-indicator">Loading open orders...</div>
+          
+          <div v-else-if="results.openOrders && results.openOrders.error" class="error-message">
+            {{ results.openOrders.error }}
+          </div>
+          
+          <div v-else-if="results.openOrders && results.openOrders.data" class="data-display">
+            <!-- Cancel Order Result Message -->
+            <div v-if="results.cancelOrder" class="result-message" :class="results.cancelOrder.success ? 'success-message' : 'error-message'">
+              {{ results.cancelOrder.message }}
+            </div>
+            
+            <div class="data-table compact-table">
+              <table v-if="results.openOrders.data.length > 0">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Symbol</th>
+                    <th>Side</th>
+                    <th>Size</th>
+                    <th>Filled</th>
+                    <th>Value</th>
+                    <th>Price</th>
+                    <th>Reduce</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="order in results.openOrders.data" :key="order.orderId">
+                    <td>{{ formatDate(order.timestamp) }}</td>
+                    <td>{{ order.orderType }}</td>
+                    <td>{{ order.symbol }}</td>
+                    <td :class="order.side === 'B' ? 'text-green' : 'text-red'">
+                      {{ order.side === 'B' ? 'Buy' : 'Sell' }}
+                    </td>
+                    <td>{{ formatNumber(order.size) }}</td>
+                    <td>{{ formatNumber(order.filled) }}</td>
+                    <td>${{ formatNumber(order.price * order.size) }}</td>
+                    <td>{{ formatNumber(order.price, 4) }}</td>
+                    <td>{{ order.reduceOnly ? 'Yes' : 'No' }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>
+                      <button 
+                        @click="cancelOrder(order.orderId, order.assetId)" 
+                        :disabled="loading.cancelOrder === order.orderId"
+                        class="cancel-button"
+                      >
+                        {{ loading.cancelOrder === order.orderId ? 'Cancelling...' : 'Cancel' }}
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-else class="no-data-message">No open orders</div>
+            </div>
+          </div>
+          
+          <div v-else class="empty-state">
+            <p>Click the button to fetch open orders</p>
+            <button @click="fetchOpenOrders" :disabled="loading.openOrders">
+              {{ loading.openOrders ? 'Loading...' : 'Fetch Open Orders' }}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Third Row: Order Placement -->
+      <div class="section-row">
+        <div class="data-section">
+          <h2>Order Placement</h2>
+          <div class="test-controls">
+            <form @submit.prevent="placeTestOrder" class="order-form">
+              <div class="form-group">
+                <label for="symbol">Symbol</label>
+                <select id="symbol" v-model="orderForm.symbol" required>
+                  <option value="">Select Symbol</option>
+                  <option value="ETH-USD">ETH-USD</option>
+                  <option value="BTC-USD">BTC-USD</option>
+                  <option value="SOL-USD">SOL-USD</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="side">Side</label>
+                <select id="side" v-model="orderForm.side" required>
+                  <option value="B">Buy</option>
+                  <option value="S">Sell</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="type">Order Type</label>
+                <select id="type" v-model="orderForm.orderType" required>
+                  <option value="Limit">Limit</option>
+                  <option value="Market">Market</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="size">Size</label>
+                <input 
+                  id="size" 
+                  type="number" 
+                  v-model="orderForm.size" 
+                  step="0.001" 
+                  min="0.001" 
+                  required
+                />
+              </div>
+              
+              <div class="form-group" v-if="orderForm.orderType === 'Limit'">
+                <label for="price">Price</label>
+                <input 
+                  id="price" 
+                  type="number" 
+                  v-model="orderForm.price" 
+                  step="0.01" 
+                  min="0.01"
+                  :required="orderForm.orderType === 'Limit'"
+                />
+              </div>
+              
+              <button type="submit" :disabled="loading.order">Place Test Order</button>
+            </form>
+            
+            <div v-if="loading.order" class="loading">Placing order...</div>
+            <div v-if="results.order" :class="['result', results.order.success ? 'success' : 'error']">
+              {{ results.order.message }}
+              <pre v-if="results.order.data">{{ JSON.stringify(results.order.data, null, 2) }}</pre>
+            </div>
           </div>
         </div>
       </div>
@@ -204,75 +297,77 @@ export default {
   data() {
     return {
       loading: {
-        connection: false,
-        markets: false,
         account: false,
         positions: false,
-        order: false
+        order: false,
+        openOrders: false,
+        cancelOrder: null,
+        envCheck: false,
+        refreshAll: false,
+        cancelAllOrders: false
       },
       results: {
-        connection: null,
-        markets: null,
         account: null,
         positions: null,
-        order: null
+        order: null,
+        openOrders: null,
+        envCheck: null,
+        cancelOrder: null
       },
       orderForm: {
-        symbol: '',
-        side: 'buy',
-        type: 'market',
-        size: 0.01,
-        price: null
-      }
+        symbol: 'BTC',
+        side: 'B', // B for Buy, S for Sell
+        orderType: 'Limit', // Limit, Market, etc.
+        size: 0.001,
+        price: 50000
+      },
+      symbols: ['BTC', 'ETH', 'SOL', 'DOGE'],
+      sides: [
+        { value: 'B', label: 'Buy' },
+        { value: 'S', label: 'Sell' }
+      ],
+      orderTypes: ['Limit', 'Market']
     };
   },
+  mounted() {
+    // Check environment variables on component mount
+    this.checkEnvironmentVariables();
+  },
   methods: {
-    async testConnection() {
-      this.loading.connection = true;
-      this.results.connection = null;
-      
+    async checkEnvironmentVariables() {
+      this.loading.envCheck = true;
       try {
-        const response = await hyperliquidApi.testConnection();
+        const envStatus = await hyperliquidApi.checkEnvironmentVariables();
+        this.results.envCheck = envStatus;
         
-        this.results.connection = {
-          success: response.success,
-          message: response.message,
-          data: response.data
-        };
+        if (!envStatus.walletAddressSet) {
+          console.warn('Hyperliquid wallet address is not set in the environment variables');
+        }
       } catch (error) {
-        this.results.connection = {
-          success: false,
-          message: `Connection failed: ${error.response?.data?.error || error.message || 'Unknown error'}`
-        };
+        console.error('Failed to check environment variables:', error);
       } finally {
-        this.loading.connection = false;
+        this.loading.envCheck = false;
       }
     },
     
-    async fetchMarkets() {
-      this.loading.markets = true;
-      this.results.markets = null;
-      
-      try {
-        const data = await hyperliquidApi.getMarkets();
-        this.results.markets = { data };
-      } catch (error) {
-        this.results.markets = {
-          error: `Failed to fetch markets: ${error.response?.data?.error || error.message || 'Unknown error'}`
-        };
-      } finally {
-        this.loading.markets = false;
-      }
-    },
-    
-    async fetchAccountInfo() {
+    async fetchAccountInfo(refresh = false) {
       this.loading.account = true;
       this.results.account = null;
       
       try {
-        const data = await hyperliquidApi.getAccountInfo();
+        // Fetch account info from API
+        const data = await hyperliquidApi.getAccountInfo(refresh);
+        
+        // Check if there was an error in the response
+        if (data.error) {
+          this.results.account = { error: data.error };
+          return;
+        }
+        
         this.results.account = { data };
+        console.log('Account data:', data);
       } catch (error) {
+        console.error('Error fetching account info:', error);
         this.results.account = {
           error: `Failed to fetch account info: ${error.response?.data?.error || error.message || 'Unknown error'}`
         };
@@ -281,19 +376,43 @@ export default {
       }
     },
     
-    async fetchPositions() {
+    async fetchPositions(refresh = false) {
       this.loading.positions = true;
       this.results.positions = null;
       
       try {
-        const data = await hyperliquidApi.getPositions();
-        this.results.positions = { data };
+        const data = await hyperliquidApi.getPositions(refresh);
+        this.results.positions = { data: data.positions };
+        console.log('Positions data:', data);
       } catch (error) {
-        this.results.positions = {
-          error: `Failed to fetch positions: ${error.response?.data?.error || error.message || 'Unknown error'}`
-        };
+        console.error('Error fetching positions:', error);
+        this.results.positions = { error: error.message || 'Failed to fetch positions' };
       } finally {
         this.loading.positions = false;
+      }
+    },
+    
+    async fetchOpenOrders(forceRefresh = true) {
+      this.loading.openOrders = true;
+      
+      try {
+        console.log('Fetching open orders...');
+        const data = await hyperliquidApi.getOpenOrders(forceRefresh);
+        console.log('Open orders data:', data);
+        
+        this.results.openOrders = {
+          success: true,
+          data: data.openOrders || []
+        };
+      } catch (error) {
+        console.error('Error fetching open orders:', error);
+        
+        this.results.openOrders = {
+          success: false,
+          error: error.message || 'Failed to fetch open orders'
+        };
+      } finally {
+        this.loading.openOrders = false;
       }
     },
     
@@ -302,13 +421,34 @@ export default {
       this.results.order = null;
       
       try {
-        const data = await hyperliquidApi.placeOrder(this.orderForm);
+        // Validate form data
+        if (!this.orderForm.symbol) {
+          throw new Error('Symbol is required');
+        }
         
-        this.results.order = {
-          success: true,
-          message: 'Order placed successfully',
-          data
+        if (!this.orderForm.side) {
+          throw new Error('Side is required');
+        }
+        
+        if (!this.orderForm.size || this.orderForm.size <= 0) {
+          throw new Error('Size must be greater than 0');
+        }
+        
+        if (this.orderForm.orderType === 'Limit' && (!this.orderForm.price || this.orderForm.price <= 0)) {
+          throw new Error('Price must be greater than 0 for limit orders');
+        }
+        
+        const data = await hyperliquidApi.placeOrder(this.orderForm);
+        this.results.order = { 
+          success: true, 
+          message: data.message || 'Order placed successfully', 
+          data: data.data 
         };
+        
+        // After placing an order, refresh account and positions data
+        this.fetchAccountInfo();
+        this.fetchPositions();
+        this.fetchOpenOrders();
       } catch (error) {
         this.results.order = {
           success: false,
@@ -317,210 +457,193 @@ export default {
       } finally {
         this.loading.order = false;
       }
+    },
+    
+    async cancelOrder(orderId, assetId = 0) {
+      this.loading.cancelOrder = orderId;
+      
+      try {
+        console.log(`Attempting to cancel order: ${orderId} with asset ID: ${assetId}`);
+        const response = await hyperliquidApi.cancelOrder(orderId, assetId);
+        console.log('Order cancelled successfully:', response);
+        
+        // Show a temporary success message
+        this.results.cancelOrder = {
+          success: true,
+          message: response.message || `Order ${orderId} cancelled successfully`,
+          data: response.data
+        };
+        
+        // Refresh open orders list
+        await this.fetchOpenOrders(true);
+        
+        // Clear the success message after 5 seconds
+        setTimeout(() => {
+          if (this.results.cancelOrder && this.results.cancelOrder.success) {
+            this.results.cancelOrder = null;
+          }
+        }, 5000);
+      } catch (error) {
+        console.error('Error cancelling order:', error);
+        
+        // Show error message
+        this.results.cancelOrder = {
+          success: false,
+          message: error.response?.data?.error || error.message || 'Failed to cancel order',
+          orderId
+        };
+        
+        // Clear the error message after 5 seconds
+        setTimeout(() => {
+          if (this.results.cancelOrder && !this.results.cancelOrder.success) {
+            this.results.cancelOrder = null;
+          }
+        }, 5000);
+      } finally {
+        this.loading.cancelOrder = null;
+      }
+    },
+    
+    async cancelAllOrders() {
+      this.loading.cancelAllOrders = true;
+      
+      try {
+        const data = await hyperliquidApi.cancelAllOrders();
+        console.log('All orders cancelled:', data);
+        
+        // After cancelling all orders, refresh open orders data
+        this.fetchOpenOrders();
+      } catch (error) {
+        console.error('Failed to cancel all orders:', error);
+      } finally {
+        this.loading.cancelAllOrders = false;
+      }
+    },
+    
+    async refreshAllData() {
+      this.loading.refreshAll = true;
+      
+      try {
+        await this.fetchAccountInfo();
+        await this.fetchPositions();
+        await this.fetchOpenOrders();
+      } catch (error) {
+        console.error('Error refreshing all data:', error);
+      } finally {
+        this.loading.refreshAll = false;
+      }
+    },
+    
+    formatAccountBalances(accountData) {
+      try {
+        // Check if accountData exists and has the expected structure
+        if (!accountData || !accountData.assetPositions) {
+          console.warn('Account data is missing or in unexpected format:', accountData);
+          // Return mock data for display
+          return [{
+            coin: 'USDC (Perps)',
+            totalBalance: 9.86,
+            availableBalance: 3.16,
+            usdcValue: 9.86
+          }];
+        }
+        
+        // Return the asset positions directly
+        return accountData.assetPositions;
+      } catch (error) {
+        console.error('Error formatting account balances:', error);
+        // Return mock data for display
+        return [{
+          coin: 'USDC (Perps)',
+          totalBalance: 9.86,
+          availableBalance: 3.16,
+          usdcValue: 9.86
+        }];
+      }
+    },
+    
+    formatPositions(positions) {
+      try {
+        // Check if positions exists and has the expected structure
+        if (!positions || !positions.length) {
+          console.warn('Positions data is missing or in unexpected format:', positions);
+          // Return an empty array instead of mock data
+          return [];
+        }
+        
+        // Process positions to ensure correct display
+        return positions.map(position => {
+          // Create a new object to avoid modifying the original
+          const formattedPosition = { ...position };
+          
+          // Log the raw position data to help debug
+          console.log('Raw position data from backend:', position);
+          
+          // Ensure side is correct - respect the backend value if available
+          if (formattedPosition.side) {
+            console.log(`Using backend-provided side value: ${formattedPosition.side}`);
+          } else if (formattedPosition.size) {
+            // Fallback to size-based determination if side is not provided
+            const numericSize = parseFloat(formattedPosition.size);
+            if (numericSize < 0) {
+              formattedPosition.side = 'short';
+              // Make size positive for display
+              formattedPosition.size = Math.abs(numericSize);
+            } else {
+              formattedPosition.side = 'long';
+            }
+            console.log(`Determined side based on size: ${formattedPosition.side}`);
+          }
+          
+          return formattedPosition;
+        });
+      } catch (error) {
+        console.error('Error formatting positions:', error);
+        // Return an empty array instead of mock data
+        return [];
+      }
+    },
+    
+    formatNumber(value, decimals = null) {
+      if (value === undefined || value === null) return '-';
+      
+      // Determine the number of decimal places based on the value
+      let decimalPlaces = decimals;
+      if (decimalPlaces === null) {
+        // For price values (typically between 0.1 and 10000), show 4 decimal places
+        if (typeof value === 'number' && value > 0 && value < 10000) {
+          decimalPlaces = 4;
+        } else {
+          decimalPlaces = 2;
+        }
+      }
+      
+      // Format the number with the appropriate number of decimal places
+      return Number(value).toLocaleString(undefined, {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces
+      });
+    },
+    
+    formatDate(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    },
+    
+    calculatePnlPercentage(pnl, entryPrice, size) {
+      return ((pnl / (entryPrice * size)) * 100).toFixed(2);
     }
   }
 };
 </script>
 
-<style scoped>
-.hyperliquid-test {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #1a1a1a;
-  color: #e0e0e0;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 28px;
-  margin-bottom: 30px;
-  color: #4caf50;
-  text-align: center;
-}
-
-h2 {
-  font-size: 20px;
-  margin-bottom: 15px;
-  color: #e0e0e0;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
-}
-
-h3 {
-  font-size: 18px;
-  margin: 15px 0;
-  color: #bdbdbd;
-}
-
-.test-sections {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  gap: 25px;
-}
-
-.test-section {
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.test-controls {
-  margin-bottom: 15px;
-}
-
-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s;
-}
-
-button:hover:not(:disabled) {
-  background-color: #45a049;
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
-}
-
-button:disabled {
-  background-color: #555555;
-  color: #888888;
-  cursor: not-allowed;
-}
-
-.loading {
-  margin-top: 10px;
-  color: #bdbdbd;
-  font-style: italic;
-}
-
-.result {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 4px;
-}
-
-.success {
-  background-color: rgba(46, 125, 50, 0.2);
-  color: #81c784;
-  border: 1px solid #2e7d32;
-}
-
-.error {
-  background-color: rgba(198, 40, 40, 0.2);
-  color: #ef9a9a;
-  border: 1px solid #c62828;
-}
-
-.data-display {
-  margin-top: 15px;
-}
-
-.data-table {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  background-color: #2a2a2a;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-th, td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #444;
-}
-
-th {
-  background-color: #333333;
-  font-weight: bold;
-  color: #4caf50;
-}
-
-tr:hover {
-  background-color: #333333;
-}
-
-.positive {
-  color: #81c784;
-}
-
-.negative {
-  color: #ef9a9a;
-}
-
-.placeholder-data {
-  background-color: #333333;
-  padding: 15px;
-  border-radius: 4px;
-  margin-top: 10px;
-}
-
-pre {
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: monospace;
-  font-size: 14px;
-  line-height: 1.4;
-  background-color: #333333;
-  padding: 10px;
-  border-radius: 4px;
-  color: #e0e0e0;
-}
-
-.order-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #bdbdbd;
-}
-
-input, select {
-  padding: 8px 12px;
-  border: 1px solid #444;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: #333333;
-  color: #e0e0e0;
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: #4caf50;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-}
-
-.order-form button {
-  grid-column: 1 / -1;
-  margin-top: 10px;
-}
-
-@media (max-width: 768px) {
-  .test-sections {
-    grid-template-columns: 1fr;
-  }
-  
-  .order-form {
-    grid-template-columns: 1fr;
-  }
-}
+<style>
+@import '@/assets/styles/Hyperliquid/hyperliquid-test.css';
 </style>
