@@ -86,11 +86,13 @@ const hyperliquidApi = {
 
   /**
    * Get open orders
+   * @param {boolean} refresh - Whether to bypass cache and refresh data
    * @returns {Promise} Open orders data
    */
-  getOpenOrders: async () => {
+  getOpenOrders: async (refresh = false) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/open-orders`);
+      const url = refresh ? `${API_BASE_URL}/open-orders?refresh=true` : `${API_BASE_URL}/open-orders`;
+      const response = await axios.get(url);
       return response.data;
     } catch (error) {
       console.error('Error fetching open orders:', error);
@@ -101,11 +103,12 @@ const hyperliquidApi = {
   /**
    * Cancel an order
    * @param {String} orderId Order ID to cancel
+   * @param {Number} assetId Asset ID (default: 0 for BTC)
    * @returns {Promise} Cancel order result
    */
-  cancelOrder: async (orderId) => {
+  cancelOrder: async (orderId, assetId = 0) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/cancel-order`, { orderId });
+      const response = await axios.post(`${API_BASE_URL}/cancel-order`, { orderId, assetId });
       return response.data;
     } catch (error) {
       console.error('Error cancelling order:', error);

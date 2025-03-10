@@ -157,6 +157,11 @@
           </div>
           
           <div v-else-if="results.openOrders && results.openOrders.data" class="data-display">
+            <!-- Cancel Order Result Message -->
+            <div v-if="results.cancelOrder" class="result-message" :class="results.cancelOrder.success ? 'success-message' : 'error-message'">
+              {{ results.cancelOrder.message }}
+            </div>
+            
             <div class="data-table compact-table">
               <table v-if="results.openOrders.data.length > 0">
                 <thead>
@@ -190,7 +195,7 @@
                     <td>{{ order.status }}</td>
                     <td>
                       <button 
-                        @click="cancelOrder(order.orderId)" 
+                        @click="cancelOrder(order.orderId, order.assetId)" 
                         :disabled="loading.cancelOrder === order.orderId"
                         class="cancel-button"
                       >
@@ -306,7 +311,8 @@ export default {
         positions: null,
         order: null,
         openOrders: null,
-        envCheck: null
+        envCheck: null,
+        cancelOrder: null
       },
       orderForm: {
         symbol: 'BTC',
@@ -386,17 +392,25 @@ export default {
       }
     },
     
-    async fetchOpenOrders() {
+    async fetchOpenOrders(forceRefresh = true) {
       this.loading.openOrders = true;
-      this.results.openOrders = null;
       
       try {
-        const data = await hyperliquidApi.getOpenOrders();
-        this.results.openOrders = { data: data.openOrders };
+        console.log('Fetching open orders...');
+        const data = await hyperliquidApi.getOpenOrders(forceRefresh);
         console.log('Open orders data:', data);
+        
+        this.results.openOrders = {
+          success: true,
+          data: data.openOrders || []
+        };
       } catch (error) {
         console.error('Error fetching open orders:', error);
-        this.results.openOrders = { error: error.message || 'Failed to fetch open orders' };
+        
+        this.results.openOrders = {
+          success: false,
+          error: error.message || 'Failed to fetch open orders'
+        };
       } finally {
         this.loading.openOrders = false;
       }
@@ -445,17 +459,46 @@ export default {
       }
     },
     
-    async cancelOrder(orderId) {
+    async cancelOrder(orderId, assetId = 0) {
       this.loading.cancelOrder = orderId;
       
       try {
-        const data = await hyperliquidApi.cancelOrder(orderId);
-        console.log('Order cancelled:', data);
+        console.log(`Attempting to cancel order: ${orderId} with asset ID: ${assetId}`);
+        const response = await hyperliquidApi.cancelOrder(orderId, assetId);
+        console.log('Order cancelled successfully:', response);
         
-        // After cancelling an order, refresh open orders data
-        this.fetchOpenOrders();
+        // Show a temporary success message
+        this.results.cancelOrder = {
+          success: true,
+          message: response.message || `Order ${orderId} cancelled successfully`,
+          data: response.data
+        };
+        
+        // Refresh open orders list
+        await this.fetchOpenOrders(true);
+        
+        // Clear the success message after 5 seconds
+        setTimeout(() => {
+          if (this.results.cancelOrder && this.results.cancelOrder.success) {
+            this.results.cancelOrder = null;
+          }
+        }, 5000);
       } catch (error) {
-        console.error('Failed to cancel order:', error);
+        console.error('Error cancelling order:', error);
+        
+        // Show error message
+        this.results.cancelOrder = {
+          success: false,
+          message: error.response?.data?.error || error.message || 'Failed to cancel order',
+          orderId
+        };
+        
+        // Clear the error message after 5 seconds
+        setTimeout(() => {
+          if (this.results.cancelOrder && !this.results.cancelOrder.success) {
+            this.results.cancelOrder = null;
+          }
+        }, 5000);
       } finally {
         this.loading.cancelOrder = null;
       }
@@ -524,21 +567,8 @@ export default {
         // Check if positions exists and has the expected structure
         if (!positions || !positions.length) {
           console.warn('Positions data is missing or in unexpected format:', positions);
-          // Return mock data for display that shows a short position
-          return [{
-            symbol: 'XRP',
-            side: 'short',
-            size: 581,
-            entryPrice: 2.1750,
-            markPrice: 2.1776,
-            pnl: -1.10,
-            pnlPercentage: -1.7,
-            liquidationPrice: 2.2776,
-            leverage: 20,
-            margin: 63.24,
-            marginType: 'Cross',
-            notionalValue: 1264.78
-          }];
+          // Return an empty array instead of mock data
+          return [];
         }
         
         // Process positions to ensure correct display
@@ -546,8 +576,14 @@ export default {
           // Create a new object to avoid modifying the original
           const formattedPosition = { ...position };
           
-          // Ensure side is correct based on size
-          if (formattedPosition.size) {
+          // Log the raw position data to help debug
+          console.log('Raw position data from backend:', position);
+          
+          // Ensure side is correct - respect the backend value if available
+          if (formattedPosition.side) {
+            console.log(`Using backend-provided side value: ${formattedPosition.side}`);
+          } else if (formattedPosition.size) {
+            // Fallback to size-based determination if side is not provided
             const numericSize = parseFloat(formattedPosition.size);
             if (numericSize < 0) {
               formattedPosition.side = 'short';
@@ -556,27 +592,15 @@ export default {
             } else {
               formattedPosition.side = 'long';
             }
+            console.log(`Determined side based on size: ${formattedPosition.side}`);
           }
           
           return formattedPosition;
         });
       } catch (error) {
         console.error('Error formatting positions:', error);
-        // Return mock data for display that shows a short position
-        return [{
-          symbol: 'XRP',
-          side: 'short',
-          size: 581,
-          entryPrice: 2.1750,
-          markPrice: 2.1776,
-          pnl: -1.10,
-          pnlPercentage: -1.7,
-          liquidationPrice: 2.2776,
-          leverage: 20,
-          margin: 63.24,
-          marginType: 'Cross',
-          notionalValue: 1264.78
-        }];
+        // Return an empty array instead of mock data
+        return [];
       }
     },
     

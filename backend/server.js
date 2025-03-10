@@ -40,6 +40,14 @@ const corsOptions = {
 const app = express();
 const PORT = process.env.PORT || 3004;
 
+// Configure Express
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cors(corsOptions));
+
+// Trust proxy to fix express-rate-limit X-Forwarded-For header warning
+app.set('trust proxy', 1);
+
 // Create HTTP server
 const server = http.createServer(app);
 
@@ -76,10 +84,6 @@ io.on('connection', (socket) => {
 // Make io available to routes
 app.set('io', io);
 app.set('socketConnections', socketConnections);
-
-// Enable CORS
-app.use(cors(corsOptions));
-app.use(express.json());
 
 // Logging middleware
 app.use((req, res, next) => {

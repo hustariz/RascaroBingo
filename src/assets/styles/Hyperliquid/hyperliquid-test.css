@@ -519,24 +519,44 @@ input:focus, select:focus {
   background-color: #333333;
 }
 
-/* Cancel button styling */
+/* Result Messages */
+.result-message {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.success-message {
+  background-color: rgba(0, 128, 0, 0.2);
+  color: #00c853;
+  border: 1px solid #00c853;
+}
+
+.error-message {
+  background-color: rgba(255, 0, 0, 0.2);
+  color: #ff5252;
+  border: 1px solid #ff5252;
+}
+
+/* Cancel Button */
 .cancel-button {
-  background-color: #f44336;
+  background-color: #ff5252;
   color: white;
   border: none;
-  border-radius: 4px;
   padding: 5px 10px;
-  font-size: 12px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 12px;
   transition: background-color 0.3s;
 }
 
 .cancel-button:hover {
-  background-color: #d32f2f;
+  background-color: #ff1744;
 }
 
 .cancel-button:disabled {
-  background-color: #cccccc;
+  background-color: #757575;
   cursor: not-allowed;
 }
 

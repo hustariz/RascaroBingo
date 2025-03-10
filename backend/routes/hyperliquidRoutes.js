@@ -79,13 +79,28 @@ const globalRateLimiter = rateLimit({
 // More restrictive rate limiter for order placement
 const orderRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 20, // 20 order requests per minute
+  max: 10, // 10 requests per minute
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    message: 'Too many order requests, please try again later',
-    code: 'ORDER_RATE_LIMIT_EXCEEDED'
+  message: 'Too many order requests, please try again later',
+  // Disable X-Forwarded-For header check since we're running in development
+  skipFailedRequests: false,
+  keyGenerator: (req) => {
+    // Use IP address as the key
+    return req.ip;
+  }
+});
+
+const positionRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many position requests, please try again later',
+  // Disable X-Forwarded-For header check since we're running in development
+  keyGenerator: (req) => {
+    // Use IP address as the key
+    return req.ip;
   }
 });
 
@@ -105,19 +120,46 @@ const signRequest = async (data) => {
   }
   
   try {
+    console.log('Signing request with wallet address:', HYPERLIQUID_WALLET_ADDRESS);
+    
     // Create a wallet instance from the private key
     const wallet = new ethers.Wallet(HYPERLIQUID_API_SECRET);
+    console.log('Wallet created with address:', wallet.address);
     
-    // Create a hash of the data
-    const messageHash = ethers.utils.keccak256(
-      ethers.utils.toUtf8Bytes(JSON.stringify(data))
-    );
+    // Convert data to string
+    const dataString = JSON.stringify(data);
+    console.log('Data to sign:', dataString);
+    
+    // Use ethers.js v5 or v6 compatible approach
+    let messageHash;
+    let arrayifiedHash;
+    
+    // Try ethers v6 approach first
+    try {
+      messageHash = ethers.keccak256(ethers.toUtf8Bytes(dataString));
+      arrayifiedHash = ethers.getBytes(messageHash);
+      console.log('Using ethers v6 approach for signing');
+      console.log('Message hash:', messageHash);
+    } catch (e) {
+      // Fall back to ethers v5 approach
+      console.log('Using ethers v5 approach for signing');
+      messageHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(dataString));
+      arrayifiedHash = ethers.utils.arrayify(messageHash);
+      console.log('Message hash:', messageHash);
+    }
     
     // Sign the hash
-    const signature = await wallet.signMessage(ethers.utils.arrayify(messageHash));
+    const signature = await wallet.signMessage(arrayifiedHash);
+    console.log('Generated signature:', signature);
+    
     return signature;
   } catch (error) {
     console.error('Error signing request:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      data: JSON.stringify(data)
+    });
     return null;
   }
 };
@@ -223,8 +265,49 @@ const makeAuthenticatedRequest = async (endpoint, method = 'POST', data = null) 
     ...(data && { data })
   };
   
-  const response = await axios(options);
-  return response.data;
+  try {
+    console.log(`API Request to ${url}:`, JSON.stringify({
+      method,
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      data: data ? JSON.stringify(data) : null
+    }));
+    
+    const response = await axios(options);
+    console.log(`API Response from ${url}:`, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      dataPreview: typeof response.data === 'object' ? 
+        JSON.stringify(response.data).substring(0, 200) + (JSON.stringify(response.data).length > 200 ? '...' : '') : 
+        response.data
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`API Error for ${url}:`, {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      request: {
+        method,
+        url,
+        data: data ? JSON.stringify(data) : null
+      }
+    });
+    
+    // Add more context to the error
+    if (error.response) {
+      error.additionalInfo = {
+        endpoint,
+        status: error.response.status,
+        data: error.response.data
+      };
+    }
+    
+    throw error;
+  }
 };
 
 // GET test connection
@@ -355,7 +438,7 @@ router.get('/markets', async (req, res) => {
 });
 
 // GET positions (with caching)
-router.get('/positions', async (req, res) => {
+router.get('/positions', positionRateLimiter, async (req, res) => {
   try {
     // Check if we should bypass cache
     const bypassCache = req.query.refresh === 'true';
@@ -383,6 +466,9 @@ router.get('/positions', async (req, res) => {
     
     try {
       // Try multiple approaches to get the most accurate position data
+      let userStateResponse = null;
+      let positionsResponse = null;
+      let marketsResponse = null;
       
       // Approach 1: Get user state which includes all positions
       const userStateData = { 
@@ -391,32 +477,70 @@ router.get('/positions', async (req, res) => {
       };
       
       console.log('Positions: Making clearinghouseState API request with data:', JSON.stringify(userStateData));
-      const userStateResponse = await makeAuthenticatedRequest('/info', 'POST', userStateData);
-      console.log('Positions: clearinghouseState API response received:', JSON.stringify(userStateResponse));
+      console.log('Positions: Using wallet address:', HYPERLIQUID_WALLET_ADDRESS);
+      console.log('Positions: API URL:', `${HYPERLIQUID_BASE_URL}/info`);
+      
+      try {
+        userStateResponse = await makeAuthenticatedRequest('/info', 'POST', userStateData);
+        console.log('Positions: clearinghouseState API response received:', JSON.stringify(userStateResponse));
+      } catch (error) {
+        console.error('Positions: Error in clearinghouseState request:', error.message);
+        console.error('Positions: Error details:', error.response?.data || 'No response data');
+        console.error('Positions: Error status:', error.response?.status || 'No status code');
+      }
       
       // Approach 2: Get positions directly
       const positionsData = { 
-        type: "positions",
+        type: "clearinghouseState",
         user: HYPERLIQUID_WALLET_ADDRESS
       };
       
       console.log('Positions: Making positions API request with data:', JSON.stringify(positionsData));
-      const positionsResponse = await makeAuthenticatedRequest('/info', 'POST', positionsData);
-      console.log('Positions: Positions API response received:', JSON.stringify(positionsResponse));
+      
+      try {
+        positionsResponse = await makeAuthenticatedRequest('/info', 'POST', positionsData);
+        console.log('Positions: Positions API response received:', JSON.stringify(positionsResponse));
+      } catch (error) {
+        console.error('Positions: Error in positions request:', error.message);
+        console.error('Positions: Error details:', error.response?.data || 'No response data');
+        console.error('Positions: Error status:', error.response?.status || 'No status code');
+        // Re-throw the error to be caught by the outer try/catch
+        throw error;
+      }
       
       // Get market data for mark prices
       const marketData = { type: "allMids" };
       console.log('Positions: Fetching market data');
-      const marketsResponse = await makeAuthenticatedRequest('/info', 'POST', marketData);
+      
+      try {
+        marketsResponse = await makeAuthenticatedRequest('/info', 'POST', marketData);
+      } catch (error) {
+        console.error('Positions: Error fetching market data:', error.message);
+        console.error('Positions: Error details:', error.response?.data || 'No response data');
+        // Continue with the positions data we have, even if market data fails
+      }
       
       // Create a map of coin to mark price
       const markPrices = {};
-      if (marketsResponse && Array.isArray(marketsResponse)) {
-        marketsResponse.forEach(item => {
-          if (item.coin && item.mid) {
-            markPrices[item.coin] = parseFloat(item.mid);
-          }
-        });
+      if (marketsResponse) {
+        // Handle the response format which is an object with coin keys and price values
+        if (typeof marketsResponse === 'object' && !Array.isArray(marketsResponse)) {
+          console.log('Positions: Processing market data (object format)');
+          Object.entries(marketsResponse).forEach(([coin, price]) => {
+            if (coin && price) {
+              markPrices[coin] = parseFloat(price);
+            }
+          });
+        } 
+        // Handle array format (older API version)
+        else if (Array.isArray(marketsResponse)) {
+          console.log('Positions: Processing market data (array format)');
+          marketsResponse.forEach(item => {
+            if (item.coin && item.mid) {
+              markPrices[item.coin] = parseFloat(item.mid);
+            }
+          });
+        }
       }
       console.log('Positions: Mark prices:', JSON.stringify(markPrices));
       
@@ -427,26 +551,51 @@ router.get('/positions', async (req, res) => {
       if (userStateResponse && userStateResponse.assetPositions && Array.isArray(userStateResponse.assetPositions)) {
         console.log('Positions: Using clearinghouseState data, found asset positions count:', userStateResponse.assetPositions.length);
         
-        userStateResponse.assetPositions.forEach(position => {
-          if (position && position.coin && position.position && Math.abs(parseFloat(position.position.szi)) > 0) {
-            console.log('Positions: Processing clearinghouseState position:', JSON.stringify(position));
+        userStateResponse.assetPositions.forEach(assetPosition => {
+          if (assetPosition && assetPosition.position && Math.abs(parseFloat(assetPosition.position.szi)) > 0) {
+            console.log('Positions: Processing clearinghouseState position:', JSON.stringify(assetPosition));
             
-            const size = parseFloat(position.position.szi);
-            const entryPrice = parseFloat(position.position.entryPx);
+            const position = assetPosition.position;
+            const size = parseFloat(position.szi);
+            const entryPrice = parseFloat(position.entryPx || 0);
             const markPrice = markPrices[position.coin] || entryPrice;
-            const liquidationPrice = parseFloat(position.position.liquidationPx) || 0;
-            const leverage = parseFloat(position.position.leverage) || 1;
-            const margin = parseFloat(position.position.margin) || 0;
+            const liquidationPrice = position.liquidationPx ? parseFloat(position.liquidationPx) : 0;
+            
+            // Handle leverage which might be an object or a number
+            let leverage = 1;
+            if (position.leverage) {
+              if (typeof position.leverage === 'object' && position.leverage.value) {
+                leverage = parseFloat(position.leverage.value);
+              } else if (typeof position.leverage === 'number' || !isNaN(parseFloat(position.leverage))) {
+                leverage = parseFloat(position.leverage);
+              }
+            }
+            
+            const margin = parseFloat(position.marginUsed || 0);
             
             // Calculate PnL
             const pnl = size * (markPrice - entryPrice);
-            const pnlPercentage = (pnl / (Math.abs(size) * entryPrice)) * 100;
+            const pnlPercentage = entryPrice > 0 ? (pnl / (Math.abs(size) * entryPrice)) * 100 : 0;
             
             // Calculate notional value
             const notionalValue = Math.abs(size) * markPrice;
             
             // Determine side based on size (positive = long, negative = short)
-            const side = size > 0 ? 'long' : 'short';
+            console.log(`Positions: Raw size value for ${position.coin}: ${position.szi} (parsed: ${size})`);
+            
+            // Check if the position has a specific side indicator
+            let side = 'long';
+            if (size < 0 || (position.side && position.side.toLowerCase() === 's')) {
+              side = 'short';
+            }
+            
+            console.log(`Positions: Determined side for ${position.coin}: ${side}`);
+            
+            // Determine margin type
+            let marginType = 'Cross';
+            if (position.leverage && typeof position.leverage === 'object' && position.leverage.type) {
+              marginType = position.leverage.type === 'cross' ? 'Cross' : 'Isolated';
+            }
             
             formattedPositions.push({
               symbol: position.coin,
@@ -459,35 +608,61 @@ router.get('/positions', async (req, res) => {
               side: side,
               leverage: leverage,
               margin: margin,
-              marginType: 'Cross',
+              marginType: marginType,
               notionalValue: parseFloat(notionalValue.toFixed(2))
             });
           }
         });
       } 
       // Fallback to the positions response if clearinghouseState didn't work
-      else if (positionsResponse && Array.isArray(positionsResponse)) {
-        console.log('Positions: Using positions data, found positions count:', positionsResponse.length);
+      else if (positionsResponse && positionsResponse.assetPositions && Array.isArray(positionsResponse.assetPositions)) {
+        console.log('Positions: Using positions data, found positions count:', positionsResponse.assetPositions.length);
         
-        positionsResponse.forEach(position => {
-          if (position && position.coin && Math.abs(parseFloat(position.szi || 0)) > 0) {
-            console.log('Positions: Processing position:', JSON.stringify(position));
+        positionsResponse.assetPositions.forEach(assetPosition => {
+          if (assetPosition && assetPosition.position && Math.abs(parseFloat(assetPosition.position.szi)) > 0) {
+            console.log('Positions: Processing position:', JSON.stringify(assetPosition));
             
-            const size = parseFloat(position.szi || 0);
+            const position = assetPosition.position;
+            const size = parseFloat(position.szi);
             const entryPrice = parseFloat(position.entryPx || 0);
             const markPrice = markPrices[position.coin] || entryPrice;
-            const liquidationPrice = parseFloat(position.liquidationPx || 0);
-            const leverage = parseFloat(position.leverage || 1);
+            const liquidationPrice = position.liquidationPx ? parseFloat(position.liquidationPx) : 0;
+            
+            // Handle leverage which might be an object or a number
+            let leverage = 1;
+            if (position.leverage) {
+              if (typeof position.leverage === 'object' && position.leverage.value) {
+                leverage = parseFloat(position.leverage.value);
+              } else if (typeof position.leverage === 'number' || !isNaN(parseFloat(position.leverage))) {
+                leverage = parseFloat(position.leverage);
+              }
+            }
+            
+            const margin = parseFloat(position.marginUsed || 0);
             
             // Calculate PnL
             const pnl = size * (markPrice - entryPrice);
-            const pnlPercentage = (pnl / (Math.abs(size) * entryPrice)) * 100;
+            const pnlPercentage = entryPrice > 0 ? (pnl / (Math.abs(size) * entryPrice)) * 100 : 0;
             
             // Calculate notional value
             const notionalValue = Math.abs(size) * markPrice;
             
             // Determine side based on size (positive = long, negative = short)
-            const side = size > 0 ? 'long' : 'short';
+            console.log(`Positions: Raw size value for ${position.coin}: ${position.szi} (parsed: ${size})`);
+            
+            // Check if the position has a specific side indicator
+            let side = 'long';
+            if (size < 0 || (position.side && position.side.toLowerCase() === 's')) {
+              side = 'short';
+            }
+            
+            console.log(`Positions: Determined side for ${position.coin}: ${side}`);
+            
+            // Determine margin type
+            let marginType = 'Cross';
+            if (position.leverage && typeof position.leverage === 'object' && position.leverage.type) {
+              marginType = position.leverage.type === 'cross' ? 'Cross' : 'Isolated';
+            }
             
             formattedPositions.push({
               symbol: position.coin,
@@ -499,8 +674,8 @@ router.get('/positions', async (req, res) => {
               liquidationPrice: liquidationPrice,
               side: side,
               leverage: leverage,
-              margin: parseFloat(position.margin || 0),
-              marginType: 'Cross',
+              margin: margin,
+              marginType: marginType,
               notionalValue: parseFloat(notionalValue.toFixed(2))
             });
           }
@@ -524,26 +699,12 @@ router.get('/positions', async (req, res) => {
     } catch (error) {
       console.error('Error fetching positions data from API:', error);
       
-      // If there's an error, return mock data for now to ensure the UI works
-      console.log('Returning mock positions data due to API error');
-      const mockPositions = [
-        {
-          symbol: 'XRP',
-          size: -581, // Negative size to indicate short position
-          entryPrice: 2.1750,
-          markPrice: 2.1776,
-          pnl: -1.10,
-          pnlPercentage: -1.7,
-          liquidationPrice: 2.2776,
-          side: 'short',
-          leverage: 20,
-          margin: 63.24,
-          marginType: 'Cross',
-          notionalValue: 1264.78
-        }
-      ];
-      
-      res.json({ success: true, positions: mockPositions });
+      // Return error instead of mock data
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to fetch positions from Hyperliquid API';
+      res.status(500).json({ 
+        success: false, 
+        error: errorMessage 
+      });
     }
   } catch (error) {
     console.error('Error in positions endpoint:', error);
@@ -688,7 +849,7 @@ router.get('/open-orders', async (req, res) => {
 // POST cancel order
 router.post('/cancel-order', orderRateLimiter, async (req, res) => {
   try {
-    const { orderId } = req.body;
+    const { orderId, assetId = 0 } = req.body;
     
     if (!orderId) {
       return res.status(400).json({
@@ -705,13 +866,19 @@ router.post('/cancel-order', orderRateLimiter, async (req, res) => {
       });
     }
     
-    console.log(`Cancelling order: ${orderId}`);
+    console.log(`Cancelling order: ${orderId} for asset ID: ${assetId}`);
     
     // Prepare the request data for the Hyperliquid API
+    // Format according to Hyperliquid API documentation and SDK
     const data = {
       action: {
         type: "cancel",
-        oid: orderId
+        cancels: [
+          {
+            a: assetId, // Asset ID (0 for BTC by default)
+            o: parseInt(orderId, 10)
+          }
+        ]
       },
       nonce: Date.now()
     };
@@ -719,6 +886,7 @@ router.post('/cancel-order', orderRateLimiter, async (req, res) => {
     try {
       // Make the API request
       const apiResponse = await makeAuthenticatedRequest('/exchange', 'POST', data);
+      console.log('Cancel order API response:', JSON.stringify(apiResponse));
       
       // Clear order caches after cancelling an order
       apiCache.del(CACHE_KEYS.OPEN_ORDERS);
@@ -729,6 +897,7 @@ router.post('/cancel-order', orderRateLimiter, async (req, res) => {
         message: `Order ${orderId} cancelled successfully`,
         data: {
           orderId,
+          assetId,
           status: 'Cancelled',
           timestamp: new Date().toISOString(),
           apiResponse
@@ -739,21 +908,32 @@ router.post('/cancel-order', orderRateLimiter, async (req, res) => {
     } catch (error) {
       console.error('Error cancelling order from API:', error);
       
-      // Return a mock success response for now to ensure the UI works
-      const mockCancelResponse = {
-        success: true,
-        message: `Order ${orderId} cancelled successfully (mock)`,
-        data: {
-          orderId,
-          status: 'Cancelled',
-          timestamp: new Date().toISOString()
-        }
-      };
+      // Check if it's a specific API error
+      let errorMessage = 'Failed to cancel order';
+      let errorDetails = {};
       
-      // Clear order caches after cancelling an order
-      apiCache.del(CACHE_KEYS.OPEN_ORDERS);
+      if (error.response) {
+        console.error('API Error Status:', error.response.status);
+        console.error('API Error Headers:', error.response.headers);
+        console.error('API Error Data:', error.response.data);
+        
+        errorMessage = `API Error (${error.response.status}): ${error.response.data || 'Unknown error'}`;
+        errorDetails = {
+          status: error.response.status,
+          data: error.response.data
+        };
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
       
-      res.json(mockCancelResponse);
+      // Return the actual error to the client
+      res.status(500).json({
+        success: false,
+        error: errorMessage,
+        details: errorDetails,
+        orderId,
+        assetId
+      });
     }
   } catch (error) {
     console.error('Error in cancel order endpoint:', error);
