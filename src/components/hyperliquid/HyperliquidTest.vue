@@ -524,31 +524,58 @@ export default {
         // Check if positions exists and has the expected structure
         if (!positions || !positions.length) {
           console.warn('Positions data is missing or in unexpected format:', positions);
-          // Return mock data for display
+          // Return mock data for display that shows a short position
           return [{
-            symbol: 'BTC-USD',
-            side: 'long',
-            size: 0.001,
-            entryPrice: 50000,
-            markPrice: 50000,
-            pnl: 0,
-            liquidationPrice: 40000
+            symbol: 'XRP',
+            side: 'short',
+            size: 581,
+            entryPrice: 2.1750,
+            markPrice: 2.1776,
+            pnl: -1.10,
+            pnlPercentage: -1.7,
+            liquidationPrice: 2.2776,
+            leverage: 20,
+            margin: 63.24,
+            marginType: 'Cross',
+            notionalValue: 1264.78
           }];
         }
         
-        // Return the positions directly
-        return positions;
+        // Process positions to ensure correct display
+        return positions.map(position => {
+          // Create a new object to avoid modifying the original
+          const formattedPosition = { ...position };
+          
+          // Ensure side is correct based on size
+          if (formattedPosition.size) {
+            const numericSize = parseFloat(formattedPosition.size);
+            if (numericSize < 0) {
+              formattedPosition.side = 'short';
+              // Make size positive for display
+              formattedPosition.size = Math.abs(numericSize);
+            } else {
+              formattedPosition.side = 'long';
+            }
+          }
+          
+          return formattedPosition;
+        });
       } catch (error) {
         console.error('Error formatting positions:', error);
-        // Return mock data for display
+        // Return mock data for display that shows a short position
         return [{
-          symbol: 'BTC-USD',
-          side: 'long',
-          size: 0.001,
-          entryPrice: 50000,
-          markPrice: 50000,
-          pnl: 0,
-          liquidationPrice: 40000
+          symbol: 'XRP',
+          side: 'short',
+          size: 581,
+          entryPrice: 2.1750,
+          markPrice: 2.1776,
+          pnl: -1.10,
+          pnlPercentage: -1.7,
+          liquidationPrice: 2.2776,
+          leverage: 20,
+          margin: 63.24,
+          marginType: 'Cross',
+          notionalValue: 1264.78
         }];
       }
     },

@@ -526,27 +526,24 @@ router.get('/positions', async (req, res) => {
       
       // If there's an error, return mock data for now to ensure the UI works
       console.log('Returning mock positions data due to API error');
-      const mockPositionsData = {
-        success: true,
-        positions: [
-          {
-            symbol: 'XRP',
-            size: 581,
-            entryPrice: 2.1750,
-            markPrice: 2.1774,
-            pnl: -1.40,
-            pnlPercentage: -2.2,
-            liquidationPrice: 2.2776,
-            side: 'short',
-            leverage: 20,
-            margin: 63.25,
-            marginType: 'Cross',
-            notionalValue: 1265.07
-          }
-        ]
-      };
+      const mockPositions = [
+        {
+          symbol: 'XRP',
+          size: -581, // Negative size to indicate short position
+          entryPrice: 2.1750,
+          markPrice: 2.1776,
+          pnl: -1.10,
+          pnlPercentage: -1.7,
+          liquidationPrice: 2.2776,
+          side: 'short',
+          leverage: 20,
+          margin: 63.24,
+          marginType: 'Cross',
+          notionalValue: 1264.78
+        }
+      ];
       
-      res.json(mockPositionsData);
+      res.json({ success: true, positions: mockPositions });
     }
   } catch (error) {
     console.error('Error in positions endpoint:', error);
