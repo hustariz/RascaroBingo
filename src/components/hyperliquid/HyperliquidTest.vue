@@ -184,7 +184,7 @@
                   <tr v-for="order in results.openOrders.data" :key="order.orderId">
                     <td>{{ formatDate(order.timestamp) }}</td>
                     <td>{{ order.orderType }}</td>
-                    <td>{{ order.symbol }}</td>
+                    <td>{{ formatSymbol(order.symbol) }}</td>
                     <td :class="order.side === 'B' ? 'text-green' : 'text-red'">
                       {{ order.side === 'B' ? 'Buy' : 'Sell' }}
                     </td>
@@ -526,41 +526,161 @@ export default {
     },
     
     formatAccountBalances(accountData) {
-      if (!accountData || !accountData.currencies) {
+      if (!accountData || !accountData.balance) {
         return [];
       }
       
-      return accountData.currencies.map(currency => ({
-        coin: currency.currency,
-        totalBalance: currency.total,
-        availableBalance: currency.available,
-        usdcValue: currency.total * 1 // Placeholder for conversion rate
-      }));
+      // Handle the new nested structure where balance is a property
+      const balance = accountData.balance;
+      const result = [];
+      
+      // Hyperliquid-specific handling for USDC balance
+      if (balance.info && typeof balance.info === 'object') {
+        // Check for Hyperliquid's specific structure
+        if (balance.info.marginSummary !== undefined || 
+            balance.info.crossMarginSummary !== undefined || 
+            balance.info.assetPositions !== undefined) {
+          
+          // Look for USDC in free/total balances
+          if (balance.free && balance.free.USDC) {
+            result.push({
+              coin: 'USDC',
+              totalBalance: balance.total?.USDC || balance.free.USDC,
+              availableBalance: balance.free.USDC,
+              usdcValue: balance.free.USDC.toFixed(2)
+            });
+          }
+          
+          // Check for USDC in balance.info.cash or other possible locations
+          if (balance.info.cash !== undefined) {
+            result.push({
+              coin: 'USDC (Cash)',
+              totalBalance: balance.info.cash,
+              availableBalance: balance.info.cash,
+              usdcValue: parseFloat(balance.info.cash).toFixed(2)
+            });
+          }
+          
+          // Check for USDC in balance.info.crossMarginSummary
+          if (balance.info.crossMarginSummary && balance.info.crossMarginSummary.accountValue !== undefined) {
+            result.push({
+              coin: 'USDC (Account Value)',
+              totalBalance: balance.info.crossMarginSummary.accountValue,
+              availableBalance: balance.info.crossMarginSummary.accountValue,
+              usdcValue: parseFloat(balance.info.crossMarginSummary.accountValue).toFixed(2)
+            });
+          }
+        }
+      }
+      
+      // If no results from Hyperliquid-specific handling, try standard CCXT format
+      if (result.length === 0) {
+        // Standard CCXT format
+        if (balance.total) {
+          for (const currency in balance.total) {
+            if (balance.total[currency] > 0) {
+              result.push({
+                coin: currency,
+                totalBalance: balance.total[currency] || 0,
+                availableBalance: balance.free?.[currency] || 0,
+                usdcValue: (balance.total[currency] * (balance.usdValue?.[currency] || 1)).toFixed(2)
+              });
+            }
+          }
+        }
+        
+        // Try currencies array if it exists
+        if (result.length === 0 && balance.currencies && Array.isArray(balance.currencies)) {
+          return balance.currencies.map(currency => ({
+            coin: currency.currency,
+            totalBalance: currency.total || 0,
+            availableBalance: currency.available || currency.free || 0,
+            usdcValue: currency.usdValue || (currency.total * 1).toFixed(2)
+          }));
+        }
+      }
+      
+      // If we still have no results, add a debug entry
+      if (result.length === 0) {
+        result.push({
+          coin: 'Debug Info',
+          totalBalance: 'No balance found',
+          availableBalance: 'Check console',
+          usdcValue: 'N/A'
+        });
+        
+        // Add raw data for debugging
+        if (balance.info) {
+          const keys = Object.keys(balance.info);
+          keys.forEach(key => {
+            result.push({
+              coin: key,
+              totalBalance: typeof balance.info[key] === 'object' ? 
+                JSON.stringify(balance.info[key]).substring(0, 20) + '...' : 
+                balance.info[key],
+              availableBalance: 'See raw data',
+              usdcValue: 'N/A'
+            });
+          });
+        }
+      }
+      
+      return result;
     },
     
-    formatPositions(positions) {
-      if (!positions || !Array.isArray(positions)) {
+    formatPositions(positionsData) {
+      if (!positionsData) {
+        return [];
+      }
+      
+      // Handle the new nested structure
+      const positions = Array.isArray(positionsData) ? positionsData : 
+                        (positionsData.positions && Array.isArray(positionsData.positions) ? 
+                         positionsData.positions : []);
+      
+      if (!positions || positions.length === 0) {
         return [];
       }
       
       return positions.map(position => {
-        const pnl = position.unrealizedPnl || 0;
-        const entryPrice = position.entryPrice || 0;
-        const size = position.size || 0;
+        // Extract common position properties with fallbacks
+        const rawSymbol = position.symbol || position.instrument || position.market || 'Unknown';
+        const symbol = this.formatSymbol(rawSymbol);
+        
+        const side = position.side || (position.size > 0 ? 'long' : 'short');
+        const size = Math.abs(position.size || position.contracts || position.amount || 0);
+        const entryPrice = position.entryPrice || position.entry || position.averagePrice || 0;
+        const markPrice = position.markPrice || position.lastPrice || position.price || 0;
+        const pnl = position.unrealizedPnl || position.pnl || position.profit || 0;
+        const leverage = position.leverage || 1;
         
         return {
-          symbol: position.symbol,
-          side: position.side,
-          size: position.size,
-          entryPrice: position.entryPrice,
-          markPrice: position.markPrice,
-          liquidationPrice: position.liquidationPrice,
-          margin: position.margin,
-          leverage: position.leverage,
-          pnl: pnl,
-          pnlPercentage: this.calculatePnlPercentage(pnl, entryPrice, size)
+          symbol,
+          side,
+          size,
+          entryPrice,
+          markPrice,
+          pnl,
+          pnlPercentage: this.calculatePnlPercentage(pnl, entryPrice, size),
+          liquidationPrice: position.liquidationPrice || position.liqPrice || 0,
+          margin: position.margin || position.collateral || 0,
+          leverage,
+          timestamp: position.timestamp || Date.now(),
+          raw: position // Keep the raw data for debugging
         };
       });
+    },
+    
+    formatSymbol(symbol) {
+      if (!symbol) return 'Unknown';
+      
+      // Simplify symbol by removing the "/USDC:USDC" suffix
+      if (symbol.includes('/')) {
+        return symbol.split('/')[0];
+      } else if (symbol.includes(':')) {
+        return symbol.split(':')[0];
+      }
+      return symbol;
     },
     
     formatNumber(value, decimals = null) {

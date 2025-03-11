@@ -8,7 +8,7 @@
 const express = require('express');
 const router = express.Router();
 const ccxt = require('ccxt');
-const { authenticateToken } = require('../middleware/authMiddleware');
+const auth = require('../middleware/auth');
 
 // Configure exchange based on environment variables
 let exchange = null;
@@ -100,7 +100,7 @@ const handleApiError = (error, req, res) => {
 
 // Routes
 // Apply authentication middleware to all routes
-router.use(authenticateToken);
+router.use(auth);
 router.use(ensureExchangeInitialized);
 
 /**
@@ -112,9 +112,38 @@ router.get('/account', async (req, res) => {
     // Fetch balance information
     const balance = await exchange.fetchBalance();
     
+    // Log the raw balance data for debugging
+    console.log('Raw Hyperliquid balance data:', JSON.stringify(balance, null, 2));
+    
+    // For Hyperliquid, we need to get additional account information
+    let accountInfo = { balance };
+    
+    try {
+      // Try to get additional account info if available
+      if (exchange.has['fetchAccounts']) {
+        const accounts = await exchange.fetchAccounts();
+        accountInfo.accounts = accounts;
+      }
+      
+      // Get trading fees if available
+      if (exchange.has['fetchTradingFees']) {
+        const tradingFees = await exchange.fetchTradingFees();
+        accountInfo.tradingFees = tradingFees;
+      }
+      
+      // For Hyperliquid-specific account info
+      if (typeof exchange.privateGetAccountData === 'function') {
+        const hyperliquidAccount = await exchange.privateGetAccountData();
+        accountInfo.hyperliquidSpecific = hyperliquidAccount;
+      }
+    } catch (additionalInfoError) {
+      console.warn('Could not fetch additional account info:', additionalInfoError.message);
+      // Continue with just the balance info
+    }
+    
     return res.json({
       success: true,
-      data: balance
+      data: accountInfo
     });
   } catch (error) {
     return handleApiError(error, req, res);
@@ -128,21 +157,55 @@ router.get('/account', async (req, res) => {
 router.get('/positions', async (req, res) => {
   try {
     // Hyperliquid-specific position fetching
-    let positions;
+    let positions = [];
+    let positionDetails = {};
     
-    // Hyperliquid might use a different method name
-    if (exchange.has['fetchPositions']) {
-      positions = await exchange.fetchPositions();
-    } else if (exchange.has['fetchOpenPositions']) {
-      positions = await exchange.fetchOpenPositions();
-    } else {
-      // Fallback for Hyperliquid if standard methods aren't available
-      positions = await exchange.privateGetPositions();
+    // Try multiple methods to get the most complete position data
+    try {
+      // Standard CCXT methods first
+      if (exchange.has['fetchPositions']) {
+        positions = await exchange.fetchPositions();
+        positionDetails.source = 'fetchPositions';
+      } else if (exchange.has['fetchOpenPositions']) {
+        positions = await exchange.fetchOpenPositions();
+        positionDetails.source = 'fetchOpenPositions';
+      }
+    } catch (standardMethodError) {
+      console.warn('Standard position methods failed:', standardMethodError.message);
+    }
+    
+    // If standard methods didn't work or returned empty, try Hyperliquid-specific methods
+    if (!positions || positions.length === 0) {
+      try {
+        // Try Hyperliquid-specific methods
+        if (typeof exchange.privateGetPositions === 'function') {
+          positions = await exchange.privateGetPositions();
+          positionDetails.source = 'privateGetPositions';
+        } else if (typeof exchange.privateGetUserPositions === 'function') {
+          positions = await exchange.privateGetUserPositions();
+          positionDetails.source = 'privateGetUserPositions';
+        }
+      } catch (specificMethodError) {
+        console.warn('Hyperliquid-specific position methods failed:', specificMethodError.message);
+      }
+    }
+    
+    // Get additional position metadata if available
+    try {
+      if (exchange.has['fetchPositionRisk']) {
+        const positionRisk = await exchange.fetchPositionRisk();
+        positionDetails.risk = positionRisk;
+      }
+    } catch (riskError) {
+      console.warn('Could not fetch position risk:', riskError.message);
     }
     
     return res.json({
       success: true,
-      data: positions
+      data: {
+        positions,
+        details: positionDetails
+      }
     });
   } catch (error) {
     return handleApiError(error, req, res);

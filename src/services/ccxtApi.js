@@ -6,6 +6,7 @@
  */
 
 import axios from 'axios';
+import authService from './authService';
 
 const API_BASE_URL = '/api/ccxt';
 
@@ -35,7 +36,7 @@ const exchangeApi = {
    */
   async getAccountInfo() {
     try {
-      const response = await axios.get(`${API_BASE_URL}/account`);
+      const response = await axios.get(`${API_BASE_URL}/account`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -48,7 +49,7 @@ const exchangeApi = {
    */
   async getPositions() {
     try {
-      const response = await axios.get(`${API_BASE_URL}/positions`);
+      const response = await axios.get(`${API_BASE_URL}/positions`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -61,7 +62,7 @@ const exchangeApi = {
    */
   async getOpenOrders() {
     try {
-      const response = await axios.get(`${API_BASE_URL}/orders`);
+      const response = await axios.get(`${API_BASE_URL}/orders`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -82,7 +83,7 @@ const exchangeApi = {
    */
   async placeOrder(orderData) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/order`, orderData);
+      const response = await axios.post(`${API_BASE_URL}/order`, orderData, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -97,7 +98,7 @@ const exchangeApi = {
    */
   async cancelOrder(orderId, symbol) {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/order/${orderId}?symbol=${symbol}`);
+      const response = await axios.delete(`${API_BASE_URL}/order/${orderId}?symbol=${symbol}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -112,7 +113,7 @@ const exchangeApi = {
    */
   async setLeverage(leverage, symbol) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/leverage`, { leverage, symbol });
+      const response = await axios.post(`${API_BASE_URL}/leverage`, { leverage, symbol }, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -127,7 +128,7 @@ const exchangeApi = {
    */
   async getOrderBook(symbol, limit = 20) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/orderbook/${symbol}?limit=${limit}`);
+      const response = await axios.get(`${API_BASE_URL}/orderbook/${symbol}?limit=${limit}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -141,7 +142,7 @@ const exchangeApi = {
    */
   async getTicker(symbol) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/ticker/${symbol}`);
+      const response = await axios.get(`${API_BASE_URL}/ticker/${symbol}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -154,7 +155,7 @@ const exchangeApi = {
    */
   async getAllTickers() {
     try {
-      const response = await axios.get(`${API_BASE_URL}/tickers`);
+      const response = await axios.get(`${API_BASE_URL}/tickers`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -167,7 +168,7 @@ const exchangeApi = {
    */
   async getMarkets() {
     try {
-      const response = await axios.get(`${API_BASE_URL}/markets`);
+      const response = await axios.get(`${API_BASE_URL}/markets`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -183,7 +184,7 @@ const exchangeApi = {
    */
   async getOHLCV(symbol, timeframe = '1h', limit = 100) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/ohlcv/${symbol}?timeframe=${timeframe}&limit=${limit}`);
+      const response = await axios.get(`${API_BASE_URL}/ohlcv/${symbol}?timeframe=${timeframe}&limit=${limit}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
@@ -198,7 +199,7 @@ const exchangeApi = {
    */
   async getTrades(symbol, limit = 50) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/trades/${symbol}?limit=${limit}`);
+      const response = await axios.get(`${API_BASE_URL}/trades/${symbol}?limit=${limit}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
