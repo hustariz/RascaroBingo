@@ -23,8 +23,9 @@ const initializeExchange = () => {
     exchange = new ccxt[exchangeId]({
       apiKey: process.env.CCXT_API_KEY,
       secret: process.env.CCXT_API_SECRET,
-      // Hyperliquid specific options
+      // Hyperliquid specific credentials
       walletAddress: process.env.CCXT_WALLET_ADDRESS,
+      privateKey: process.env.CCXT_API_SECRET, // Use the secret as privateKey
       options: {
         defaultType: 'swap', // For perpetual swaps
         adjustForTimeDifference: true,
@@ -261,6 +262,24 @@ router.get('/orders', async (req, res) => {
     // Log raw order data for debugging
     console.log('Raw Hyperliquid open orders:', JSON.stringify(orders, null, 2));
     
+    // Log more detailed information about the first order if available
+    if (orders.length > 0) {
+      console.log('First order details:');
+      console.log('- ID:', orders[0].id);
+      console.log('- Symbol:', orders[0].symbol);
+      console.log('- Raw symbol type:', typeof orders[0].symbol);
+      console.log('- Info object:', JSON.stringify(orders[0].info, null, 2));
+      
+      // Try to extract asset ID from different possible locations
+      const possibleAssetId = 
+        (orders[0].info && orders[0].info.coin) ? orders[0].info.coin :
+        (orders[0].info && orders[0].info.asset) ? orders[0].info.asset :
+        (orders[0].market && orders[0].market.id) ? orders[0].market.id :
+        (orders[0].symbol && !isNaN(orders[0].symbol)) ? orders[0].symbol : null;
+      
+      console.log('- Extracted asset ID:', possibleAssetId);
+    }
+    
     // Enhance orders with additional information if missing
     const enhancedOrders = orders.map(order => {
       // Create a copy of the order to avoid modifying the original
@@ -310,6 +329,17 @@ router.get('/orders', async (req, res) => {
         enhancedOrder.timestamp = enhancedOrder.time;
       } else if (!enhancedOrder.timestamp) {
         enhancedOrder.timestamp = Date.now(); // Default to current time
+      }
+      
+      // Add asset ID if available in the info object
+      if (enhancedOrder.info && enhancedOrder.info.coin) {
+        enhancedOrder.assetId = enhancedOrder.info.coin;
+      } else if (enhancedOrder.info && enhancedOrder.info.asset) {
+        enhancedOrder.assetId = enhancedOrder.info.asset;
+      } else if (enhancedOrder.market && enhancedOrder.market.id) {
+        enhancedOrder.assetId = enhancedOrder.market.id;
+      } else if (enhancedOrder.symbol && !isNaN(enhancedOrder.symbol)) {
+        enhancedOrder.assetId = enhancedOrder.symbol;
       }
       
       return enhancedOrder;
@@ -527,7 +557,7 @@ router.post('/order', async (req, res) => {
  * Cancel an order
  * DELETE /api/ccxt/order/:orderId
  */
-router.delete('/order/:orderId', async (req, res) => {
+router.delete('/order/:orderId', auth, async (req, res) => {
   try {
     const { orderId } = req.params;
     const { symbol } = req.query;
@@ -546,12 +576,67 @@ router.delete('/order/:orderId', async (req, res) => {
       });
     }
     
-    const result = await exchange.cancelOrder(orderId, symbol);
+    // Log the attempt to cancel order
+    console.log(`Attempting to cancel order: ${orderId} for asset ID: ${symbol}`);
+    
+    // For Hyperliquid, ensure the symbol is a valid asset ID (numeric)
+    let marketSymbol = symbol;
+    
+    // If the exchange is Hyperliquid, we need to handle the symbol differently
+    if (exchange.id === 'hyperliquid') {
+      // Check if the symbol is already numeric
+      if (isNaN(symbol)) {
+        // Try to find the corresponding market
+        const markets = await exchange.fetchMarkets();
+        const market = markets.find(m => 
+          m.id === symbol || 
+          m.symbol === symbol || 
+          m.base === symbol
+        );
+        
+        if (market) {
+          marketSymbol = market.id;
+          console.log(`Converted symbol ${symbol} to market ID ${marketSymbol}`);
+        } else {
+          console.error(`Could not find market for symbol: ${symbol}`);
+          return res.status(400).json({
+            success: false,
+            error: `Could not find market for symbol: ${symbol}`
+          });
+        }
+      } else {
+        // Symbol is already numeric, use it directly
+        console.log(`Using numeric asset ID directly: ${symbol}`);
+      }
+    }
+    
+    // Ensure exchange has all required credentials
+    if (!exchange.checkRequiredCredentials()) {
+      console.error('Missing required credentials for Hyperliquid');
+      // Log what credentials we have for debugging
+      console.log('Available credentials:', {
+        apiKey: !!exchange.apiKey,
+        secret: !!exchange.secret,
+        privateKey: !!exchange.privateKey,
+        walletAddress: !!exchange.walletAddress
+      });
+      
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required exchange credentials'
+      });
+    }
+    
+    // Try to cancel the order with the proper market symbol
+    const result = await exchange.cancelOrder(orderId, marketSymbol);
+    console.log('Order cancelled successfully:', result);
+    
     return res.json({
       success: true,
       data: result
     });
   } catch (error) {
+    console.error('Error cancelling order:', error.message);
     return handleApiError(error, req, res);
   }
 });

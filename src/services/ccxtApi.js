@@ -93,12 +93,13 @@ const exchangeApi = {
   /**
    * Cancel an order on Hyperliquid
    * @param {String} orderId Order ID to cancel
-   * @param {String} symbol Symbol of the order
+   * @param {String|Number} assetId Asset ID of the order (numeric for Hyperliquid)
    * @returns {Promise} Cancel order result
    */
-  async cancelOrder(orderId, symbol) {
+  async cancelOrder(orderId, assetId) {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/order/${orderId}?symbol=${symbol}`, authService.getAuthHeaders());
+      console.log(`API: Cancelling order ${orderId} with asset ID ${assetId}`);
+      const response = await axios.delete(`${API_BASE_URL}/order/${orderId}?symbol=${assetId}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);

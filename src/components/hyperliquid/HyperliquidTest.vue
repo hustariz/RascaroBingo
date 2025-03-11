@@ -170,6 +170,7 @@
                     <th>Time</th>
                     <th>Type</th>
                     <th>Symbol</th>
+                    <th>Asset ID</th>
                     <th>Side</th>
                     <th>Size</th>
                     <th>Filled</th>
@@ -185,6 +186,7 @@
                     <td>{{ formatDate(order.timestamp) }}</td>
                     <td>{{ order.orderType }}</td>
                     <td>{{ order.symbol }}</td>
+                    <td>{{ order.assetId }}</td>
                     <td :class="order.side === 'Buy' ? 'text-green' : 'text-red'">
                       {{ order.side }}
                     </td>
@@ -196,7 +198,7 @@
                     <td>{{ order.status }}</td>
                     <td>
                       <button 
-                        @click="cancelOrder(order.id, order.symbol)" 
+                        @click="cancelOrder(order.id, order.assetId)" 
                         :disabled="loading.cancelOrder === order.id"
                         class="cancel-button"
                       >
@@ -456,45 +458,44 @@ export default {
         });
     },
     
-    cancelOrder(orderId, symbol) {
-      if (!orderId || !symbol) {
+    cancelOrder(orderId, assetId) {
+      if (!orderId || !assetId) {
         this.results.cancelOrder = {
           success: false,
-          message: 'Order ID and symbol are required',
-          details: { orderId, symbol }
+          message: 'Order ID and asset ID are required',
+          details: { orderId, assetId }
         };
         return;
       }
       
       this.loading.cancelOrder = orderId;
       
-      console.log(`Cancelling order: ${orderId}, symbol: ${symbol}`);
+      console.log(`Cancelling order: ${orderId}, asset ID: ${assetId}`);
       
-      exchangeApi.cancelOrder(orderId, symbol)
+      // Make sure assetId is a number for Hyperliquid
+      const numericAssetId = parseInt(assetId);
+      const finalAssetId = isNaN(numericAssetId) ? assetId : numericAssetId;
+      
+      exchangeApi.cancelOrder(orderId, finalAssetId)
         .then(response => {
           console.log('Cancel response:', response);
           this.results.cancelOrder = {
             success: response.success,
-            message: response.message || `Order ${orderId} cancelled successfully`,
-            details: response.data
+            message: response.success ? 'Order cancelled successfully' : response.error || 'Failed to cancel order',
+            data: response.data
           };
           
-          // Refresh open orders after cancelling
+          // Refresh open orders if cancel was successful
           if (response.success) {
-            setTimeout(() => {
-              this.fetchOpenOrders();
-            }, 1000);
+            this.fetchOpenOrders();
           }
         })
         .catch(error => {
           console.error('Cancel error:', error);
           this.results.cancelOrder = {
             success: false,
-            message: `Failed to cancel order ${orderId}`,
-            details: {
-              error: error.message,
-              response: error.response?.data
-            }
+            message: error.message || 'An error occurred while cancelling the order',
+            error
           };
         })
         .finally(() => {
@@ -756,11 +757,20 @@ export default {
       }
       
       return orders.map(order => {
+        // Extract the asset ID from the symbol if available
+        let assetId = null;
+        if (order.info && order.info.coin) {
+          assetId = order.info.coin;
+        } else if (order.symbol && !isNaN(order.symbol)) {
+          assetId = order.symbol;
+        }
+        
         // Create a formatted order with all required fields
         return {
           id: order.id || order.orderId || 'Unknown',
           timestamp: order.timestamp || Date.now(),
           symbol: this.formatSymbol(order.symbol || 'Unknown'),
+          assetId: assetId, // Store the numeric asset ID
           side: order.side === 'B' ? 'Buy' : 'Sell',
           orderType: order.orderType || order.type || 'limit',
           size: order.size || order.amount || order.quantity || 0,
