@@ -638,6 +638,10 @@ export default {
                         (positionsData.positions && Array.isArray(positionsData.positions) ? 
                          positionsData.positions : []);
       
+      // Extract market prices from details if available
+      const marketPrices = positionsData.details && positionsData.details.marketPrices ? 
+                          positionsData.details.marketPrices : {};
+      
       if (!positions || positions.length === 0) {
         return [];
       }
@@ -650,8 +654,26 @@ export default {
         const side = position.side || (position.size > 0 ? 'long' : 'short');
         const size = Math.abs(position.size || position.contracts || position.amount || 0);
         const entryPrice = position.entryPrice || position.entry || position.averagePrice || 0;
-        const markPrice = position.markPrice || position.lastPrice || position.price || 0;
-        const pnl = position.unrealizedPnl || position.pnl || position.profit || 0;
+        
+        // Use market price from our fetched prices if available, otherwise use position's markPrice
+        let markPrice = position.markPrice || position.lastPrice || position.price || 0;
+        
+        // Try to get the current market price from our fetched prices
+        if (marketPrices[rawSymbol]) {
+          markPrice = marketPrices[rawSymbol];
+        }
+        
+        // Calculate PnL based on entry price and mark price if not provided
+        let pnl = position.unrealizedPnl || position.pnl || position.profit;
+        if (!pnl && markPrice && entryPrice && size) {
+          // Calculate PnL based on position side, entry price, and mark price
+          if (side.toLowerCase() === 'long') {
+            pnl = (markPrice - entryPrice) * size;
+          } else {
+            pnl = (entryPrice - markPrice) * size;
+          }
+        }
+        
         const leverage = position.leverage || 1;
         
         return {
@@ -660,7 +682,7 @@ export default {
           size,
           entryPrice,
           markPrice,
-          pnl,
+          pnl: pnl || 0,
           pnlPercentage: this.calculatePnlPercentage(pnl, entryPrice, size),
           liquidationPrice: position.liquidationPrice || position.liqPrice || 0,
           margin: position.margin || position.collateral || 0,

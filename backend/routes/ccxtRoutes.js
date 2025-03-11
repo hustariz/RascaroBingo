@@ -200,6 +200,43 @@ router.get('/positions', async (req, res) => {
       console.warn('Could not fetch position risk:', riskError.message);
     }
     
+    // Fetch current market prices for all positions
+    const marketPrices = {};
+    try {
+      // Get unique symbols from positions
+      const symbols = [...new Set(positions.map(p => p.symbol || p.instrument || p.market))];
+      
+      // Fetch tickers for all symbols
+      if (symbols.length > 0 && exchange.has['fetchTickers']) {
+        console.log('Fetching tickers for symbols:', symbols);
+        const tickers = await exchange.fetchTickers(symbols);
+        
+        // Extract last prices from tickers
+        for (const symbol in tickers) {
+          if (tickers[symbol] && tickers[symbol].last) {
+            marketPrices[symbol] = tickers[symbol].last;
+          }
+        }
+      } else if (symbols.length > 0) {
+        // Fetch individual tickers if fetchTickers is not available
+        for (const symbol of symbols) {
+          try {
+            const ticker = await exchange.fetchTicker(symbol);
+            if (ticker && ticker.last) {
+              marketPrices[symbol] = ticker.last;
+            }
+          } catch (tickerError) {
+            console.warn(`Failed to fetch ticker for ${symbol}:`, tickerError.message);
+          }
+        }
+      }
+      
+      console.log('Market prices fetched:', marketPrices);
+      positionDetails.marketPrices = marketPrices;
+    } catch (marketPricesError) {
+      console.warn('Failed to fetch market prices:', marketPricesError.message);
+    }
+    
     return res.json({
       success: true,
       data: {
