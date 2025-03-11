@@ -289,7 +289,7 @@
 </template>
 
 <script>
-import exchangeApi from '@/services/hyperliquidApi';
+import exchangeApi from '@/services/ccxtApi';
 
 export default {
   name: 'HyperliquidTest',
