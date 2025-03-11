@@ -1,37 +1,22 @@
 /**
- * Hyperliquid API Service
+ * Exchange API Service (CCXT Implementation)
  * 
- * This service handles all interactions with the Hyperliquid API through our backend
+ * This service handles all interactions with cryptocurrency exchanges through our backend
+ * which uses CCXT for a unified trading API experience
  */
 
 import axios from 'axios';
 
 const API_BASE_URL = '/api/hyperliquid';
 
-const hyperliquidApi = {
-  /**
-   * Test connection to the Hyperliquid API
-   * @returns {Promise} Connection test result
-   */
-  testConnection: async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/connection-test`);
-      return response.data;
-    } catch (error) {
-      console.error('Error testing connection:', error);
-      throw error;
-    }
-  },
-
+const exchangeApi = {
   /**
    * Get account information
-   * @param {boolean} refresh - Whether to bypass cache and refresh data
    * @returns {Promise} Account information
    */
-  getAccountInfo: async (refresh = false) => {
+  getAccountInfo: async () => {
     try {
-      const url = refresh ? `${API_BASE_URL}/account?refresh=true` : `${API_BASE_URL}/account`;
-      const response = await axios.get(url);
+      const response = await axios.get(`${API_BASE_URL}/account`);
       return response.data;
     } catch (error) {
       console.error('Error fetching account info:', error);
@@ -40,28 +25,12 @@ const hyperliquidApi = {
   },
 
   /**
-   * Get market data
-   * @returns {Promise} Market data
-   */
-  getMarkets: async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/markets`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching market data:', error);
-      throw error;
-    }
-  },
-
-  /**
    * Get positions
-   * @param {boolean} refresh - Whether to bypass cache and refresh data
    * @returns {Promise} Positions data
    */
-  getPositions: async (refresh = false) => {
+  getPositions: async () => {
     try {
-      const url = refresh ? `${API_BASE_URL}/positions?refresh=true` : `${API_BASE_URL}/positions`;
-      const response = await axios.get(url);
+      const response = await axios.get(`${API_BASE_URL}/positions`);
       return response.data;
     } catch (error) {
       console.error('Error fetching positions:', error);
@@ -70,28 +39,13 @@ const hyperliquidApi = {
   },
 
   /**
-   * Place an order
-   * @param {Object} orderData Order details
-   * @returns {Promise} Order result
-   */
-  placeOrder: async (orderData) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/order`, orderData);
-      return response.data;
-    } catch (error) {
-      console.error('Error placing order:', error);
-      throw error;
-    }
-  },
-
-  /**
    * Get open orders
-   * @param {boolean} refresh - Whether to bypass cache and refresh data
+   * @param {String} symbol Optional symbol to filter orders
    * @returns {Promise} Open orders data
    */
-  getOpenOrders: async (refresh = false) => {
+  getOpenOrders: async (symbol) => {
     try {
-      const url = refresh ? `${API_BASE_URL}/open-orders?refresh=true` : `${API_BASE_URL}/open-orders`;
+      const url = symbol ? `${API_BASE_URL}/open-orders/${symbol}` : `${API_BASE_URL}/open-orders`;
       const response = await axios.get(url);
       return response.data;
     } catch (error) {
@@ -101,48 +55,48 @@ const hyperliquidApi = {
   },
 
   /**
+   * Place an order
+   * @param {Object} orderData Order details
+   * @param {String} orderData.symbol Symbol to trade
+   * @param {String} orderData.side 'buy' or 'sell'
+   * @param {Number} orderData.size Order size
+   * @param {Number} orderData.price Price (for limit orders)
+   * @param {String} orderData.orderType 'limit' or 'market'
+   * @param {Boolean} orderData.reduceOnly Whether this is a reduce-only order
+   * @returns {Promise} Order result
+   */
+  placeOrder: async (orderData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/place-order`, orderData);
+      return response.data;
+    } catch (error) {
+      console.error('Error placing order:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Cancel an order
    * @param {String} orderId Order ID to cancel
-   * @param {Number} assetId Asset ID (default: 0 for BTC)
+   * @param {String} symbol Symbol of the order
    * @returns {Promise} Cancel order result
    */
-  cancelOrder: async (orderId, assetId = 0) => {
+  cancelOrder: async (orderId, symbol) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/cancel-order`, { orderId, assetId });
+      console.log(`Sending cancel request for order ID: ${orderId}, symbol: ${symbol}`);
+      const response = await axios.post(`${API_BASE_URL}/cancel-order`, { orderId, symbol });
+      console.log('Cancel order response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error cancelling order:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Cancel all orders
-   * @returns {Promise} Cancel all orders result
-   */
-  cancelAllOrders: async () => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/cancel-all-orders`);
-      return response.data;
-    } catch (error) {
-      console.error('Error cancelling all orders:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Check environment variables
-   * @returns {Promise} Environment variables status
-   */
-  checkEnvironmentVariables: async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/env-check`);
-      return response.data;
-    } catch (error) {
-      console.error('Error checking environment variables:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       throw error;
     }
   }
 };
 
-export default hyperliquidApi;
+export default exchangeApi;

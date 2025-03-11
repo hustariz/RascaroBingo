@@ -17,7 +17,7 @@
           <div class="section-header">
             <h3>Account Details</h3>
             <button 
-              @click="fetchAccountInfo(true)" 
+              @click="fetchAccountInfo" 
               :disabled="loading.account" 
               class="refresh-button"
             >
@@ -67,7 +67,7 @@
           <div class="section-header">
             <h3>Open Positions</h3>
             <button 
-              @click="fetchPositions(true)" 
+              @click="fetchPositions" 
               :disabled="loading.positions" 
               class="refresh-button"
             >
@@ -133,7 +133,7 @@
             <h3>Open Orders</h3>
             <div class="section-actions">
               <button 
-                @click="fetchOpenOrders(true)" 
+                @click="fetchOpenOrders" 
                 :disabled="loading.openOrders" 
                 class="refresh-button"
               >
@@ -160,6 +160,7 @@
             <!-- Cancel Order Result Message -->
             <div v-if="results.cancelOrder" class="result-message" :class="results.cancelOrder.success ? 'success-message' : 'error-message'">
               {{ results.cancelOrder.message }}
+              <pre v-if="results.cancelOrder.details">{{ JSON.stringify(results.cancelOrder.details, null, 2) }}</pre>
             </div>
             
             <div class="data-table compact-table">
@@ -228,25 +229,23 @@
                 <label for="symbol">Symbol</label>
                 <select id="symbol" v-model="orderForm.symbol" required>
                   <option value="">Select Symbol</option>
-                  <option value="ETH-USD">ETH-USD</option>
-                  <option value="BTC-USD">BTC-USD</option>
-                  <option value="SOL-USD">SOL-USD</option>
+                  <option v-for="symbol in availableSymbols" :key="symbol" :value="symbol">{{ symbol }}</option>
                 </select>
               </div>
               
               <div class="form-group">
                 <label for="side">Side</label>
                 <select id="side" v-model="orderForm.side" required>
-                  <option value="B">Buy</option>
-                  <option value="S">Sell</option>
+                  <option value="buy">Buy</option>
+                  <option value="sell">Sell</option>
                 </select>
               </div>
               
               <div class="form-group">
                 <label for="type">Order Type</label>
                 <select id="type" v-model="orderForm.orderType" required>
-                  <option value="Limit">Limit</option>
-                  <option value="Market">Market</option>
+                  <option value="limit">Limit</option>
+                  <option value="market">Market</option>
                 </select>
               </div>
               
@@ -262,7 +261,7 @@
                 />
               </div>
               
-              <div class="form-group" v-if="orderForm.orderType === 'Limit'">
+              <div class="form-group" v-if="orderForm.orderType === 'limit'">
                 <label for="price">Price</label>
                 <input 
                   id="price" 
@@ -270,17 +269,17 @@
                   v-model="orderForm.price" 
                   step="0.01" 
                   min="0.01"
-                  :required="orderForm.orderType === 'Limit'"
+                  :required="orderForm.orderType === 'limit'"
                 />
               </div>
               
-              <button type="submit" :disabled="loading.order">Place Test Order</button>
+              <button type="submit" :disabled="loading.placeOrder">Place Test Order</button>
             </form>
             
-            <div v-if="loading.order" class="loading">Placing order...</div>
-            <div v-if="results.order" :class="['result', results.order.success ? 'success' : 'error']">
-              {{ results.order.message }}
-              <pre v-if="results.order.data">{{ JSON.stringify(results.order.data, null, 2) }}</pre>
+            <div v-if="loading.placeOrder" class="loading">Placing order...</div>
+            <div v-if="results.placeOrder" :class="['result', results.placeOrder.success ? 'success' : 'error']">
+              {{ results.placeOrder.message }}
+              <pre v-if="results.placeOrder.data">{{ JSON.stringify(results.placeOrder.data, null, 2) }}</pre>
             </div>
           </div>
         </div>
@@ -290,7 +289,7 @@
 </template>
 
 <script>
-import hyperliquidApi from '@/services/hyperliquidApi';
+import exchangeApi from '@/services/hyperliquidApi';
 
 export default {
   name: 'HyperliquidTest',
@@ -299,346 +298,314 @@ export default {
       loading: {
         account: false,
         positions: false,
-        order: false,
         openOrders: false,
+        placeOrder: false,
         cancelOrder: null,
-        envCheck: false,
-        refreshAll: false,
-        cancelAllOrders: false
+        cancelAllOrders: false,
+        refreshAll: false
       },
       results: {
         account: null,
         positions: null,
-        order: null,
         openOrders: null,
-        envCheck: null,
+        placeOrder: null,
         cancelOrder: null
       },
       orderForm: {
         symbol: 'BTC',
-        side: 'B', // B for Buy, S for Sell
-        orderType: 'Limit', // Limit, Market, etc.
-        size: 0.001,
-        price: 50000
+        side: 'buy',
+        size: 0.01,
+        price: null,
+        orderType: 'limit',
+        reduceOnly: false
       },
-      symbols: ['BTC', 'ETH', 'SOL', 'DOGE'],
-      sides: [
-        { value: 'B', label: 'Buy' },
-        { value: 'S', label: 'Sell' }
-      ],
-      orderTypes: ['Limit', 'Market']
+      availableSymbols: [
+        'BTC', 'ETH', 'SOL', 'LINK', 'ARB', 'XRP', 'BNB', 'DOGE', 'MATIC', 'AVAX'
+      ]
     };
   },
   mounted() {
-    // Check environment variables on component mount
-    this.checkEnvironmentVariables();
+    this.refreshAllData();
   },
   methods: {
-    async checkEnvironmentVariables() {
-      this.loading.envCheck = true;
-      try {
-        const envStatus = await hyperliquidApi.checkEnvironmentVariables();
-        this.results.envCheck = envStatus;
-        
-        if (!envStatus.walletAddressSet) {
-          console.warn('Hyperliquid wallet address is not set in the environment variables');
-        }
-      } catch (error) {
-        console.error('Failed to check environment variables:', error);
-      } finally {
-        this.loading.envCheck = false;
-      }
-    },
-    
-    async fetchAccountInfo(refresh = false) {
+    fetchAccountInfo() {
       this.loading.account = true;
       this.results.account = null;
       
-      try {
-        // Fetch account info from API
-        const data = await hyperliquidApi.getAccountInfo(refresh);
-        
-        // Check if there was an error in the response
-        if (data.error) {
-          this.results.account = { error: data.error };
-          return;
-        }
-        
-        this.results.account = { data };
-        console.log('Account data:', data);
-      } catch (error) {
-        console.error('Error fetching account info:', error);
-        this.results.account = {
-          error: `Failed to fetch account info: ${error.response?.data?.error || error.message || 'Unknown error'}`
-        };
-      } finally {
-        this.loading.account = false;
-      }
+      exchangeApi.getAccountInfo()
+        .then(response => {
+          this.results.account = {
+            success: response.success,
+            data: response.data,
+            error: response.error
+          };
+        })
+        .catch(error => {
+          this.results.account = {
+            success: false,
+            error: error.message || 'Failed to fetch account information'
+          };
+        })
+        .finally(() => {
+          this.loading.account = false;
+        });
     },
     
-    async fetchPositions(refresh = false) {
+    fetchPositions() {
       this.loading.positions = true;
       this.results.positions = null;
       
-      try {
-        const data = await hyperliquidApi.getPositions(refresh);
-        this.results.positions = { data: data.positions };
-        console.log('Positions data:', data);
-      } catch (error) {
-        console.error('Error fetching positions:', error);
-        this.results.positions = { error: error.message || 'Failed to fetch positions' };
-      } finally {
-        this.loading.positions = false;
-      }
+      exchangeApi.getPositions()
+        .then(response => {
+          this.results.positions = {
+            success: response.success,
+            data: response.data,
+            error: response.error
+          };
+        })
+        .catch(error => {
+          this.results.positions = {
+            success: false,
+            error: error.message || 'Failed to fetch positions'
+          };
+        })
+        .finally(() => {
+          this.loading.positions = false;
+        });
     },
     
-    async fetchOpenOrders(forceRefresh = true) {
+    fetchOpenOrders() {
       this.loading.openOrders = true;
+      this.results.openOrders = null;
+      this.results.cancelOrder = null; // Clear previous cancel results
       
-      try {
-        console.log('Fetching open orders...');
-        const data = await hyperliquidApi.getOpenOrders(forceRefresh);
-        console.log('Open orders data:', data);
-        
-        this.results.openOrders = {
-          success: true,
-          data: data.openOrders || []
-        };
-      } catch (error) {
-        console.error('Error fetching open orders:', error);
-        
-        this.results.openOrders = {
-          success: false,
-          error: error.message || 'Failed to fetch open orders'
-        };
-      } finally {
-        this.loading.openOrders = false;
-      }
+      exchangeApi.getOpenOrders()
+        .then(response => {
+          this.results.openOrders = {
+            success: response.success,
+            data: response.data,
+            error: response.error
+          };
+        })
+        .catch(error => {
+          this.results.openOrders = {
+            success: false,
+            error: error.message || 'Failed to fetch open orders'
+          };
+        })
+        .finally(() => {
+          this.loading.openOrders = false;
+        });
     },
     
-    async placeTestOrder() {
-      this.loading.order = true;
-      this.results.order = null;
-      
-      try {
-        // Validate form data
-        if (!this.orderForm.symbol) {
-          throw new Error('Symbol is required');
-        }
-        
-        if (!this.orderForm.side) {
-          throw new Error('Side is required');
-        }
-        
-        if (!this.orderForm.size || this.orderForm.size <= 0) {
-          throw new Error('Size must be greater than 0');
-        }
-        
-        if (this.orderForm.orderType === 'Limit' && (!this.orderForm.price || this.orderForm.price <= 0)) {
-          throw new Error('Price must be greater than 0 for limit orders');
-        }
-        
-        const data = await hyperliquidApi.placeOrder(this.orderForm);
-        this.results.order = { 
-          success: true, 
-          message: data.message || 'Order placed successfully', 
-          data: data.data 
-        };
-        
-        // After placing an order, refresh account and positions data
-        this.fetchAccountInfo();
-        this.fetchPositions();
-        this.fetchOpenOrders();
-      } catch (error) {
-        this.results.order = {
+    placeTestOrder() {
+      if (!this.orderForm.symbol || !this.orderForm.side || !this.orderForm.size) {
+        this.results.placeOrder = {
           success: false,
-          message: `Failed to place order: ${error.response?.data?.error || error.message || 'Unknown error'}`
+          error: 'Symbol, side, and size are required'
         };
-      } finally {
-        this.loading.order = false;
+        return;
       }
+      
+      if (this.orderForm.orderType === 'limit' && !this.orderForm.price) {
+        this.results.placeOrder = {
+          success: false,
+          error: 'Price is required for limit orders'
+        };
+        return;
+      }
+      
+      this.loading.placeOrder = true;
+      this.results.placeOrder = null;
+      
+      const orderData = {
+        symbol: this.orderForm.symbol,
+        side: this.orderForm.side,
+        size: parseFloat(this.orderForm.size),
+        price: this.orderForm.price ? parseFloat(this.orderForm.price) : undefined,
+        orderType: this.orderForm.orderType,
+        reduceOnly: this.orderForm.reduceOnly
+      };
+      
+      exchangeApi.placeOrder(orderData)
+        .then(response => {
+          this.results.placeOrder = {
+            success: response.success,
+            data: response.data,
+            message: response.message,
+            error: response.error
+          };
+          
+          // Refresh open orders after placing an order
+          if (response.success) {
+            setTimeout(() => {
+              this.fetchOpenOrders();
+              this.fetchPositions();
+              this.fetchAccountInfo();
+            }, 1000);
+          }
+        })
+        .catch(error => {
+          this.results.placeOrder = {
+            success: false,
+            error: error.message || 'Failed to place order'
+          };
+        })
+        .finally(() => {
+          this.loading.placeOrder = false;
+        });
     },
     
-    async cancelOrder(orderId, assetId = 0) {
+    cancelOrder(orderId, symbol) {
+      if (!orderId || !symbol) {
+        this.results.cancelOrder = {
+          success: false,
+          message: 'Order ID and symbol are required',
+          details: { orderId, symbol }
+        };
+        return;
+      }
+      
       this.loading.cancelOrder = orderId;
       
-      try {
-        console.log(`Attempting to cancel order: ${orderId} with asset ID: ${assetId}`);
-        const response = await hyperliquidApi.cancelOrder(orderId, assetId);
-        console.log('Order cancelled successfully:', response);
-        
-        // Show a temporary success message
-        this.results.cancelOrder = {
-          success: true,
-          message: response.message || `Order ${orderId} cancelled successfully`,
-          data: response.data
-        };
-        
-        // Refresh open orders list
-        await this.fetchOpenOrders(true);
-        
-        // Clear the success message after 5 seconds
-        setTimeout(() => {
-          if (this.results.cancelOrder && this.results.cancelOrder.success) {
-            this.results.cancelOrder = null;
-          }
-        }, 5000);
-      } catch (error) {
-        console.error('Error cancelling order:', error);
-        
-        // Show error message
-        this.results.cancelOrder = {
-          success: false,
-          message: error.response?.data?.error || error.message || 'Failed to cancel order',
-          orderId
-        };
-        
-        // Clear the error message after 5 seconds
-        setTimeout(() => {
-          if (this.results.cancelOrder && !this.results.cancelOrder.success) {
-            this.results.cancelOrder = null;
-          }
-        }, 5000);
-      } finally {
-        this.loading.cancelOrder = null;
-      }
-    },
-    
-    async cancelAllOrders() {
-      this.loading.cancelAllOrders = true;
+      console.log(`Cancelling order: ${orderId}, symbol: ${symbol}`);
       
-      try {
-        const data = await hyperliquidApi.cancelAllOrders();
-        console.log('All orders cancelled:', data);
-        
-        // After cancelling all orders, refresh open orders data
-        this.fetchOpenOrders();
-      } catch (error) {
-        console.error('Failed to cancel all orders:', error);
-      } finally {
-        this.loading.cancelAllOrders = false;
-      }
+      exchangeApi.cancelOrder(orderId, symbol)
+        .then(response => {
+          console.log('Cancel response:', response);
+          this.results.cancelOrder = {
+            success: response.success,
+            message: response.message || `Order ${orderId} cancelled successfully`,
+            details: response.data
+          };
+          
+          // Refresh open orders after cancelling
+          if (response.success) {
+            setTimeout(() => {
+              this.fetchOpenOrders();
+            }, 1000);
+          }
+        })
+        .catch(error => {
+          console.error('Cancel error:', error);
+          this.results.cancelOrder = {
+            success: false,
+            message: `Failed to cancel order ${orderId}`,
+            details: {
+              error: error.message,
+              response: error.response?.data
+            }
+          };
+        })
+        .finally(() => {
+          this.loading.cancelOrder = null;
+        });
     },
     
-    async refreshAllData() {
+    refreshAllData() {
       this.loading.refreshAll = true;
       
-      try {
-        await this.fetchAccountInfo();
-        await this.fetchPositions();
-        await this.fetchOpenOrders();
-      } catch (error) {
-        console.error('Error refreshing all data:', error);
-      } finally {
-        this.loading.refreshAll = false;
-      }
+      // Reset all results
+      this.results = {
+        account: null,
+        positions: null,
+        openOrders: null,
+        placeOrder: null,
+        cancelOrder: null
+      };
+      
+      // Fetch all data in parallel
+      Promise.all([
+        this.fetchAccountInfo(),
+        this.fetchPositions(),
+        this.fetchOpenOrders()
+      ])
+        .finally(() => {
+          this.loading.refreshAll = false;
+        });
     },
     
     formatAccountBalances(accountData) {
-      try {
-        // Check if accountData exists and has the expected structure
-        if (!accountData || !accountData.assetPositions) {
-          console.warn('Account data is missing or in unexpected format:', accountData);
-          // Return mock data for display
-          return [{
-            coin: 'USDC (Perps)',
-            totalBalance: 9.86,
-            availableBalance: 3.16,
-            usdcValue: 9.86
-          }];
-        }
-        
-        // Return the asset positions directly
-        return accountData.assetPositions;
-      } catch (error) {
-        console.error('Error formatting account balances:', error);
-        // Return mock data for display
-        return [{
-          coin: 'USDC (Perps)',
-          totalBalance: 9.86,
-          availableBalance: 3.16,
-          usdcValue: 9.86
-        }];
+      if (!accountData || !accountData.currencies) {
+        return [];
       }
+      
+      return accountData.currencies.map(currency => ({
+        coin: currency.currency,
+        totalBalance: currency.total,
+        availableBalance: currency.available,
+        usdcValue: currency.total * 1 // Placeholder for conversion rate
+      }));
     },
     
     formatPositions(positions) {
-      try {
-        // Check if positions exists and has the expected structure
-        if (!positions || !positions.length) {
-          console.warn('Positions data is missing or in unexpected format:', positions);
-          // Return an empty array instead of mock data
-          return [];
-        }
-        
-        // Process positions to ensure correct display
-        return positions.map(position => {
-          // Create a new object to avoid modifying the original
-          const formattedPosition = { ...position };
-          
-          // Log the raw position data to help debug
-          console.log('Raw position data from backend:', position);
-          
-          // Ensure side is correct - respect the backend value if available
-          if (formattedPosition.side) {
-            console.log(`Using backend-provided side value: ${formattedPosition.side}`);
-          } else if (formattedPosition.size) {
-            // Fallback to size-based determination if side is not provided
-            const numericSize = parseFloat(formattedPosition.size);
-            if (numericSize < 0) {
-              formattedPosition.side = 'short';
-              // Make size positive for display
-              formattedPosition.size = Math.abs(numericSize);
-            } else {
-              formattedPosition.side = 'long';
-            }
-            console.log(`Determined side based on size: ${formattedPosition.side}`);
-          }
-          
-          return formattedPosition;
-        });
-      } catch (error) {
-        console.error('Error formatting positions:', error);
-        // Return an empty array instead of mock data
+      if (!positions || !Array.isArray(positions)) {
         return [];
       }
+      
+      return positions.map(position => {
+        const pnl = position.unrealizedPnl || 0;
+        const entryPrice = position.entryPrice || 0;
+        const size = position.size || 0;
+        
+        return {
+          symbol: position.symbol,
+          side: position.side,
+          size: position.size,
+          entryPrice: position.entryPrice,
+          markPrice: position.markPrice,
+          liquidationPrice: position.liquidationPrice,
+          margin: position.margin,
+          leverage: position.leverage,
+          pnl: pnl,
+          pnlPercentage: this.calculatePnlPercentage(pnl, entryPrice, size)
+        };
+      });
     },
     
     formatNumber(value, decimals = null) {
-      if (value === undefined || value === null) return '-';
-      
-      // Determine the number of decimal places based on the value
-      let decimalPlaces = decimals;
-      if (decimalPlaces === null) {
-        // For price values (typically between 0.1 and 10000), show 4 decimal places
-        if (typeof value === 'number' && value > 0 && value < 10000) {
-          decimalPlaces = 4;
-        } else {
-          decimalPlaces = 2;
-        }
+      if (value === null || value === undefined) {
+        return '-';
       }
       
-      // Format the number with the appropriate number of decimal places
-      return Number(value).toLocaleString(undefined, {
-        minimumFractionDigits: decimalPlaces,
-        maximumFractionDigits: decimalPlaces
-      });
+      const num = parseFloat(value);
+      
+      if (isNaN(num)) {
+        return '-';
+      }
+      
+      if (decimals !== null) {
+        return num.toFixed(decimals);
+      }
+      
+      // Dynamically determine decimals based on value
+      if (Math.abs(num) >= 1000) {
+        return num.toFixed(2);
+      } else if (Math.abs(num) >= 1) {
+        return num.toFixed(4);
+      } else {
+        return num.toFixed(6);
+      }
     },
     
     formatDate(timestamp) {
+      if (!timestamp) {
+        return '-';
+      }
+      
       const date = new Date(timestamp);
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
+      return date.toLocaleString();
     },
     
     calculatePnlPercentage(pnl, entryPrice, size) {
-      return ((pnl / (entryPrice * size)) * 100).toFixed(2);
+      if (!entryPrice || !size || entryPrice === 0 || size === 0) {
+        return '0.00';
+      }
+      
+      const positionValue = entryPrice * size;
+      const pnlPercentage = (pnl / positionValue) * 100;
+      
+      return pnlPercentage.toFixed(2);
     }
   }
 };
