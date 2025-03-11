@@ -255,139 +255,69 @@ router.get('/positions', async (req, res) => {
  */
 router.get('/orders', async (req, res) => {
   try {
+    // Fetch open orders
     const orders = await exchange.fetchOpenOrders();
-    return res.json({
-      success: true,
-      data: orders
-    });
-  } catch (error) {
-    return handleApiError(error, req, res);
-  }
-});
-
-/**
- * Place an order
- * POST /api/ccxt/order
- */
-router.post('/order', async (req, res) => {
-  try {
-    const { symbol, side, size, price, orderType, reduceOnly, leverage } = req.body;
     
-    if (!symbol || !side || !size) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required parameters: symbol, side, size'
-      });
-    }
+    // Log raw order data for debugging
+    console.log('Raw Hyperliquid open orders:', JSON.stringify(orders, null, 2));
     
-    // Validate side
-    if (side !== 'buy' && side !== 'sell') {
-      return res.status(400).json({
-        success: false,
-        error: 'Side must be either "buy" or "sell"'
-      });
-    }
-    
-    // Set leverage if provided (Hyperliquid specific)
-    if (leverage && exchange.has['setLeverage']) {
-      try {
-        await exchange.setLeverage(leverage, symbol);
-      } catch (leverageError) {
-        console.warn('Failed to set leverage:', leverageError.message);
-        // Continue with order placement even if leverage setting fails
+    // Enhance orders with additional information if missing
+    const enhancedOrders = orders.map(order => {
+      // Create a copy of the order to avoid modifying the original
+      const enhancedOrder = { ...order };
+      
+      // Ensure orderType is set
+      if (!enhancedOrder.orderType && enhancedOrder.type) {
+        enhancedOrder.orderType = enhancedOrder.type;
+      } else if (!enhancedOrder.orderType) {
+        enhancedOrder.orderType = 'limit'; // Default to limit if not specified
       }
-    }
-    
-    // Prepare order parameters (Hyperliquid specific)
-    const params = {};
-    if (reduceOnly !== undefined) {
-      params.reduceOnly = reduceOnly;
-    }
-    
-    let order;
-    if (orderType === 'market') {
-      // Place market order
-      order = await exchange.createOrder(symbol, 'market', side, size, undefined, params);
-    } else {
-      // Default to limit order
-      if (!price) {
-        return res.status(400).json({
-          success: false,
-          error: 'Price is required for limit orders'
-        });
+      
+      // Ensure size is set
+      if (!enhancedOrder.size && enhancedOrder.amount) {
+        enhancedOrder.size = enhancedOrder.amount;
+      } else if (!enhancedOrder.size && enhancedOrder.quantity) {
+        enhancedOrder.size = enhancedOrder.quantity;
+      } else if (!enhancedOrder.size) {
+        // Try to derive size from other fields
+        if (enhancedOrder.cost && enhancedOrder.price && enhancedOrder.price > 0) {
+          enhancedOrder.size = enhancedOrder.cost / enhancedOrder.price;
+        } else {
+          enhancedOrder.size = 0; // Default if we can't determine
+        }
       }
-      order = await exchange.createOrder(symbol, 'limit', side, size, price, params);
-    }
-    
-    return res.json({
-      success: true,
-      data: order
+      
+      // Ensure filled is set
+      if (!enhancedOrder.filled && enhancedOrder.filledQuantity) {
+        enhancedOrder.filled = enhancedOrder.filledQuantity;
+      } else if (!enhancedOrder.filled && enhancedOrder.executed) {
+        enhancedOrder.filled = enhancedOrder.executed;
+      } else if (!enhancedOrder.filled) {
+        enhancedOrder.filled = 0; // Default if not specified
+      }
+      
+      // Ensure side is properly formatted
+      if (enhancedOrder.side === 'buy' || enhancedOrder.side === 'B') {
+        enhancedOrder.side = 'B';
+      } else if (enhancedOrder.side === 'sell' || enhancedOrder.side === 'S') {
+        enhancedOrder.side = 'S';
+      }
+      
+      // Ensure timestamp is set
+      if (!enhancedOrder.timestamp && enhancedOrder.datetime) {
+        enhancedOrder.timestamp = new Date(enhancedOrder.datetime).getTime();
+      } else if (!enhancedOrder.timestamp && enhancedOrder.time) {
+        enhancedOrder.timestamp = enhancedOrder.time;
+      } else if (!enhancedOrder.timestamp) {
+        enhancedOrder.timestamp = Date.now(); // Default to current time
+      }
+      
+      return enhancedOrder;
     });
-  } catch (error) {
-    return handleApiError(error, req, res);
-  }
-});
-
-/**
- * Cancel an order
- * DELETE /api/ccxt/order/:orderId
- */
-router.delete('/order/:orderId', async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { symbol } = req.query;
     
-    if (!orderId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Order ID is required'
-      });
-    }
-    
-    if (!symbol) {
-      return res.status(400).json({
-        success: false,
-        error: 'Symbol is required'
-      });
-    }
-    
-    const result = await exchange.cancelOrder(orderId, symbol);
     return res.json({
       success: true,
-      data: result
-    });
-  } catch (error) {
-    return handleApiError(error, req, res);
-  }
-});
-
-/**
- * Set leverage for a symbol
- * POST /api/ccxt/leverage
- */
-router.post('/leverage', async (req, res) => {
-  try {
-    const { leverage, symbol } = req.body;
-    
-    if (!leverage || !symbol) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required parameters: leverage, symbol'
-      });
-    }
-    
-    // Check if exchange supports leverage setting
-    if (!exchange.has['setLeverage']) {
-      return res.status(400).json({
-        success: false,
-        error: 'This exchange does not support leverage setting'
-      });
-    }
-    
-    const result = await exchange.setLeverage(leverage, symbol);
-    return res.json({
-      success: true,
-      data: result
+      data: enhancedOrders
     });
   } catch (error) {
     return handleApiError(error, req, res);
@@ -524,6 +454,135 @@ router.get('/trades/:symbol', async (req, res) => {
     return res.json({
       success: true,
       data: trades
+    });
+  } catch (error) {
+    return handleApiError(error, req, res);
+  }
+});
+
+/**
+ * Place an order
+ * POST /api/ccxt/order
+ */
+router.post('/order', async (req, res) => {
+  try {
+    const { symbol, side, size, price, orderType, reduceOnly, leverage } = req.body;
+    
+    if (!symbol || !side || !size) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters: symbol, side, size'
+      });
+    }
+    
+    // Validate side
+    if (side !== 'buy' && side !== 'sell') {
+      return res.status(400).json({
+        success: false,
+        error: 'Side must be either "buy" or "sell"'
+      });
+    }
+    
+    // Set leverage if provided (Hyperliquid specific)
+    if (leverage && exchange.has['setLeverage']) {
+      try {
+        await exchange.setLeverage(leverage, symbol);
+      } catch (leverageError) {
+        console.warn('Failed to set leverage:', leverageError.message);
+        // Continue with order placement even if leverage setting fails
+      }
+    }
+    
+    // Prepare order parameters (Hyperliquid specific)
+    const params = {};
+    if (reduceOnly !== undefined) {
+      params.reduceOnly = reduceOnly;
+    }
+    
+    let order;
+    if (orderType === 'market') {
+      // Place market order
+      order = await exchange.createOrder(symbol, 'market', side, size, undefined, params);
+    } else {
+      // Default to limit order
+      if (!price) {
+        return res.status(400).json({
+          success: false,
+          error: 'Price is required for limit orders'
+        });
+      }
+      order = await exchange.createOrder(symbol, 'limit', side, size, price, params);
+    }
+    
+    return res.json({
+      success: true,
+      data: order
+    });
+  } catch (error) {
+    return handleApiError(error, req, res);
+  }
+});
+
+/**
+ * Cancel an order
+ * DELETE /api/ccxt/order/:orderId
+ */
+router.delete('/order/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { symbol } = req.query;
+    
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Order ID is required'
+      });
+    }
+    
+    if (!symbol) {
+      return res.status(400).json({
+        success: false,
+        error: 'Symbol is required'
+      });
+    }
+    
+    const result = await exchange.cancelOrder(orderId, symbol);
+    return res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    return handleApiError(error, req, res);
+  }
+});
+
+/**
+ * Set leverage for a symbol
+ * POST /api/ccxt/leverage
+ */
+router.post('/leverage', async (req, res) => {
+  try {
+    const { leverage, symbol } = req.body;
+    
+    if (!leverage || !symbol) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters: leverage, symbol'
+      });
+    }
+    
+    // Check if exchange supports leverage setting
+    if (!exchange.has['setLeverage']) {
+      return res.status(400).json({
+        success: false,
+        error: 'This exchange does not support leverage setting'
+      });
+    }
+    
+    const result = await exchange.setLeverage(leverage, symbol);
+    return res.json({
+      success: true,
+      data: result
     });
   } catch (error) {
     return handleApiError(error, req, res);

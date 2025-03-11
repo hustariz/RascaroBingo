@@ -164,7 +164,7 @@
             </div>
             
             <div class="data-table compact-table">
-              <table v-if="results.openOrders.data.length > 0">
+              <table v-if="formatOrders(results.openOrders.data).length > 0">
                 <thead>
                   <tr>
                     <th>Time</th>
@@ -181,26 +181,26 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="order in results.openOrders.data" :key="order.orderId">
+                  <tr v-for="order in formatOrders(results.openOrders.data)" :key="order.id">
                     <td>{{ formatDate(order.timestamp) }}</td>
                     <td>{{ order.orderType }}</td>
-                    <td>{{ formatSymbol(order.symbol) }}</td>
-                    <td :class="order.side === 'B' ? 'text-green' : 'text-red'">
-                      {{ order.side === 'B' ? 'Buy' : 'Sell' }}
+                    <td>{{ order.symbol }}</td>
+                    <td :class="order.side === 'Buy' ? 'text-green' : 'text-red'">
+                      {{ order.side }}
                     </td>
                     <td>{{ formatNumber(order.size) }}</td>
                     <td>{{ formatNumber(order.filled) }}</td>
-                    <td>${{ formatNumber(order.price * order.size) }}</td>
+                    <td>${{ formatNumber(order.value) }}</td>
                     <td>{{ formatNumber(order.price, 4) }}</td>
                     <td>{{ order.reduceOnly ? 'Yes' : 'No' }}</td>
                     <td>{{ order.status }}</td>
                     <td>
                       <button 
-                        @click="cancelOrder(order.orderId, order.assetId)" 
-                        :disabled="loading.cancelOrder === order.orderId"
+                        @click="cancelOrder(order.id, order.symbol)" 
+                        :disabled="loading.cancelOrder === order.id"
                         class="cancel-button"
                       >
-                        {{ loading.cancelOrder === order.orderId ? 'Cancelling...' : 'Cancel' }}
+                        {{ loading.cancelOrder === order.id ? 'Cancelling...' : 'Cancel' }}
                       </button>
                     </td>
                   </tr>
@@ -748,6 +748,31 @@ export default {
       const pnlPercentage = (pnl / positionValue) * 100;
       
       return pnlPercentage.toFixed(2);
+    },
+    
+    formatOrders(orders) {
+      if (!orders || !Array.isArray(orders)) {
+        return [];
+      }
+      
+      return orders.map(order => {
+        // Create a formatted order with all required fields
+        return {
+          id: order.id || order.orderId || 'Unknown',
+          timestamp: order.timestamp || Date.now(),
+          symbol: this.formatSymbol(order.symbol || 'Unknown'),
+          side: order.side === 'B' ? 'Buy' : 'Sell',
+          orderType: order.orderType || order.type || 'limit',
+          size: order.size || order.amount || order.quantity || 0,
+          filled: order.filled || order.filledQuantity || order.executed || 0,
+          price: order.price || 0,
+          value: (order.price || 0) * (order.size || order.amount || order.quantity || 0),
+          reduceOnly: order.reduceOnly || false,
+          status: order.status || 'open',
+          // Keep original data for reference
+          raw: order
+        };
+      });
     }
   }
 };
