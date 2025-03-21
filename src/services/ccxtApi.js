@@ -172,13 +172,24 @@ const exchangeApi = {
 
   /**
    * Get current market price for a symbol
-   * @param {String} symbol Symbol to get price for (e.g., "XRP")
+   * @param {String} symbol Symbol to get price for (e.g., "XRP" or "XRP/USDC:USDC")
    * @returns {Promise} Market price data
    */
   async getMarketPrice(symbol) {
     try {
-      // Format the symbol if needed
-      const formattedSymbol = symbol.includes('-') ? symbol : `${symbol}-USD`;
+      // Handle different symbol formats
+      let formattedSymbol = symbol;
+      
+      // If it's a complex symbol like "XRP/USDC:USDC", extract just the base symbol
+      if (symbol.includes('/') || symbol.includes(':')) {
+        // Extract the base symbol (e.g., "XRP" from "XRP/USDC:USDC")
+        formattedSymbol = symbol.split('/')[0];
+      }
+      
+      // Format the symbol for the API endpoint
+      formattedSymbol = formattedSymbol.includes('-') ? formattedSymbol : `${formattedSymbol}-USD`;
+      
+      console.log(`Fetching market price for formatted symbol: ${formattedSymbol}`);
       const response = await axios.get(`${API_BASE_URL}/price/${formattedSymbol}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {

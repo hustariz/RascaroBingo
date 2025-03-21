@@ -94,10 +94,12 @@ export function formatAccountBalances(accountData) {
 /**
  * Format positions data for display
  * @param {Array} positionsData Positions data from Hyperliquid API
+ * @param {Object} marketPrices Market prices for symbols
  * @returns {Array} Formatted positions
  */
-export function formatPositions(positionsData) {
+export function formatPositions(positionsData, marketPrices = {}) {
   console.log('Formatting positions data:', positionsData);
+  console.log('Market prices provided:', marketPrices);
   
   if (!positionsData || !Array.isArray(positionsData)) {
     console.log('No positions data or not an array, returning empty array');
@@ -115,16 +117,48 @@ export function formatPositions(positionsData) {
     
     // Extract the base symbol (e.g., "BTC" from "BTC/USDT:USDT")
     const symbol = formatSymbol(position.symbol || position.info?.symbol || position.coin || '');
+    const fullSymbol = position.symbol || position.info?.symbol || '';
     
     // Handle different position data structures
     const side = position.side || 
                 (position.positionAmt > 0 ? 'long' : 'short') || 
                 (position.amount > 0 ? 'long' : 'short') ||
                 'unknown';
-                
-    const size = parseFloat(position.size || position.positionAmt || position.amount || 0);
-    const entryPrice = parseFloat(position.entryPrice || position.avgPrice || position.entry_price || 0);
-    const markPrice = parseFloat(position.markPrice || position.mark_price || position.lastPrice || 0);
+    
+    // Extract size with multiple fallbacks
+    let size = 0;
+    if (position.size !== undefined && position.size !== null) {
+      size = Math.abs(parseFloat(position.size));
+    } else if (position.positionAmt !== undefined && position.positionAmt !== null) {
+      size = Math.abs(parseFloat(position.positionAmt));
+    } else if (position.amount !== undefined && position.amount !== null) {
+      size = Math.abs(parseFloat(position.amount));
+    } else if (position.contracts !== undefined && position.contracts !== null) {
+      size = Math.abs(parseFloat(position.contracts));
+    } else if (position.info && position.info.size !== undefined) {
+      size = Math.abs(parseFloat(position.info.size));
+    }
+    
+    // Extract entry price with fallbacks
+    const entryPrice = parseFloat(position.entryPrice || position.avgPrice || position.entry_price || position.info?.entryPrice || 0);
+    
+    // Get mark price from market prices if available
+    let markPrice = 0;
+    if (marketPrices && marketPrices[fullSymbol]) {
+      markPrice = parseFloat(marketPrices[fullSymbol]);
+      console.log(`Using market price for ${fullSymbol}:`, markPrice);
+    } else if (marketPrices && marketPrices[symbol]) {
+      markPrice = parseFloat(marketPrices[symbol]);
+      console.log(`Using market price for base symbol ${symbol}:`, markPrice);
+    } else if (position.markPrice !== undefined && position.markPrice !== null) {
+      markPrice = parseFloat(position.markPrice);
+    } else if (position.mark_price !== undefined && position.mark_price !== null) {
+      markPrice = parseFloat(position.mark_price);
+    } else if (position.lastPrice !== undefined && position.lastPrice !== null) {
+      markPrice = parseFloat(position.lastPrice);
+    } else if (position.info && position.info.markPrice !== undefined) {
+      markPrice = parseFloat(position.info.markPrice);
+    }
     
     // Calculate PnL
     let pnl = parseFloat(position.unrealizedPnl || position.pnl || position.unrealizedProfit || 0);
@@ -141,8 +175,11 @@ export function formatPositions(positionsData) {
     const liquidationPrice = parseFloat(position.liquidationPrice || position.liq_price || 0);
     const margin = parseFloat(position.margin || position.collateral || position.initialMargin || 0);
     
+    console.log(`Formatted position - Symbol: ${symbol}, Size: ${size}, Mark: ${markPrice}`);
+    
     return {
       symbol,
+      fullSymbol,
       side,
       size,
       entryPrice,

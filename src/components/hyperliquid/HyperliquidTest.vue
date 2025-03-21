@@ -83,7 +83,7 @@
           
           <div v-else-if="results.positions && results.positions.data" class="data-display">
             <div class="data-table compact-table positions-table">
-              <table v-if="formatPositions(results.positions.data).length > 0">
+              <table v-if="formatPositions(results.positions.data, marketPrices).length > 0">
                 <thead>
                   <tr>
                     <th class="symbol-col">Symbol</th>
@@ -97,14 +97,16 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="position in formatPositions(results.positions.data)" :key="position.symbol">
+                  <tr v-for="position in formatPositions(results.positions.data, marketPrices)" :key="position.symbol">
                     <td class="symbol-col">{{ position.symbol }} {{ position.leverage }}x</td>
                     <td class="side-col" :class="position.side === 'long' ? 'text-green' : 'text-red'">
                       {{ position.side === 'long' ? 'Long' : 'Short' }}
                     </td>
-                    <td class="size-col">{{ formatNumber(position.size) }}</td>
-                    <td class="price-col">{{ formatNumber(position.entryPrice, 4) }}</td>
-                    <td class="price-col">{{ formatNumber(position.markPrice, 4) }}</td>
+                    <td class="size-col">{{ formatNumber(position.size || 0) }}</td>
+                    <td class="price-col">{{ formatNumber(position.entryPrice || 0, 4) }}</td>
+                    <td class="price-col">
+                      {{ formatNumber(position.markPrice || 0, 4) }}
+                    </td>
                     <td class="pnl-col" :class="position.pnl >= 0 ? 'text-green' : 'text-red'">
                       ${{ formatNumber(position.pnl) }} ({{ position.pnlPercentage >= 0 ? '+' : '' }}{{ position.pnlPercentage }}%)
                     </td>
@@ -365,10 +367,28 @@ export default {
     formatOrders,
     
     async refreshAllData() {
-      this.fetchAccountData();
-      this.fetchPositions();
-      this.fetchOpenOrders();
-      this.fetchAvailableSymbols();
+      this.loading.refreshAll = true;
+      
+      try {
+        // Fetch account data
+        await this.fetchAccountData();
+        
+        // Fetch positions
+        await this.fetchPositions();
+        
+        // Fetch open orders
+        await this.fetchOpenOrders();
+        
+        // Fetch market price for XRP positions
+        await this.fetchPositionMarketPrice('XRP/USDC:USDC');
+        
+        // Fetch market prices for all available symbols
+        await this.fetchAllMarketPrices();
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      } finally {
+        this.loading.refreshAll = false;
+      }
     },
     
     async fetchAccountData() {
@@ -444,20 +464,168 @@ export default {
     },
     
     async fetchAvailableSymbols() {
-      await fetchMarkets({
+      try {
+        const result = await fetchMarkets({
+          onStart: () => {
+            this.loading.markets = true;
+          },
+          onSuccess: (data) => {
+            // Extract symbols from the markets data
+            if (Array.isArray(data)) {
+              this.availableSymbols = data.map(market => market.symbol || market.id);
+            } else if (data && Array.isArray(data.markets)) {
+              this.availableSymbols = data.markets.map(market => market.symbol || market.id);
+            }
+            console.log('Available symbols:', this.availableSymbols);
+          },
+          onError: (error) => {
+            console.error('Error fetching markets:', error);
+            this.errors.markets = error.message || 'Failed to fetch markets';
+          },
+          onFinally: () => {
+            this.loading.markets = false;
+          }
+        });
+        
+        return result;
+      } catch (error) {
+        console.error('Error in fetchAvailableSymbols:', error);
+        this.loading.markets = false;
+      }
+    },
+    
+    async fetchMarketPrice() {
+      // Get the symbol from the order form or use XRP for positions
+      const symbol = this.orderForm.symbol || 'XRP/USDC:USDC';
+      if (!symbol) return;
+      
+      this.loading.fetchingPrice = true;
+      console.log(`Fetching market price for ${symbol}...`);
+      
+      const result = await fetchMarketPrice(symbol, {
         onStart: () => {
-          this.loading.markets = true;
+          this.loading.fetchingPrice = true;
         },
-        onSuccess: (data) => {
-          this.availableSymbols = data;
+        onSuccess: (price) => {
+          console.log(`Market price fetched for ${symbol}:`, price);
+          // Store the raw price value directly
+          if (typeof price === 'object' && price.price) {
+            this.marketPrices[symbol] = price.price;
+          } else {
+            this.marketPrices[symbol] = price;
+          }
+          console.log('Updated market prices:', this.marketPrices);
         },
         onError: (error) => {
-          this.errors.markets = error.error || 'Failed to fetch available symbols';
+          console.error(`Error fetching price for ${symbol}:`, error);
         },
         onFinally: () => {
-          this.loading.markets = false;
+          this.loading.fetchingPrice = false;
         }
       });
+      
+      return result;
+    },
+    
+    async fetchAllMarketPrices() {
+      if (!this.availableSymbols.length) {
+        await this.fetchAvailableSymbols();
+      }
+      
+      for (const symbol of this.availableSymbols) {
+        await this.fetchMarketPriceForSymbol(symbol);
+      }
+    },
+    
+    async fetchMarketPriceForSymbol(symbol) {
+      if (!symbol) return;
+      
+      this.loading.fetchingPrice = true;
+      
+      const result = await fetchMarketPrice(symbol, {
+        onStart: () => {
+          this.loading.fetchingPrice = true;
+        },
+        onSuccess: (price) => {
+          this.marketPrices[symbol] = price;
+        },
+        onError: (error) => {
+          console.error(`Error fetching price for ${symbol}:`, error);
+        },
+        onFinally: () => {
+          this.loading.fetchingPrice = false;
+        }
+      });
+      
+      return result;
+    },
+    
+    async fetchPositionMarketPrice(symbol) {
+      if (!symbol) return;
+      
+      try {
+        // Extract the base symbol (e.g., "XRP" from "XRP/USDC:USDC")
+        const baseSymbol = symbol.includes('/') ? symbol.split('/')[0] : symbol;
+        
+        const result = await fetchMarketPrice(symbol, {
+          onStart: () => {
+            this.loading.fetchingPrice = true;
+          },
+          onSuccess: (price) => {
+            // Store the raw price value directly
+            let priceValue = null;
+            
+            if (price && price.success) {
+              if (typeof price.price === 'number') {
+                priceValue = price.price;
+              } else if (typeof price.data === 'number') {
+                priceValue = price.data;
+              } else if (price.data && typeof price.data.price === 'number') {
+                priceValue = price.data.price;
+              }
+              
+              if (priceValue !== null) {
+                // Store the price with both the full symbol and base symbol as keys
+                this.marketPrices[symbol] = priceValue;
+                this.marketPrices[baseSymbol] = priceValue;
+              }
+            }
+          },
+          onError: (error) => {
+            console.error(`Error fetching market price for position: ${symbol}`, error);
+          },
+          onFinally: () => {
+            this.loading.fetchingPrice = false;
+          }
+        });
+        
+        return result;
+      } catch (error) {
+        console.error(`Error in fetchPositionMarketPrice for ${symbol}:`, error);
+        this.loading.fetchingPrice = false;
+      }
+    },
+    
+    getMarkPrice(symbol) {
+      // Try to get the price from the marketPrices object
+      if (this.marketPrices[symbol]) {
+        return this.marketPrices[symbol];
+      }
+      
+      // If the symbol is XRP/USDC:USDC, try to get the price for XRP
+      if (symbol === 'XRP/USDC:USDC' && this.marketPrices['XRP']) {
+        return this.marketPrices['XRP'];
+      }
+      
+      // Extract the base symbol and try that
+      if (symbol && symbol.includes('/')) {
+        const baseSymbol = symbol.split('/')[0];
+        if (this.marketPrices[baseSymbol]) {
+          return this.marketPrices[baseSymbol];
+        }
+      }
+      
+      return 0;
     },
     
     async placeTestOrder() {
@@ -567,36 +735,6 @@ export default {
       return result;
     },
     
-    async fetchMarketPrice() {
-      const symbol = this.orderForm.symbol;
-      if (!symbol) return;
-      
-      this.loading.fetchingPrice = true;
-      console.log(`Fetching market price for ${symbol}...`);
-      
-      // Store the price in the marketPrices object
-      if (!this.marketPrices[symbol]) {
-        this.marketPrices[symbol] = null;
-      }
-      
-      const result = await fetchMarketPrice(symbol, {
-        onStart: () => {
-          this.loading.fetchingPrice = true;
-        },
-        onSuccess: (price) => {
-          this.marketPrices[symbol] = price;
-        },
-        onError: (error) => {
-          console.error(`Error fetching price for ${symbol}:`, error);
-        },
-        onFinally: () => {
-          this.loading.fetchingPrice = false;
-        }
-      });
-      
-      return result;
-    },
-    
     onSymbolChange() {
       // Only fetch market price if it's a limit order and a symbol is selected
       if (this.orderForm.orderType === 'limit' && this.orderForm.symbol) {
@@ -618,7 +756,7 @@ export default {
         // Clear the price for market orders
         this.orderForm.price = null;
       }
-    },
+    }
   }
 };
 </script>

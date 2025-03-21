@@ -204,6 +204,16 @@ export async function fetchMarketPrice(symbol, callbacks = {}) {
       };
       onSuccess(result);
       return result;
+    } else if (response.success && typeof response.data === 'number') {
+      // Handle case where response.data is directly the price
+      const result = {
+        success: true,
+        symbol: symbol,
+        price: response.data,
+        timestamp: Date.now()
+      };
+      onSuccess(result);
+      return result;
     } else {
       const error = {
         success: false,
