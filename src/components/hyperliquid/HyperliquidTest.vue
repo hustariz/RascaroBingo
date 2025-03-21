@@ -17,7 +17,7 @@
           <div class="section-header">
             <h3>Account Details</h3>
             <button 
-              @click="fetchAccountInfo" 
+              @click="fetchAccountData" 
               :disabled="loading.account" 
               class="refresh-button"
             >
@@ -31,7 +31,7 @@
             {{ results.account.error }}
           </div>
           
-          <div v-else-if="results.account && results.account.data" class="data-display">
+          <div v-else-if="accountData" class="data-display">
             <div class="data-table">
               <table>
                 <thead>
@@ -43,7 +43,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(balance, index) in formatAccountBalances(results.account.data)" :key="index">
+                  <tr v-for="(balance, index) in formattedAccountBalances" :key="index">
                     <td>{{ balance.coin }}</td>
                     <td>{{ formatNumber(balance.totalBalance) }}</td>
                     <td>{{ formatNumber(balance.availableBalance) }}</td>
@@ -56,7 +56,7 @@
           
           <div v-else class="empty-state">
             <p>Click the button to fetch account information</p>
-            <button @click="fetchAccountInfo" :disabled="loading.account">
+            <button @click="fetchAccountData" :disabled="loading.account">
               {{ loading.account ? 'Loading...' : 'Fetch Account Info' }}
             </button>
           </div>
@@ -156,7 +156,7 @@
             {{ results.openOrders.error }}
           </div>
           
-          <div v-else-if="results.openOrders && results.openOrders.data" class="data-display">
+          <div v-else-if="openOrders" class="data-display">
             <!-- Cancel Order Result Message -->
             <div v-if="results.cancelOrder" class="result-message" :class="results.cancelOrder.success ? 'success-message' : 'error-message'">
               {{ results.cancelOrder.message }}
@@ -164,7 +164,7 @@
             </div>
             
             <div class="data-table compact-table">
-              <table v-if="formatOrders(results.openOrders.data).length > 0">
+              <table v-if="formattedOpenOrders.length > 0">
                 <thead>
                   <tr>
                     <th>Time</th>
@@ -182,7 +182,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="order in formatOrders(results.openOrders.data)" :key="order.id">
+                  <tr v-for="order in formattedOpenOrders" :key="order.id">
                     <td>{{ formatDate(order.timestamp) }}</td>
                     <td>{{ order.orderType }}</td>
                     <td>{{ order.symbol }}</td>
@@ -229,10 +229,14 @@
             <form @submit.prevent="placeTestOrder" class="order-form">
               <div class="form-group">
                 <label for="symbol">Symbol</label>
-                <select id="symbol" v-model="orderForm.symbol" required>
+                <select id="symbol" v-model="orderForm.symbol" required @change="onSymbolChange">
                   <option value="">Select Symbol</option>
                   <option v-for="symbol in availableSymbols" :key="symbol" :value="symbol">{{ symbol }}</option>
                 </select>
+                <span v-if="loading.fetchingPrice" class="loading-indicator-inline">Fetching price...</span>
+                <span v-if="marketPrices[orderForm.symbol]" class="price-fetched">
+                  Price fetched: ${{ formatNumber(marketPrices[orderForm.symbol].price, 4) }}
+                </span>
               </div>
               
               <div class="form-group">
@@ -245,7 +249,7 @@
               
               <div class="form-group">
                 <label for="type">Order Type</label>
-                <select id="type" v-model="orderForm.orderType" required>
+                <select id="type" v-model="orderForm.orderType" required @change="onOrderTypeChange">
                   <option value="limit">Limit</option>
                   <option value="market">Market</option>
                 </select>
@@ -291,20 +295,31 @@
 </template>
 
 <script>
+import { ref, reactive, onMounted, computed } from 'vue';
 import exchangeApi from '@/services/ccxtApi';
+import { formatAccountBalances, formatPositions, formatOrders, formatNumber, formatDate, formatSymbol } from './functions/formatters';
+import { placeOrder, cancelOrder, fetchMarketPrice } from './functions/orderFunctions';
+import { fetchAccountData, fetchPositions, fetchOpenOrders, fetchMarkets } from './functions/dataFetchers';
 
 export default {
   name: 'HyperliquidTest',
   data() {
     return {
+      accountData: null,
+      positions: [],
+      openOrders: [],
+      availableSymbols: [],
+      marketPrices: {},
       loading: {
         account: false,
         positions: false,
         openOrders: false,
+        markets: false,
         placeOrder: false,
         cancelOrder: null,
         cancelAllOrders: false,
-        refreshAll: false
+        refreshAll: false,
+        fetchingPrice: false
       },
       results: {
         account: null,
@@ -316,91 +331,136 @@ export default {
       orderForm: {
         symbol: 'BTC',
         side: 'buy',
-        size: 0.01,
+        size: null,
         price: null,
         orderType: 'limit',
         reduceOnly: false
       },
-      availableSymbols: [
-        'BTC', 'ETH', 'SOL', 'LINK', 'ARB', 'XRP', 'BNB', 'DOGE', 'MATIC', 'AVAX'
-      ]
+      errors: {
+        accountData: null,
+        positions: null,
+        openOrders: null,
+        markets: null,
+        placeOrder: null
+      }
     };
   },
   mounted() {
     this.refreshAllData();
   },
+  computed: {
+    formattedAccountBalances() {
+      return formatAccountBalances(this.accountData);
+    },
+    formattedOpenOrders() {
+      return formatOrders(this.openOrders);
+    }
+  },
   methods: {
-    fetchAccountInfo() {
-      this.loading.account = true;
-      this.results.account = null;
-      
-      exchangeApi.getAccountInfo()
-        .then(response => {
+    // Formatting functions
+    formatNumber,
+    formatDate,
+    formatSymbol,
+    formatPositions,
+    formatOrders,
+    
+    async refreshAllData() {
+      this.fetchAccountData();
+      this.fetchPositions();
+      this.fetchOpenOrders();
+      this.fetchAvailableSymbols();
+    },
+    
+    async fetchAccountData() {
+      await fetchAccountData({
+        onStart: () => {
+          this.loading.account = true;
+          this.results.account = null;
+        },
+        onSuccess: (data) => {
+          this.accountData = data;
           this.results.account = {
-            success: response.success,
-            data: response.data,
-            error: response.error
+            success: true
           };
-        })
-        .catch(error => {
+        },
+        onError: (error) => {
           this.results.account = {
             success: false,
-            error: error.message || 'Failed to fetch account information'
+            error: error.error || 'Failed to fetch account data'
           };
-        })
-        .finally(() => {
+        },
+        onFinally: () => {
           this.loading.account = false;
-        });
+        }
+      });
     },
     
-    fetchPositions() {
-      this.loading.positions = true;
-      this.results.positions = null;
-      
-      exchangeApi.getPositions()
-        .then(response => {
+    async fetchPositions() {
+      await fetchPositions({
+        onStart: () => {
+          this.loading.positions = true;
+          this.results.positions = null;
+        },
+        onSuccess: (data) => {
           this.results.positions = {
-            success: response.success,
-            data: response.data,
-            error: response.error
+            success: true,
+            data: data
           };
-        })
-        .catch(error => {
+        },
+        onError: (error) => {
           this.results.positions = {
             success: false,
-            error: error.message || 'Failed to fetch positions'
+            error: error.error || 'Failed to fetch positions'
           };
-        })
-        .finally(() => {
+        },
+        onFinally: () => {
           this.loading.positions = false;
-        });
+        }
+      });
     },
     
-    fetchOpenOrders() {
-      this.loading.openOrders = true;
-      this.results.openOrders = null;
-      this.results.cancelOrder = null; // Clear previous cancel results
-      
-      exchangeApi.getOpenOrders()
-        .then(response => {
+    async fetchOpenOrders() {
+      await fetchOpenOrders({
+        onStart: () => {
+          this.loading.openOrders = true;
+          this.results.openOrders = null;
+        },
+        onSuccess: (data) => {
+          this.openOrders = data;
           this.results.openOrders = {
-            success: response.success,
-            data: response.data,
-            error: response.error
+            success: true
           };
-        })
-        .catch(error => {
+        },
+        onError: (error) => {
           this.results.openOrders = {
             success: false,
-            error: error.message || 'Failed to fetch open orders'
+            error: error.error || 'Failed to fetch open orders'
           };
-        })
-        .finally(() => {
+        },
+        onFinally: () => {
           this.loading.openOrders = false;
-        });
+        }
+      });
     },
     
-    placeTestOrder() {
+    async fetchAvailableSymbols() {
+      await fetchMarkets({
+        onStart: () => {
+          this.loading.markets = true;
+        },
+        onSuccess: (data) => {
+          this.availableSymbols = data;
+        },
+        onError: (error) => {
+          this.errors.markets = error.error || 'Failed to fetch available symbols';
+        },
+        onFinally: () => {
+          this.loading.markets = false;
+        }
+      });
+    },
+    
+    async placeTestOrder() {
       if (!this.orderForm.symbol || !this.orderForm.side || !this.orderForm.size) {
         this.results.placeOrder = {
           success: false,
@@ -420,8 +480,15 @@ export default {
       this.loading.placeOrder = true;
       this.results.placeOrder = null;
       
+      // Format the symbol for Hyperliquid (XRP needs to be XRP-USD or XRP-USDT depending on the exchange format)
+      const formattedSymbol = this.orderForm.symbol.includes('-') ? 
+        this.orderForm.symbol : 
+        `${this.orderForm.symbol}-USD`;
+      
+      console.log(`Placing order for symbol: ${formattedSymbol}`);
+      
       const orderData = {
-        symbol: this.orderForm.symbol,
+        symbol: formattedSymbol,
         side: this.orderForm.side,
         size: parseFloat(this.orderForm.size),
         price: this.orderForm.price ? parseFloat(this.orderForm.price) : undefined,
@@ -429,36 +496,34 @@ export default {
         reduceOnly: this.orderForm.reduceOnly
       };
       
-      exchangeApi.placeOrder(orderData)
-        .then(response => {
+      console.log('Order data:', orderData);
+      
+      const result = await placeOrder(orderData, {
+        onStart: () => {
+          this.loading.placeOrder = true;
+        },
+        onSuccess: (data) => {
           this.results.placeOrder = {
-            success: response.success,
-            data: response.data,
-            message: response.message,
-            error: response.error
+            success: true,
+            data: data,
+            message: 'Order placed successfully'
           };
-          
-          // Refresh open orders after placing an order
-          if (response.success) {
-            setTimeout(() => {
-              this.fetchOpenOrders();
-              this.fetchPositions();
-              this.fetchAccountInfo();
-            }, 1000);
-          }
-        })
-        .catch(error => {
+        },
+        onError: (error) => {
           this.results.placeOrder = {
             success: false,
-            error: error.message || 'Failed to place order'
+            error: error.error || 'Failed to place order'
           };
-        })
-        .finally(() => {
+        },
+        onFinally: () => {
           this.loading.placeOrder = false;
-        });
+        }
+      });
+      
+      return result;
     },
     
-    cancelOrder(orderId, assetId) {
+    async cancelOrder(orderId, assetId) {
       if (!orderId || !assetId) {
         this.results.cancelOrder = {
           success: false,
@@ -476,314 +541,84 @@ export default {
       const numericAssetId = parseInt(assetId);
       const finalAssetId = isNaN(numericAssetId) ? assetId : numericAssetId;
       
-      exchangeApi.cancelOrder(orderId, finalAssetId)
-        .then(response => {
-          console.log('Cancel response:', response);
+      const result = await cancelOrder(orderId, finalAssetId, {
+        onStart: () => {
+          this.loading.cancelOrder = orderId;
+        },
+        onSuccess: (data) => {
           this.results.cancelOrder = {
-            success: response.success,
-            message: response.success ? 'Order cancelled successfully' : response.error || 'Failed to cancel order',
-            data: response.data
+            success: true,
+            message: 'Order cancelled successfully',
+            data: data
           };
-          
-          // Refresh open orders if cancel was successful
-          if (response.success) {
-            this.fetchOpenOrders();
-          }
-        })
-        .catch(error => {
-          console.error('Cancel error:', error);
+        },
+        onError: (error) => {
           this.results.cancelOrder = {
             success: false,
-            message: error.message || 'An error occurred while cancelling the order',
-            error
+            message: error.error || 'Failed to cancel order',
+            error: error
           };
-        })
-        .finally(() => {
+        },
+        onFinally: () => {
           this.loading.cancelOrder = null;
-        });
-    },
-    
-    refreshAllData() {
-      this.loading.refreshAll = true;
-      
-      // Reset all results
-      this.results = {
-        account: null,
-        positions: null,
-        openOrders: null,
-        placeOrder: null,
-        cancelOrder: null
-      };
-      
-      // Fetch all data in parallel
-      Promise.all([
-        this.fetchAccountInfo(),
-        this.fetchPositions(),
-        this.fetchOpenOrders()
-      ])
-        .finally(() => {
-          this.loading.refreshAll = false;
-        });
-    },
-    
-    formatAccountBalances(accountData) {
-      if (!accountData || !accountData.balance) {
-        return [];
-      }
-      
-      // Handle the new nested structure where balance is a property
-      const balance = accountData.balance;
-      const result = [];
-      
-      // Hyperliquid-specific handling for USDC balance
-      if (balance.info && typeof balance.info === 'object') {
-        // Check for Hyperliquid's specific structure
-        if (balance.info.marginSummary !== undefined || 
-            balance.info.crossMarginSummary !== undefined || 
-            balance.info.assetPositions !== undefined) {
-          
-          // Look for USDC in free/total balances
-          if (balance.free && balance.free.USDC) {
-            result.push({
-              coin: 'USDC',
-              totalBalance: balance.total?.USDC || balance.free.USDC,
-              availableBalance: balance.free.USDC,
-              usdcValue: balance.free.USDC.toFixed(2)
-            });
-          }
-          
-          // Check for USDC in balance.info.cash or other possible locations
-          if (balance.info.cash !== undefined) {
-            result.push({
-              coin: 'USDC (Cash)',
-              totalBalance: balance.info.cash,
-              availableBalance: balance.info.cash,
-              usdcValue: parseFloat(balance.info.cash).toFixed(2)
-            });
-          }
-          
-          // Check for USDC in balance.info.crossMarginSummary
-          if (balance.info.crossMarginSummary && balance.info.crossMarginSummary.accountValue !== undefined) {
-            result.push({
-              coin: 'USDC (Account Value)',
-              totalBalance: balance.info.crossMarginSummary.accountValue,
-              availableBalance: balance.info.crossMarginSummary.accountValue,
-              usdcValue: parseFloat(balance.info.crossMarginSummary.accountValue).toFixed(2)
-            });
-          }
         }
-      }
-      
-      // If no results from Hyperliquid-specific handling, try standard CCXT format
-      if (result.length === 0) {
-        // Standard CCXT format
-        if (balance.total) {
-          for (const currency in balance.total) {
-            if (balance.total[currency] > 0) {
-              result.push({
-                coin: currency,
-                totalBalance: balance.total[currency] || 0,
-                availableBalance: balance.free?.[currency] || 0,
-                usdcValue: (balance.total[currency] * (balance.usdValue?.[currency] || 1)).toFixed(2)
-              });
-            }
-          }
-        }
-        
-        // Try currencies array if it exists
-        if (result.length === 0 && balance.currencies && Array.isArray(balance.currencies)) {
-          return balance.currencies.map(currency => ({
-            coin: currency.currency,
-            totalBalance: currency.total || 0,
-            availableBalance: currency.available || currency.free || 0,
-            usdcValue: currency.usdValue || (currency.total * 1).toFixed(2)
-          }));
-        }
-      }
-      
-      // If we still have no results, add a debug entry
-      if (result.length === 0) {
-        result.push({
-          coin: 'Debug Info',
-          totalBalance: 'No balance found',
-          availableBalance: 'Check console',
-          usdcValue: 'N/A'
-        });
-        
-        // Add raw data for debugging
-        if (balance.info) {
-          const keys = Object.keys(balance.info);
-          keys.forEach(key => {
-            result.push({
-              coin: key,
-              totalBalance: typeof balance.info[key] === 'object' ? 
-                JSON.stringify(balance.info[key]).substring(0, 20) + '...' : 
-                balance.info[key],
-              availableBalance: 'See raw data',
-              usdcValue: 'N/A'
-            });
-          });
-        }
-      }
+      });
       
       return result;
     },
     
-    formatPositions(positionsData) {
-      if (!positionsData) {
-        return [];
+    async fetchMarketPrice() {
+      const symbol = this.orderForm.symbol;
+      if (!symbol) return;
+      
+      this.loading.fetchingPrice = true;
+      console.log(`Fetching market price for ${symbol}...`);
+      
+      // Store the price in the marketPrices object
+      if (!this.marketPrices[symbol]) {
+        this.marketPrices[symbol] = null;
       }
       
-      // Handle the new nested structure
-      const positions = Array.isArray(positionsData) ? positionsData : 
-                        (positionsData.positions && Array.isArray(positionsData.positions) ? 
-                         positionsData.positions : []);
-      
-      // Extract market prices from details if available
-      const marketPrices = positionsData.details && positionsData.details.marketPrices ? 
-                          positionsData.details.marketPrices : {};
-      
-      if (!positions || positions.length === 0) {
-        return [];
-      }
-      
-      return positions.map(position => {
-        // Extract common position properties with fallbacks
-        const rawSymbol = position.symbol || position.instrument || position.market || 'Unknown';
-        const symbol = this.formatSymbol(rawSymbol);
-        
-        const side = position.side || (position.size > 0 ? 'long' : 'short');
-        const size = Math.abs(position.size || position.contracts || position.amount || 0);
-        const entryPrice = position.entryPrice || position.entry || position.averagePrice || 0;
-        
-        // Use market price from our fetched prices if available, otherwise use position's markPrice
-        let markPrice = position.markPrice || position.lastPrice || position.price || 0;
-        
-        // Try to get the current market price from our fetched prices
-        if (marketPrices[rawSymbol]) {
-          markPrice = marketPrices[rawSymbol];
+      const result = await fetchMarketPrice(symbol, {
+        onStart: () => {
+          this.loading.fetchingPrice = true;
+        },
+        onSuccess: (price) => {
+          this.marketPrices[symbol] = price;
+        },
+        onError: (error) => {
+          console.error(`Error fetching price for ${symbol}:`, error);
+        },
+        onFinally: () => {
+          this.loading.fetchingPrice = false;
         }
-        
-        // Calculate PnL based on entry price and mark price if not provided
-        let pnl = position.unrealizedPnl || position.pnl || position.profit;
-        if (!pnl && markPrice && entryPrice && size) {
-          // Calculate PnL based on position side, entry price, and mark price
-          if (side.toLowerCase() === 'long') {
-            pnl = (markPrice - entryPrice) * size;
-          } else {
-            pnl = (entryPrice - markPrice) * size;
-          }
-        }
-        
-        const leverage = position.leverage || 1;
-        
-        return {
-          symbol,
-          side,
-          size,
-          entryPrice,
-          markPrice,
-          pnl: pnl || 0,
-          pnlPercentage: this.calculatePnlPercentage(pnl, entryPrice, size),
-          liquidationPrice: position.liquidationPrice || position.liqPrice || 0,
-          margin: position.margin || position.collateral || 0,
-          leverage,
-          timestamp: position.timestamp || Date.now(),
-          raw: position // Keep the raw data for debugging
-        };
       });
+      
+      return result;
     },
     
-    formatSymbol(symbol) {
-      if (!symbol) return 'Unknown';
-      
-      // Simplify symbol by removing the "/USDC:USDC" suffix
-      if (symbol.includes('/')) {
-        return symbol.split('/')[0];
-      } else if (symbol.includes(':')) {
-        return symbol.split(':')[0];
-      }
-      return symbol;
-    },
-    
-    formatNumber(value, decimals = null) {
-      if (value === null || value === undefined) {
-        return '-';
-      }
-      
-      const num = parseFloat(value);
-      
-      if (isNaN(num)) {
-        return '-';
-      }
-      
-      if (decimals !== null) {
-        return num.toFixed(decimals);
-      }
-      
-      // Dynamically determine decimals based on value
-      if (Math.abs(num) >= 1000) {
-        return num.toFixed(2);
-      } else if (Math.abs(num) >= 1) {
-        return num.toFixed(4);
-      } else {
-        return num.toFixed(6);
+    onSymbolChange() {
+      // Only fetch market price if it's a limit order and a symbol is selected
+      if (this.orderForm.orderType === 'limit' && this.orderForm.symbol) {
+        this.fetchMarketPrice();
       }
     },
     
-    formatDate(timestamp) {
-      if (!timestamp) {
-        return '-';
-      }
-      
-      const date = new Date(timestamp);
-      return date.toLocaleString();
-    },
-    
-    calculatePnlPercentage(pnl, entryPrice, size) {
-      if (!entryPrice || !size || entryPrice === 0 || size === 0) {
-        return '0.00';
-      }
-      
-      const positionValue = entryPrice * size;
-      const pnlPercentage = (pnl / positionValue) * 100;
-      
-      return pnlPercentage.toFixed(2);
-    },
-    
-    formatOrders(orders) {
-      if (!orders || !Array.isArray(orders)) {
-        return [];
-      }
-      
-      return orders.map(order => {
-        // Extract the asset ID from the symbol if available
-        let assetId = null;
-        if (order.info && order.info.coin) {
-          assetId = order.info.coin;
-        } else if (order.symbol && !isNaN(order.symbol)) {
-          assetId = order.symbol;
+    onOrderTypeChange() {
+      // If switching to limit order and we have a symbol selected, fetch the price
+      if (this.orderForm.orderType === 'limit' && this.orderForm.symbol) {
+        // If we already have a cached price for this symbol, use it
+        if (this.marketPrices[this.orderForm.symbol]) {
+          this.orderForm.price = parseFloat(this.marketPrices[this.orderForm.symbol].toFixed(4));
+        } else {
+          // Otherwise fetch the current price
+          this.fetchMarketPrice();
         }
-        
-        // Create a formatted order with all required fields
-        return {
-          id: order.id || order.orderId || 'Unknown',
-          timestamp: order.timestamp || Date.now(),
-          symbol: this.formatSymbol(order.symbol || 'Unknown'),
-          assetId: assetId, // Store the numeric asset ID
-          side: order.side === 'B' ? 'Buy' : 'Sell',
-          orderType: order.orderType || order.type || 'limit',
-          size: order.size || order.amount || order.quantity || 0,
-          filled: order.filled || order.filledQuantity || order.executed || 0,
-          price: order.price || 0,
-          value: (order.price || 0) * (order.size || order.amount || order.quantity || 0),
-          reduceOnly: order.reduceOnly || false,
-          status: order.status || 'open',
-          // Keep original data for reference
-          raw: order
-        };
-      });
-    }
+      } else if (this.orderForm.orderType === 'market') {
+        // Clear the price for market orders
+        this.orderForm.price = null;
+      }
+    },
   }
 };
 </script>

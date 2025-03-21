@@ -49,8 +49,28 @@ const exchangeApi = {
    */
   async getPositions() {
     try {
+      console.log('Calling API endpoint for positions...');
       const response = await axios.get(`${API_BASE_URL}/positions`, authService.getAuthHeaders());
-      return handleResponse(response);
+      console.log('Raw positions API response:', response.data);
+      
+      // Process the response to ensure we have the correct structure
+      let processedResponse = handleResponse(response);
+      
+      // If we have a successful response but no positions data in the expected format,
+      // check if there are positions in a different format
+      if (processedResponse.success && 
+          (!processedResponse.data || 
+           (Array.isArray(processedResponse.data) && processedResponse.data.length === 0))) {
+        
+        // Check for positions in different response structures
+        if (response.data && response.data.positions) {
+          processedResponse.data = response.data.positions;
+        } else if (response.data && response.data.data && response.data.data.positions) {
+          processedResponse.data = response.data.data.positions;
+        }
+      }
+      
+      return processedResponse;
     } catch (error) {
       return handleError(error);
     }
@@ -144,6 +164,22 @@ const exchangeApi = {
   async getTicker(symbol) {
     try {
       const response = await axios.get(`${API_BASE_URL}/ticker/${symbol}`, authService.getAuthHeaders());
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  /**
+   * Get current market price for a symbol
+   * @param {String} symbol Symbol to get price for (e.g., "XRP")
+   * @returns {Promise} Market price data
+   */
+  async getMarketPrice(symbol) {
+    try {
+      // Format the symbol if needed
+      const formattedSymbol = symbol.includes('-') ? symbol : `${symbol}-USD`;
+      const response = await axios.get(`${API_BASE_URL}/price/${formattedSymbol}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);

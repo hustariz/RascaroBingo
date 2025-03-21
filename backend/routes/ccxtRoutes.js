@@ -513,10 +513,53 @@ router.post('/order', async (req, res) => {
       });
     }
     
+    // Log the order request details
+    console.log('Order request:', {
+      symbol,
+      side,
+      size,
+      price,
+      orderType,
+      reduceOnly,
+      leverage
+    });
+    
+    // For Hyperliquid, ensure we have the correct market symbol
+    let marketSymbol = symbol;
+    
+    // If the exchange is Hyperliquid, we need to handle the symbol properly
+    if (exchange.id === 'hyperliquid') {
+      try {
+        // Fetch markets to find the correct symbol format
+        const markets = await exchange.fetchMarkets();
+        console.log(`Looking for market matching symbol: ${symbol}`);
+        
+        // Try to find the market by symbol, id, or base currency
+        const market = markets.find(m => 
+          m.id === symbol || 
+          m.symbol === symbol || 
+          m.base === symbol.split('-')[0] || // Handle XRP from XRP-USD
+          m.symbol.startsWith(symbol.split('-')[0]) // Handle XRP from XRP-USD
+        );
+        
+        if (market) {
+          marketSymbol = market.symbol;
+          console.log(`Found market for ${symbol}: using ${marketSymbol}`);
+        } else {
+          console.log('Available markets:', markets.map(m => ({ id: m.id, symbol: m.symbol, base: m.base })));
+          console.warn(`Could not find exact market for symbol: ${symbol}, using as-is`);
+        }
+      } catch (marketError) {
+        console.warn('Error fetching markets:', marketError.message);
+        // Continue with the order using the provided symbol
+      }
+    }
+    
     // Set leverage if provided (Hyperliquid specific)
     if (leverage && exchange.has['setLeverage']) {
       try {
-        await exchange.setLeverage(leverage, symbol);
+        console.log(`Setting leverage to ${leverage} for ${marketSymbol}`);
+        await exchange.setLeverage(leverage, marketSymbol);
       } catch (leverageError) {
         console.warn('Failed to set leverage:', leverageError.message);
         // Continue with order placement even if leverage setting fails
@@ -529,26 +572,35 @@ router.post('/order', async (req, res) => {
       params.reduceOnly = reduceOnly;
     }
     
+    // For Hyperliquid, ensure numeric values are properly formatted
+    const orderSize = parseFloat(size);
+    const orderPrice = price ? parseFloat(price) : undefined;
+    
+    console.log(`Creating order: ${marketSymbol}, ${orderType}, ${side}, ${orderSize}, ${orderPrice}`);
+    
     let order;
     if (orderType === 'market') {
       // Place market order
-      order = await exchange.createOrder(symbol, 'market', side, size, undefined, params);
+      order = await exchange.createOrder(marketSymbol, 'market', side, orderSize, undefined, params);
     } else {
       // Default to limit order
-      if (!price) {
+      if (!orderPrice) {
         return res.status(400).json({
           success: false,
           error: 'Price is required for limit orders'
         });
       }
-      order = await exchange.createOrder(symbol, 'limit', side, size, price, params);
+      order = await exchange.createOrder(marketSymbol, 'limit', side, orderSize, orderPrice, params);
     }
+    
+    console.log('Order created successfully:', order);
     
     return res.json({
       success: true,
       data: order
     });
   } catch (error) {
+    console.error('Order placement error:', error);
     return handleApiError(error, req, res);
   }
 });
@@ -668,6 +720,104 @@ router.post('/leverage', async (req, res) => {
     return res.json({
       success: true,
       data: result
+    });
+  } catch (error) {
+    return handleApiError(error, req, res);
+  }
+});
+
+/**
+ * Get current market price for a symbol
+ * GET /api/ccxt/price/:symbol
+ */
+router.get('/price/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    
+    if (!symbol) {
+      return res.status(400).json({
+        success: false,
+        error: 'Symbol is required'
+      });
+    }
+    
+    console.log(`Fetching price for symbol: ${symbol}`);
+    
+    // Extract the base asset from the symbol (e.g., "XRP" from "XRP-USD")
+    const baseAsset = symbol.split('-')[0];
+    console.log(`Extracted asset ID: ${baseAsset}`);
+    
+    // For Hyperliquid, we need to find the correct market symbol
+    let marketSymbol = symbol;
+    let marketPrice = null;
+    
+    try {
+      // First try to get the ticker for the exact symbol
+      const ticker = await exchange.fetchTicker(symbol);
+      marketPrice = ticker.last || ticker.close || ticker.bid;
+      console.log(`Direct ticker price for ${symbol}: ${marketPrice}`);
+    } catch (directTickerError) {
+      console.warn(`Could not fetch direct ticker for ${symbol}: ${directTickerError.message}`);
+      
+      // If direct ticker fails, try to find the market and then get its ticker
+      try {
+        const markets = await exchange.fetchMarkets();
+        
+        // Find markets that match the base asset
+        const matchingMarkets = markets.filter(m => 
+          m.base === baseAsset || 
+          m.symbol.startsWith(baseAsset + '/') ||
+          m.id === baseAsset
+        );
+        
+        if (matchingMarkets.length > 0) {
+          // Use the first matching market
+          marketSymbol = matchingMarkets[0].symbol;
+          console.log(`Found matching market: ${marketSymbol}`);
+          
+          // Get ticker for the matching market
+          const ticker = await exchange.fetchTicker(marketSymbol);
+          marketPrice = ticker.last || ticker.close || ticker.bid;
+        } else {
+          // If no matching market, try to fetch all tickers and find one with the base asset
+          const tickers = await exchange.fetchTickers();
+          const marketPrices = {};
+          
+          for (const [tickerSymbol, tickerData] of Object.entries(tickers)) {
+            if (tickerSymbol.startsWith(baseAsset + '/') || 
+                tickerSymbol.includes('/' + baseAsset) ||
+                tickerSymbol.startsWith(baseAsset + ':')) {
+              marketPrices[tickerSymbol] = tickerData.last || tickerData.close || tickerData.bid;
+            }
+          }
+          
+          console.log(`Market prices fetched:`, marketPrices);
+          
+          if (Object.keys(marketPrices).length > 0) {
+            // Use the first price found
+            marketSymbol = Object.keys(marketPrices)[0];
+            marketPrice = marketPrices[marketSymbol];
+          }
+        }
+      } catch (marketSearchError) {
+        console.error(`Error searching for markets: ${marketSearchError.message}`);
+      }
+    }
+    
+    if (marketPrice === null) {
+      return res.status(404).json({
+        success: false,
+        error: `Could not find price for ${symbol}`
+      });
+    }
+    
+    return res.json({
+      success: true,
+      data: {
+        symbol: marketSymbol,
+        price: marketPrice,
+        timestamp: new Date().toISOString()
+      }
     });
   } catch (error) {
     return handleApiError(error, req, res);
