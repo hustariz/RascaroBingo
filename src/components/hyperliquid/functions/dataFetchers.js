@@ -307,3 +307,50 @@ export async function fetchTradeHistory(callbacks = {}) {
     onFinally();
   }
 }
+
+/**
+ * Fetch order history from Hyperliquid
+ * @param {Object} callbacks Callback functions for different fetch states
+ * @returns {Promise} Promise that resolves with order history data
+ */
+export async function fetchOrderHistory(callbacks = {}) {
+  const {
+    onStart = () => {},
+    onSuccess = () => {},
+    onError = () => {},
+    onFinally = () => {}
+  } = callbacks;
+  
+  // Signal that fetch has started
+  onStart();
+  
+  try {
+    // Fetch order history from exchangeApi
+    const response = await exchangeApi.getOrderHistory();
+    
+    if (response.success) {
+      onSuccess(response.data);
+      return {
+        success: true,
+        data: response.data
+      };
+    } else {
+      const error = {
+        success: false,
+        error: response.error || 'Failed to fetch order history'
+      };
+      onError(error);
+      return error;
+    }
+  } catch (error) {
+    const errorResult = {
+      success: false,
+      error: error.message || 'An error occurred while fetching order history'
+    };
+    onError(errorResult);
+    return errorResult;
+  } finally {
+    // Signal that fetch has completed
+    onFinally();
+  }
+}

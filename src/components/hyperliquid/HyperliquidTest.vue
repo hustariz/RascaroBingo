@@ -9,6 +9,9 @@
         <button @click="toggleTradeHistory" :disabled="loading.tradeHistory" class="history-button">
           {{ showTradeHistory ? 'Hide Trade History' : 'View Trade History' }}
         </button>
+        <button @click="toggleOrderHistory" :disabled="loading.orderHistory" class="history-button order-history-button">
+          {{ showOrderHistory ? 'Hide Order History' : 'View Order History' }}
+        </button>
       </div>
     </div>
     
@@ -233,6 +236,13 @@
         </div>
       </div>
       
+      <!-- Order History Section (conditionally displayed) -->
+      <div v-if="showOrderHistory" class="section-row">
+        <div class="data-section order-history-section">
+          <HyperliquidOrderHistory />
+        </div>
+      </div>
+      
       <!-- Third Row: Order Placement -->
       <div class="section-row">
         <div class="data-section">
@@ -321,12 +331,14 @@ import { formatAccountBalances, formatPositions, formatOrders, formatNumber, for
 import { placeOrder, cancelOrder, fetchMarketPrice } from './functions/orderFunctions';
 import { fetchAccountData, fetchPositions, fetchOpenOrders, fetchMarkets } from './functions/dataFetchers';
 import HyperliquidHistory from './HyperliquidHistory.vue';
+import HyperliquidOrderHistory from './HyperliquidOrderHistory.vue';
 
 export default {
   name: 'HyperliquidTest',
   
   components: {
-    HyperliquidHistory
+    HyperliquidHistory,
+    HyperliquidOrderHistory
   },
   
   data() {
@@ -344,7 +356,9 @@ export default {
         placeOrder: false,
         cancelOrder: null,
         fetchingPrice: false,
-        markets: false
+        markets: false,
+        tradeHistory: false,
+        orderHistory: false
       },
       results: {
         account: null,
@@ -364,7 +378,8 @@ export default {
       errors: {
         markets: null
       },
-      showTradeHistory: false
+      showTradeHistory: false,
+      showOrderHistory: false
     };
   },
   mounted() {
@@ -818,6 +833,10 @@ export default {
     
     toggleTradeHistory() {
       this.showTradeHistory = !this.showTradeHistory;
+    },
+    
+    toggleOrderHistory() {
+      this.showOrderHistory = !this.showOrderHistory;
     }
   }
 };
