@@ -260,3 +260,50 @@ export async function fetchMarkets(callbacks = {}) {
     onFinally();
   }
 }
+
+/**
+ * Fetch trade history from Hyperliquid
+ * @param {Object} callbacks Callback functions for different fetch states
+ * @returns {Promise} Promise that resolves with trade history data
+ */
+export async function fetchTradeHistory(callbacks = {}) {
+  const {
+    onStart = () => {},
+    onSuccess = () => {},
+    onError = () => {},
+    onFinally = () => {}
+  } = callbacks;
+  
+  // Signal that fetch has started
+  onStart();
+  
+  try {
+    // Fetch trade history from exchangeApi
+    const response = await exchangeApi.getTradeHistory();
+    
+    if (response.success) {
+      onSuccess(response.data);
+      return {
+        success: true,
+        data: response.data
+      };
+    } else {
+      const error = {
+        success: false,
+        error: response.error || 'Failed to fetch trade history'
+      };
+      onError(error);
+      return error;
+    }
+  } catch (error) {
+    const errorResult = {
+      success: false,
+      error: error.message || 'An error occurred while fetching trade history'
+    };
+    onError(errorResult);
+    return errorResult;
+  } finally {
+    // Signal that fetch has completed
+    onFinally();
+  }
+}

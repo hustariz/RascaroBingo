@@ -824,4 +824,75 @@ router.get('/price/:symbol', async (req, res) => {
   }
 });
 
+/**
+ * Get trade history
+ * GET /api/ccxt/myTrades
+ */
+router.get('/myTrades', async (req, res) => {
+  try {
+    // Extract optional query parameters
+    const { symbol, limit, since } = req.query;
+    
+    // Prepare parameters object
+    const params = {};
+    if (limit) params.limit = parseInt(limit, 10);
+    if (since) params.since = parseInt(since, 10);
+    
+    let trades = [];
+    
+    if (symbol) {
+      // If symbol is provided, fetch trades for that specific symbol
+      console.log(`Fetching trade history for symbol: ${symbol}`);
+      trades = await exchange.fetchMyTrades(symbol, undefined, params.limit, params);
+    } else {
+      // If no symbol provided, try to fetch all trades
+      console.log('Fetching all trade history');
+      
+      try {
+        // Some exchanges support fetching all trades at once
+        trades = await exchange.fetchMyTrades(undefined, undefined, params.limit, params);
+      } catch (error) {
+        console.warn('Could not fetch all trades at once:', error.message);
+        
+        // Fallback: fetch trades for each market
+        try {
+          const markets = await exchange.fetchMarkets();
+          const allTrades = [];
+          
+          // Limit to 10 most common markets to avoid rate limits
+          const commonMarkets = markets.slice(0, 10);
+          
+          for (const market of commonMarkets) {
+            try {
+              const marketTrades = await exchange.fetchMyTrades(market.symbol, undefined, params.limit ? Math.min(params.limit, 10) : 10, params);
+              allTrades.push(...marketTrades);
+            } catch (marketError) {
+              console.warn(`Could not fetch trades for ${market.symbol}:`, marketError.message);
+            }
+          }
+          
+          trades = allTrades;
+        } catch (marketsError) {
+          console.error('Error fetching markets:', marketsError.message);
+        }
+      }
+    }
+    
+    // Sort trades by timestamp (newest first)
+    trades.sort((a, b) => b.timestamp - a.timestamp);
+    
+    // Limit the number of trades if specified
+    if (params.limit && trades.length > params.limit) {
+      trades = trades.slice(0, params.limit);
+    }
+    
+    return res.json({
+      success: true,
+      data: trades
+    });
+  } catch (error) {
+    return handleApiError(error, req, res);
+  }
+});
+
 module.exports = router;
