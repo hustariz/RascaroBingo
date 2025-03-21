@@ -213,32 +213,32 @@ export async function fetchMarkets(callbacks = {}) {
   onStart();
   
   try {
-    console.log('Fetching markets...');
-    
-    // Fetch markets
+    // Fetch markets directly from exchangeApi
     const response = await exchangeApi.getMarkets();
-    console.log('Markets response:', response);
     
     if (response.success) {
-      // Extract available symbols
-      const symbols = response.data.map(market => {
-        // Extract base symbol (e.g., "BTC" from "BTC/USDT:USDT")
-        if (market.symbol.includes('/')) {
-          return market.symbol.split('/')[0];
-        } else if (market.symbol.includes('-')) {
-          return market.symbol.split('-')[0];
-        }
-        return market.symbol;
-      });
+      let markets = [];
       
-      // Remove duplicates
-      const uniqueSymbols = [...new Set(symbols)];
+      // Handle different response structures
+      if (Array.isArray(response.data)) {
+        markets = response.data;
+      } else if (response.data && Array.isArray(response.data.markets)) {
+        markets = response.data.markets;
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        markets = response.data.data;
+      }
+      
+      // Extract symbols from markets
+      const symbols = markets.map(market => market.symbol || market.id || '');
+      
+      // Filter out empty symbols and remove duplicates
+      const uniqueSymbols = [...new Set(symbols.filter(s => s))];
       
       onSuccess(uniqueSymbols);
       return {
         success: true,
         data: uniqueSymbols,
-        rawMarkets: response.data
+        rawMarkets: markets
       };
     } else {
       const error = {
@@ -249,7 +249,6 @@ export async function fetchMarkets(callbacks = {}) {
       return error;
     }
   } catch (error) {
-    console.error('Markets fetch error:', error);
     const errorResult = {
       success: false,
       error: error.message || 'An error occurred while fetching markets'
