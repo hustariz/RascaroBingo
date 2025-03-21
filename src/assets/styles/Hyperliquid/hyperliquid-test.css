@@ -649,6 +649,33 @@ input:focus, select:focus {
   cursor: not-allowed;
 }
 
+/* Loading indicators */
+.loading-indicator-inline {
+  font-size: 0.8rem;
+  color: #888;
+  margin-left: 8px;
+  display: inline-block;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* Form styling */
+.order-form .form-group {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.price-fetched {
+  color: #4caf50;
+  font-size: 0.8rem;
+  margin-left: 8px;
+}
+
 @media (max-width: 768px) {
   .test-sections {
     grid-template-columns: 1fr;

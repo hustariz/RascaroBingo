@@ -49,8 +49,28 @@ const exchangeApi = {
    */
   async getPositions() {
     try {
+      console.log('Calling API endpoint for positions...');
       const response = await axios.get(`${API_BASE_URL}/positions`, authService.getAuthHeaders());
-      return handleResponse(response);
+      console.log('Raw positions API response:', response.data);
+      
+      // Process the response to ensure we have the correct structure
+      let processedResponse = handleResponse(response);
+      
+      // If we have a successful response but no positions data in the expected format,
+      // check if there are positions in a different format
+      if (processedResponse.success && 
+          (!processedResponse.data || 
+           (Array.isArray(processedResponse.data) && processedResponse.data.length === 0))) {
+        
+        // Check for positions in different response structures
+        if (response.data && response.data.positions) {
+          processedResponse.data = response.data.positions;
+        } else if (response.data && response.data.data && response.data.data.positions) {
+          processedResponse.data = response.data.data.positions;
+        }
+      }
+      
+      return processedResponse;
     } catch (error) {
       return handleError(error);
     }
@@ -144,6 +164,33 @@ const exchangeApi = {
   async getTicker(symbol) {
     try {
       const response = await axios.get(`${API_BASE_URL}/ticker/${symbol}`, authService.getAuthHeaders());
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  /**
+   * Get current market price for a symbol
+   * @param {String} symbol Symbol to get price for (e.g., "XRP" or "XRP/USDC:USDC")
+   * @returns {Promise} Market price data
+   */
+  async getMarketPrice(symbol) {
+    try {
+      // Handle different symbol formats
+      let formattedSymbol = symbol;
+      
+      // If it's a complex symbol like "XRP/USDC:USDC", extract just the base symbol
+      if (symbol.includes('/') || symbol.includes(':')) {
+        // Extract the base symbol (e.g., "XRP" from "XRP/USDC:USDC")
+        formattedSymbol = symbol.split('/')[0];
+      }
+      
+      // Format the symbol for the API endpoint
+      formattedSymbol = formattedSymbol.includes('-') ? formattedSymbol : `${formattedSymbol}-USD`;
+      
+      console.log(`Fetching market price for formatted symbol: ${formattedSymbol}`);
+      const response = await axios.get(`${API_BASE_URL}/price/${formattedSymbol}`, authService.getAuthHeaders());
       return handleResponse(response);
     } catch (error) {
       return handleError(error);
