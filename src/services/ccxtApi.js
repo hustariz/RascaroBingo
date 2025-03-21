@@ -252,6 +252,50 @@ const exchangeApi = {
     } catch (error) {
       return handleError(error);
     }
+  },
+
+  /**
+   * Get trade history from Hyperliquid
+   * @param {Object} params Optional parameters (symbol, limit, since, etc.)
+   * @returns {Promise} Trade history data
+   */
+  async getTradeHistory(params = {}) {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      // Add optional parameters to query string
+      if (params.symbol) queryParams.append('symbol', params.symbol);
+      if (params.limit) queryParams.append('limit', params.limit);
+      if (params.since) queryParams.append('since', params.since);
+      
+      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+      const response = await axios.get(`${API_BASE_URL}/myTrades${queryString}`, authService.getAuthHeaders());
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  /**
+   * Get order history from Hyperliquid
+   * @param {Object} params Optional parameters (symbol, limit, since, etc.)
+   * @returns {Promise} Order history data
+   */
+  async getOrderHistory(params = {}) {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      // Add optional parameters to query string
+      if (params.symbol) queryParams.append('symbol', params.symbol);
+      if (params.limit) queryParams.append('limit', params.limit);
+      if (params.since) queryParams.append('since', params.since);
+      
+      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+      const response = await axios.get(`${API_BASE_URL}/orders/history${queryString}`, authService.getAuthHeaders());
+      return handleResponse(response);
+    } catch (error) {
+      return handleError(error);
+    }
   }
 };
 

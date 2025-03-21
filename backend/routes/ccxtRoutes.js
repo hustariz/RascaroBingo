@@ -824,4 +824,146 @@ router.get('/price/:symbol', async (req, res) => {
   }
 });
 
+/**
+ * Get trade history
+ * GET /api/ccxt/myTrades
+ */
+router.get('/myTrades', async (req, res) => {
+  try {
+    // Extract optional query parameters
+    const { symbol, limit, since } = req.query;
+    
+    // Prepare parameters object
+    const params = {};
+    if (limit) params.limit = parseInt(limit, 10);
+    if (since) params.since = parseInt(since, 10);
+    
+    let trades = [];
+    
+    if (symbol) {
+      // If symbol is provided, fetch trades for that specific symbol
+      console.log(`Fetching trade history for symbol: ${symbol}`);
+      trades = await exchange.fetchMyTrades(symbol, undefined, params.limit, params);
+    } else {
+      // If no symbol provided, try to fetch all trades
+      console.log('Fetching all trade history');
+      
+      try {
+        // Some exchanges support fetching all trades at once
+        trades = await exchange.fetchMyTrades(undefined, undefined, params.limit, params);
+      } catch (error) {
+        console.warn('Could not fetch all trades at once:', error.message);
+        
+        // Fallback: fetch trades for each market
+        try {
+          const markets = await exchange.fetchMarkets();
+          const allTrades = [];
+          
+          // Limit to 10 most common markets to avoid rate limits
+          const commonMarkets = markets.slice(0, 10);
+          
+          for (const market of commonMarkets) {
+            try {
+              const marketTrades = await exchange.fetchMyTrades(market.symbol, undefined, params.limit ? Math.min(params.limit, 10) : 10, params);
+              allTrades.push(...marketTrades);
+            } catch (marketError) {
+              console.warn(`Could not fetch trades for ${market.symbol}:`, marketError.message);
+            }
+          }
+          
+          trades = allTrades;
+        } catch (marketsError) {
+          console.error('Error fetching markets:', marketsError.message);
+        }
+      }
+    }
+    
+    // Sort trades by timestamp (newest first)
+    trades.sort((a, b) => b.timestamp - a.timestamp);
+    
+    // Limit the number of trades if specified
+    if (params.limit && trades.length > params.limit) {
+      trades = trades.slice(0, params.limit);
+    }
+    
+    return res.json({
+      success: true,
+      data: trades
+    });
+  } catch (error) {
+    return handleApiError(error, req, res);
+  }
+});
+
+/**
+ * Get order history
+ * GET /api/ccxt/orders/history
+ */
+router.get('/orders/history', async (req, res) => {
+  try {
+    // Extract optional query parameters
+    const { symbol, limit, since } = req.query;
+    
+    // Prepare parameters object
+    const params = {};
+    if (limit) params.limit = parseInt(limit, 10);
+    if (since) params.since = parseInt(since, 10);
+    
+    let orders = [];
+    
+    if (symbol) {
+      // If symbol is provided, fetch orders for that specific symbol
+      console.log(`Fetching order history for symbol: ${symbol}`);
+      orders = await exchange.fetchClosedOrders(symbol, undefined, params.limit, params);
+    } else {
+      // If no symbol provided, try to fetch all orders
+      console.log('Fetching all order history');
+      
+      try {
+        // Some exchanges support fetching all orders at once
+        orders = await exchange.fetchClosedOrders(undefined, undefined, params.limit, params);
+      } catch (error) {
+        console.warn('Could not fetch all orders at once:', error.message);
+        
+        // Fallback: fetch orders for each market
+        try {
+          const markets = await exchange.fetchMarkets();
+          const allOrders = [];
+          
+          // Limit to 10 most common markets to avoid rate limits
+          const commonMarkets = markets.slice(0, 10);
+          
+          for (const market of commonMarkets) {
+            try {
+              const marketOrders = await exchange.fetchClosedOrders(market.symbol, undefined, params.limit ? Math.min(params.limit, 10) : 10, params);
+              allOrders.push(...marketOrders);
+            } catch (marketError) {
+              console.warn(`Could not fetch orders for ${market.symbol}:`, marketError.message);
+            }
+          }
+          
+          orders = allOrders;
+        } catch (marketsError) {
+          console.error('Error fetching markets:', marketsError.message);
+        }
+      }
+    }
+    
+    // Sort orders by timestamp (newest first)
+    orders.sort((a, b) => b.timestamp - a.timestamp);
+    
+    // Limit the number of orders if specified
+    if (params.limit && orders.length > params.limit) {
+      orders = orders.slice(0, params.limit);
+    }
+    
+    return res.json({
+      success: true,
+      data: orders
+    });
+  } catch (error) {
+    return handleApiError(error, req, res);
+  }
+});
+
 module.exports = router;
