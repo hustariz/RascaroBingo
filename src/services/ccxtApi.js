@@ -8,7 +8,14 @@
 import axios from 'axios';
 import authService from './authService';
 
-const API_BASE_URL = '/api/ccxt';
+// Try to get API URL from different environment variable formats
+const API_URL = process.env.VUE_APP_API_URL || 
+  (typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_URL : undefined) || 
+  'http://localhost:3004';
+
+// Use the full API URL with /api/ccxt prefix
+const API_BASE_URL = `${API_URL}/api/ccxt`;
+console.log(' CCXT API using base URL:', API_BASE_URL);
 
 // Helper function to handle API responses
 const handleResponse = (response) => {
