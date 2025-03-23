@@ -177,15 +177,36 @@ app.all('/api/*', (req, res) => {
   });
 });
 
-// History middleware (after API routes, before static files)
-app.use(history());
-
-// Static files and SPA routes
+// Static files and SPA routes for production
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, 'dist');
   console.log('📂 Production dist path:', distPath);
   
+  // Apply history middleware only to non-API routes
+  app.use((req, res, next) => {
+    if (req.url.startsWith('/api')) {
+      // Skip history middleware for API routes
+      next();
+    } else {
+      // Apply history middleware for non-API routes
+      history()(req, res, next);
+    }
+  });
+  
+  // Serve static files
   app.use(express.static(distPath));
+  
+  // Serve index.html for all non-API routes that don't match static files
+  app.get('*', (req, res, next) => {
+    if (!req.url.startsWith('/api')) {
+      res.sendFile(path.join(distPath, 'index.html'));
+    } else {
+      next();
+    }
+  });
+} else {
+  // In development, just use history middleware for all routes
+  app.use(history());
 }
 
 // Global Error Handlers
