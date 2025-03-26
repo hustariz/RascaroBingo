@@ -40,7 +40,11 @@ import {
   faUsers,
   faHourglassStart,
   faCalendarAlt,
-  faChartPie
+  faChartPie,
+  faExchangeAlt,
+  faRobot,
+  faServer,
+  faSync
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -76,7 +80,11 @@ library.add(
   faUsers,
   faHourglassStart,
   faCalendarAlt,
-  faChartPie
+  faChartPie,
+  faExchangeAlt,
+  faRobot,
+  faServer,
+  faSync
 );
 
 const app = createApp(App);

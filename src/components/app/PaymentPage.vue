@@ -22,7 +22,7 @@
                 <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
                 <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Basic Analytics</span></li>
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
-                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
+                <li><font-awesome-icon icon="robot" class="payment-feature-check" /><span>Live Trading (1 API)</span></li>
                 <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Export</span></li>
               </ul>
             </div>
@@ -50,7 +50,7 @@
                 <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
                 <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
-                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
+                <li><font-awesome-icon icon="robot" class="payment-feature-check" /><span>Live Trading (2 API's)</span></li>
                 <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
                 <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strat Update</span></li>
               </ul>
@@ -80,7 +80,7 @@
                 <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
                 <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
-                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
+                <li><font-awesome-icon icon="robot" class="payment-feature-check" /><span>Live Trading (3 API's)</span></li>
                 <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
                 <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Bingo Script Case</span></li>
                 <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strat Update</span></li>
@@ -111,10 +111,10 @@
                 <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
                 <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Premium Analytics</span></li>
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
-                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>VIP Support</span></li>
+                <li><font-awesome-icon icon="robot" class="payment-feature-check" /><span>Live Trading (All API's)</span></li>
                 <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
                 <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Bingo Script Case</span></li>
-                <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
+                <li><font-awesome-icon icon="trophy" class="payment-feature-check" /><span>Bingo Case Winrate</span></li>
                 <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strat Update</span></li>
                 <li><font-awesome-icon icon="users" class="payment-feature-check" /><span>VIP Discord Access</span></li>
               </ul>
@@ -206,6 +206,14 @@
           </div>
           <h4>Strategy Analysis</h4>
           <p>Get detailed analysis of your bingo strategy to identify strengths and areas for improvement.</p>
+        </div>
+        
+        <div class="payment-feature-card">
+          <div class="payment-feature-icon">
+            <font-awesome-icon icon="calendar-alt" />
+          </div>
+          <h4>Monthly Strat Update</h4>
+          <p>Receive monthly updates with new trading strategies, market insights, and optimization tips to improve your trading performance.</p>
         </div>
         
         <div class="payment-feature-card">
