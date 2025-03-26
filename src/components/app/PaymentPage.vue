@@ -14,7 +14,7 @@
                 <font-awesome-icon icon="hourglass-start" />
               </div>
               <h4>Quick Plan</h4>
-              <p class="payment-price">3€</p>
+              <p class="payment-price">5€</p>
               <p class="payment-time-period">10 Days</p>
             </div>
             <div class="payment-plan-features">
@@ -23,11 +23,12 @@
                 <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Basic Analytics</span></li>
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
                 <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
+                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Export</span></li>
               </ul>
             </div>
             <!-- NOWPayments Button for Weekly Subscription -->
             <div class="payment-nowpayments-button-container">
-              <a href="https://nowpayments.io/payment/?iid=4366913744" target="_blank" rel="noreferrer noopener">
+              <a href="https://nowpayments.io/payment/?iid=4387223950" target="_blank" rel="noreferrer noopener">
                 <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
               </a>
             </div>
@@ -41,7 +42,7 @@
                 <font-awesome-icon icon="calendar-alt" />
               </div>
               <h4>Monthly Plan</h4>
-              <p class="payment-price">6€</p>
+              <p class="payment-price">10€</p>
               <p class="payment-time-period">1 Month</p>
             </div>
             <div class="payment-plan-features">
@@ -50,7 +51,8 @@
                 <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
                 <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
-                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Export Boards</span></li>
+                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
+                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strategy Updates</span></li>
               </ul>
             </div>
             <!-- NOWPayments Button for Monthly Subscription -->
@@ -69,8 +71,9 @@
                 <font-awesome-icon icon="chart-pie" />
               </div>
               <h4>Quarterly Plan</h4>
-              <p class="payment-price">15€</p>
+              <p class="payment-price">25€</p>
               <p class="payment-time-period">3 Months</p>
+              <p class="payment-savings">Save 17%</p>
             </div>
             <div class="payment-plan-features">
               <ul class="payment-features-list">
@@ -78,8 +81,9 @@
                 <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
                 <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
-                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Export Boards</span></li>
+                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
                 <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Trading Scripts</span></li>
+                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strategy Updates</span></li>
               </ul>
             </div>
             <!-- NOWPayments Button for Quarterly Subscription -->
@@ -98,18 +102,20 @@
                 <font-awesome-icon icon="crown" />
               </div>
               <h4>Annual Plan</h4>
-              <p class="payment-price">55€</p>
+              <p class="payment-price">80€</p>
               <p class="payment-time-period">1 Year</p>
+              <p class="payment-savings">Save 33%</p>
             </div>
             <div class="payment-plan-features">
               <ul class="payment-features-list">
                 <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
-                <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
+                <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Premium Analytics</span></li>
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
-                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
-                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Export Boards</span></li>
-                <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Trading Scripts</span></li>
-                <li><font-awesome-icon icon="lightbulb" class="payment-feature-check" /><span>Strategy Analysis</span></li>
+                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>VIP Support</span></li>
+                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
+                <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Custom Trading Scripts</span></li>
+                <li><font-awesome-icon icon="lightbulb" class="payment-feature-check" /><span>Advanced Strategy Analysis</span></li>
+                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strategy Updates</span></li>
                 <li><font-awesome-icon icon="users" class="payment-feature-check" /><span>VIP Discord Access</span></li>
               </ul>
             </div>
