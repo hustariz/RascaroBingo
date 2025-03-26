@@ -1,65 +1,240 @@
 <template>
   <div class="payment-page">
-    <h2 class="feature-title">Payment</h2>
-    <div class="feature-box">
+    <div class="hero-section">
+      <h2 class="welcome-title" data-text="Premium Subscription">Premium Subscription</h2>
+    </div>
+    
+    <div class="payment-feature-box payment-container">
       <div class="payment-content">
-        <font-awesome-icon icon="credit-card" class="feature-icon" />
-        <h3>Premium Features</h3>
         <div class="payment-options">
+          <!-- Weekly Plan -->
           <div class="payment-plan">
-            <h4>Weekly Access</h4>
-            <div class="price">1.99$<span>/week</span></div>
-            <ul class="features-list">
-              <li v-for="(feature, index) in premiumFeatures.slice(0, 3)" :key="index">
-                <strong>{{ feature.split(' ')[0] }}</strong> {{ feature.split(' ').slice(1).join(' ') }}
-              </li>
-            </ul>
-            <button class="payment-button" @click="selectPlan('weekly')">Subscribe Weekly</button>
+            <div class="payment-plan-header">
+              <div class="payment-plan-icon">
+                <font-awesome-icon icon="hourglass-start" />
+              </div>
+              <h4>Quick Plan</h4>
+              <p class="payment-price">3€</p>
+              <p class="payment-time-period">10 Days</p>
+            </div>
+            <div class="payment-plan-features">
+              <ul class="payment-features-list">
+                <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
+                <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Basic Analytics</span></li>
+                <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
+                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
+              </ul>
+            </div>
+            <!-- NOWPayments Button for Weekly Subscription -->
+            <div class="payment-nowpayments-button-container">
+              <a href="https://nowpayments.io/payment/?iid=4366913744" target="_blank" rel="noreferrer noopener">
+                <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
+              </a>
+            </div>
+            <div class="payment-plan-tag">Try It Out</div>
           </div>
           
+          <!-- Monthly Plan -->
           <div class="payment-plan">
-            <h4>Monthly Access</h4>
-            <div class="price">5.99$<span>/month</span></div>
-            <ul class="features-list">
-              <li v-for="(feature, index) in premiumFeatures.slice(0, 5)" :key="index">
-                <strong>{{ feature.split(' ')[0] }}</strong> {{ feature.split(' ').slice(1).join(' ') }}
-              </li>
-            </ul>
-            <button class="payment-button" @click="selectPlan('monthly')">Subscribe Monthly</button>
+            <div class="payment-plan-header">
+              <div class="payment-plan-icon">
+                <font-awesome-icon icon="calendar-alt" />
+              </div>
+              <h4>Monthly Plan</h4>
+              <p class="payment-price">6€</p>
+              <p class="payment-time-period">1 Month</p>
+            </div>
+            <div class="payment-plan-features">
+              <ul class="payment-features-list">
+                <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
+                <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
+                <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
+                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
+                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Export Boards</span></li>
+              </ul>
+            </div>
+            <!-- NOWPayments Button for Monthly Subscription -->
+            <div class="payment-nowpayments-button-container">
+              <a href="https://nowpayments.io/payment/?iid=4652589033" target="_blank" rel="noreferrer noopener">
+                <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
+              </a>
+            </div>
+            <div class="payment-plan-tag">Popular</div>
           </div>
 
+          <!-- Quarterly Plan -->
           <div class="payment-plan">
-            <h4>Quarterly Access</h4>
-            <div class="price">15$<span>/3 months</span></div>
-            <ul class="features-list">
-              <li v-for="(feature, index) in premiumFeatures.slice(0, 6)" :key="index">
-                <strong>{{ feature.split(' ')[0] }}</strong> {{ feature.split(' ').slice(1).join(' ') }}
-              </li>
-            </ul>
-            <button class="payment-button" @click="selectPlan('quarterly')">Subscribe Quarterly</button>
+            <div class="payment-plan-header">
+              <div class="payment-plan-icon">
+                <font-awesome-icon icon="chart-pie" />
+              </div>
+              <h4>Quarterly Plan</h4>
+              <p class="payment-price">15€</p>
+              <p class="payment-time-period">3 Months</p>
+            </div>
+            <div class="payment-plan-features">
+              <ul class="payment-features-list">
+                <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
+                <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
+                <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
+                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
+                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Export Boards</span></li>
+                <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Trading Scripts</span></li>
+              </ul>
+            </div>
+            <!-- NOWPayments Button for Quarterly Subscription -->
+            <div class="payment-nowpayments-button-container">
+              <a href="https://nowpayments.io/payment/?iid=5290712585" target="_blank" rel="noreferrer noopener">
+                <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
+              </a>
+            </div>
+            <div class="payment-plan-tag">Great Value</div>
           </div>
           
-          <div class="payment-plan featured">
-            <div class="best-value">Best Value</div>
-            <h4>Annual Access</h4>
-            <div class="price">55$<span>/year</span></div>
-            <div class="savings">Save over 30%</div>
-            <ul class="features-list">
-              <li v-for="(feature, index) in premiumFeatures" :key="index">
-                <strong>{{ feature.split(' ')[0] }}</strong> {{ feature.split(' ').slice(1).join(' ') }}
-              </li>
-            </ul>
-            <button class="payment-button featured" @click="selectPlan('yearly')">Subscribe Yearly</button>
+          <!-- Annual Plan -->
+          <div class="payment-plan payment-featured">
+            <div class="payment-plan-header">
+              <div class="payment-plan-icon">
+                <font-awesome-icon icon="crown" />
+              </div>
+              <h4>Annual Plan</h4>
+              <p class="payment-price">55€</p>
+              <p class="payment-time-period">1 Year</p>
+            </div>
+            <div class="payment-plan-features">
+              <ul class="payment-features-list">
+                <li><font-awesome-icon icon="dice" class="payment-feature-check" /><span>Infinite Bingo Boards</span></li>
+                <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
+                <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
+                <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
+                <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Export Boards</span></li>
+                <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Trading Scripts</span></li>
+                <li><font-awesome-icon icon="lightbulb" class="payment-feature-check" /><span>Strategy Analysis</span></li>
+                <li><font-awesome-icon icon="users" class="payment-feature-check" /><span>VIP Discord Access</span></li>
+              </ul>
+            </div>
+            <!-- NOWPayments Button for Annual Subscription -->
+            <div class="payment-nowpayments-button-container">
+              <a href="https://nowpayments.io/payment/?iid=4803568146" target="_blank" rel="noreferrer noopener">
+                <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
+              </a>
+            </div>
+            <div class="payment-plan-tag payment-highlight">Best Value</div>
           </div>
         </div>
 
         <div class="payment-info">
-          <p>
-            <font-awesome-icon icon="lock" /> Secure Payment Processing
+          <div class="payment-security">
+            <font-awesome-icon icon="lock" /> 
+            <span>Secure Cryptocurrency Payments via <strong>NOWPayments</strong></span>
+          </div>
+          <div class="payment-benefits">
+            <div class="payment-benefit-item">
+              <font-awesome-icon icon="credit-card" />
+              <span>Accept 300+ cryptocurrencies</span>
+            </div>
+            <div class="payment-benefit-item">
+              <font-awesome-icon icon="brain" />
+              <span>Low 0.5% transaction fee</span>
+            </div>
+            <div class="payment-benefit-item">
+              <font-awesome-icon icon="user-shield" />
+              <span>30-day money-back guarantee</span>
+            </div>
+          </div>
+          <p class="payment-cancel-note">
+            Cancel anytime. No questions asked.
           </p>
-          <p class="small">
-            Cancel anytime. 100% money-back guarantee for the first 30 days.
-          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="payment-premium-features-showcase">
+      <div class="section-title-container">
+        <h3 class="section-title">What You'll Get With Premium</h3>
+      </div>
+      <div class="payment-features-grid">
+        <div class="payment-feature-card">
+          <div class="payment-feature-icon">
+            <font-awesome-icon icon="dice" />
+          </div>
+          <h4>Infinite Bingo Boards</h4>
+          <p>Create and customize as many bingo boards as you need for different trading strategies and markets.</p>
+        </div>
+        
+        <div class="payment-feature-card">
+          <div class="payment-feature-icon">
+            <font-awesome-icon icon="chart-line" />
+          </div>
+          <h4>Advanced Analytics</h4>
+          <p>Gain deeper insights into your trading performance with detailed analytics and performance metrics.</p>
+        </div>
+        
+        <div class="payment-feature-card">
+          <div class="payment-feature-icon">
+            <font-awesome-icon icon="envelope" />
+          </div>
+          <h4>Communication Tools</h4>
+          <p>Connect with other traders in real-time to share ideas, strategies, and market insights.</p>
+        </div>
+        
+        <div class="payment-feature-card">
+          <div class="payment-feature-icon">
+            <font-awesome-icon icon="chart-bar" />
+          </div>
+          <h4>Live Exchange Trading</h4>
+          <p>Connect directly to exchanges via API for seamless trading integration with your bingo strategy.</p>
+        </div>
+        
+        <div class="payment-feature-card">
+          <div class="payment-feature-icon">
+            <font-awesome-icon icon="trophy" />
+          </div>
+          <h4>Export & Share</h4>
+          <p>Export your bingo boards and share them with friends or on social media to showcase your strategy.</p>
+        </div>
+        
+        <div class="payment-feature-card">
+          <div class="payment-feature-icon">
+            <font-awesome-icon icon="brain" />
+          </div>
+          <h4>Strategy Analysis</h4>
+          <p>Get detailed analysis of your bingo strategy to identify strengths and areas for improvement.</p>
+        </div>
+        
+        <div class="payment-feature-card">
+          <div class="payment-feature-icon">
+            <font-awesome-icon icon="user-shield" />
+          </div>
+          <h4>VIP Discord Access</h4>
+          <p>Get exclusive access to our VIP Discord channel for premium support and community engagement.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="payment-faq-section">
+      <div class="section-title-container">
+        <h3 class="section-title">Frequently Asked Questions</h3>
+      </div>
+      <div class="payment-faq-grid">
+        <div class="payment-faq-item">
+          <h4>What payment methods do you accept?</h4>
+          <p>We accept over 300 cryptocurrencies through our secure payment processor, NOWPayments.</p>
+        </div>
+        
+        <div class="payment-faq-item">
+          <h4>Can I cancel my subscription?</h4>
+          <p>Yes, you can cancel your subscription at any time. We also offer a 30-day money-back guarantee.</p>
+        </div>
+        
+        <div class="payment-faq-item">
+          <h4>How do I access premium features?</h4>
+          <p>Once your payment is confirmed, your account will be automatically upgraded to premium status.</p>
+        </div>
+        
+        <div class="payment-faq-item">
+          <h4>Is my payment information secure?</h4>
+          <p>Yes, all payments are processed securely through NOWPayments, a trusted cryptocurrency payment processor.</p>
         </div>
       </div>
     </div>
@@ -72,7 +247,7 @@ export default {
   data() {
     return {
       premiumFeatures: [
-        'Unlimited Customisable Bingo Boards',
+        'Infinite Customisable Bingo Boards',
         'Advanced Analytics',
         'Access to Live Chatbox',
         'Priority Support',
@@ -82,199 +257,34 @@ export default {
         'VIP Discord Access'
       ]
     }
-  },
-  methods: {
-    selectPlan(plan) {
-      // TODO: Implement payment processing
-      console.log('Selected plan:', plan)
-    }
   }
 }
 </script>
 
-<style scoped>
-.payment-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
-  min-height: 100vh;
-}
+<style>
+@import '@/assets/styles/payment.css';
 
-.feature-title {
-  font-family: 'Legendarie', sans-serif;
-  color: rgb(238, 175, 17);
-  font-size: 2.2rem;
-  text-shadow: 
-    2px 2px 0 rgba(0, 0, 0, 0.8),
-    -2px -2px 0 rgba(0, 0, 0, 0.8),
-    2px -2px 0 rgba(0, 0, 0, 0.8),
-    -2px 2px 0 rgba(0, 0, 0, 0.8),
-    0 0 15px rgba(238, 175, 17, 0.5);
-  padding: 0.8rem 1.8rem;
+.section-title-container {
+  background-color: black;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 2px solid var(--payment-golden-color);
   border-radius: 8px;
-}
-
-.feature-box {
-  background: rgba(0, 0, 0, 0.8);
-  border: 2px solid rgb(238, 175, 17);
-  border-radius: 10px;
-  padding: 1.6rem;
-  max-width: 1050px;
-  margin: 1.6rem auto;
-  box-shadow: 0 0 20px rgba(238, 175, 17, 0.2);
-  backdrop-filter: blur(5px);
-}
-
-.payment-content {
-  text-align: center;
-}
-
-.feature-icon {
-  font-size: 3.4rem;
-  color: rgb(238, 175, 17);
-  margin-bottom: 1.2rem;
-  filter: drop-shadow(0 0 10px rgba(238, 175, 17, 0.3));
-}
-
-h3 {
-  color: rgb(238, 175, 17);
-  font-size: 1.8rem;
-  margin-bottom: 1.2rem;
-}
-
-.payment-options {
-  display: flex;
-  justify-content: center;
-  gap: 1.6rem;
-  margin: 1.6rem 0;
-  flex-wrap: wrap;
-}
-
-.payment-plan {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(238, 175, 17, 0.3);
-  border-radius: 15px;
-  padding: 1.6rem;
-  width: 220px;
+  box-shadow: 0 0 15px rgba(238, 175, 17, 0.3);
   position: relative;
-  transition: transform 0.3s ease;
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.8));
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.payment-plan:hover {
-  transform: translateY(-5px);
-}
-
-.payment-plan.featured {
-  border: 2px solid rgb(238, 175, 17);
-  background: rgba(238, 175, 17, 0.1);
-}
-
-.best-value {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgb(238, 175, 17);
-  color: black;
-  padding: 0.25rem 0.8rem;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 0.8rem;
-}
-
-h4 {
-  color: white;
-  font-size: 1.3rem;
-  margin-bottom: 0.8rem;
-}
-
-.price {
-  color: rgb(238, 175, 17);
-  font-size: 2.2rem;
-  font-weight: bold;
-  margin-bottom: 0.4rem;
-}
-
-.price span {
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-.savings {
-  color: #4CAF50;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-.features-list {
-  list-style: none;
+.section-title {
+  margin: 0;
   padding: 0;
-  margin: 1.2rem 0;
-  text-align: left;
-}
-
-.features-list li {
-  color: white;
-  margin-bottom: 0.6rem;
-  padding-left: 1.2rem;
-  position: relative;
-  font-size: 0.9rem;
-}
-
-.features-list li::before {
-  content: "✓";
   color: rgb(238, 175, 17);
-  position: absolute;
-  left: 0;
-}
-
-.payment-button {
-  background: rgba(238, 175, 17, 0.8);
-  color: black;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 25px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  width: 100%;
-}
-
-.payment-button:hover {
-  background: rgb(238, 175, 17);
-  transform: translateY(-2px);
-}
-
-.payment-button.featured {
-  background: rgb(238, 175, 17);
-}
-
-.payment-info {
-  margin-top: 1.6rem;
-  color: white;
-  font-size: 0.9rem;
-}
-
-.payment-info .small {
-  font-size: 0.8rem;
-  opacity: 0.8;
-}
-
-strong {
-  color: rgb(238, 175, 17);
-  font-weight: bold;
-}
-
-@media (max-width: 768px) {
-  .payment-options {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .payment-plan {
-    width: 100%;
-    max-width: 260px;
-  }
+  text-shadow: 
+    0 0 10px rgba(238, 175, 17, 0.4),
+    0 0 20px rgba(238, 175, 17, 0.2);
+  font-size: 1.8rem;
 }
 </style>
