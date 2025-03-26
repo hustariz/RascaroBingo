@@ -31,7 +31,20 @@ import {
   faCrown,
   faUserShield,
   faCircleNotch,
-  faKey
+  faKey,
+  faCalendar,
+  faComment,
+  faDownload,
+  faCode,
+  faLightbulb,
+  faUsers,
+  faHourglassStart,
+  faCalendarAlt,
+  faChartPie,
+  faExchangeAlt,
+  faRobot,
+  faServer,
+  faSync
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -58,7 +71,20 @@ library.add(
   faCrown,
   faUserShield,
   faCircleNotch,
-  faKey
+  faKey,
+  faCalendar,
+  faComment,
+  faDownload,
+  faCode,
+  faLightbulb,
+  faUsers,
+  faHourglassStart,
+  faCalendarAlt,
+  faChartPie,
+  faExchangeAlt,
+  faRobot,
+  faServer,
+  faSync
 );
 
 const app = createApp(App);
