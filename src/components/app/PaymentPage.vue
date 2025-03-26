@@ -26,9 +26,9 @@
                 <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Export</span></li>
               </ul>
             </div>
-            <!-- NOWPayments Button for Weekly Subscription -->
+            <!-- NOWPayments Button for Quick Plan Subscription -->
             <div class="payment-nowpayments-button-container">
-              <a href="https://nowpayments.io/payment/?iid=4387223950" target="_blank" rel="noreferrer noopener">
+              <a href="https://nowpayments.io/payment/?iid=4696946212&source=button" target="_blank" rel="noreferrer noopener">
                 <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
               </a>
             </div>
@@ -52,12 +52,12 @@
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
                 <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
                 <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
-                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strategy Updates</span></li>
+                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strat Update</span></li>
               </ul>
             </div>
             <!-- NOWPayments Button for Monthly Subscription -->
             <div class="payment-nowpayments-button-container">
-              <a href="https://nowpayments.io/payment/?iid=4652589033" target="_blank" rel="noreferrer noopener">
+              <a href="https://nowpayments.io/payment/?iid=4632722028&source=button" target="_blank" rel="noreferrer noopener">
                 <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
               </a>
             </div>
@@ -82,13 +82,13 @@
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
                 <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>Priority Support</span></li>
                 <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
-                <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Trading Scripts</span></li>
-                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strategy Updates</span></li>
+                <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Bingo Script Case</span></li>
+                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strat Update</span></li>
               </ul>
             </div>
             <!-- NOWPayments Button for Quarterly Subscription -->
             <div class="payment-nowpayments-button-container">
-              <a href="https://nowpayments.io/payment/?iid=5290712585" target="_blank" rel="noreferrer noopener">
+              <a href="https://nowpayments.io/payment/?iid=5682229428&source=button" target="_blank" rel="noreferrer noopener">
                 <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
               </a>
             </div>
@@ -113,15 +113,15 @@
                 <li><font-awesome-icon icon="comment" class="payment-feature-check" /><span>Live Chatbox</span></li>
                 <li><font-awesome-icon icon="user" class="payment-feature-check" /><span>VIP Support</span></li>
                 <li><font-awesome-icon icon="download" class="payment-feature-check" /><span>Board Exports</span></li>
-                <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Custom Trading Scripts</span></li>
-                <li><font-awesome-icon icon="lightbulb" class="payment-feature-check" /><span>Advanced Strategy Analysis</span></li>
-                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strategy Updates</span></li>
+                <li><font-awesome-icon icon="code" class="payment-feature-check" /><span>Bingo Script Case</span></li>
+                <li><font-awesome-icon icon="chart-bar" class="payment-feature-check" /><span>Advanced Analytics</span></li>
+                <li><font-awesome-icon icon="calendar-alt" class="payment-feature-check" /><span>Monthly Strat Update</span></li>
                 <li><font-awesome-icon icon="users" class="payment-feature-check" /><span>VIP Discord Access</span></li>
               </ul>
             </div>
             <!-- NOWPayments Button for Annual Subscription -->
             <div class="payment-nowpayments-button-container">
-              <a href="https://nowpayments.io/payment/?iid=4803568146" target="_blank" rel="noreferrer noopener">
+              <a href="https://nowpayments.io/payment/?iid=5800776355&source=button" target="_blank" rel="noreferrer noopener">
                 <img src="https://nowpayments.io/images/embeds/payment-button-black.svg" alt="Crypto payment button by NOWPayments">
               </a>
             </div>
