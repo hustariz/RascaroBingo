@@ -130,11 +130,33 @@ export default {
     try {
       // Fetch user info
       this.userInfo = await api.getCurrentUser();
+      console.log('User data retrieved:', this.userInfo);
       
       // Fetch subscription details if user is logged in
       if (this.userInfo) {
         try {
-          this.subscriptionInfo = await api.getSubscriptionDetails();
+          const response = await api.getSubscriptionDetails();
+          console.log('Subscription API response:', JSON.stringify(response, null, 2));
+          
+          // Use the subscription data from the user object since it's more complete
+          if (this.userInfo.subscription) {
+            console.log('Using subscription data from user object');
+            this.subscriptionInfo = {
+              subscription: {
+                active: this.userInfo.subscription.active || this.userInfo.isPaidUser,
+                plan: this.userInfo.subscription.plan,
+                startDate: this.userInfo.subscription.startDate,
+                endDate: this.userInfo.subscription.endDate,
+                remainingDays: this.userInfo.subscription.active ? 
+                  Math.ceil((new Date(this.userInfo.subscription.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : 0
+              }
+            };
+          } else {
+            // Fallback to API response if user object doesn't have subscription data
+            this.subscriptionInfo = response;
+          }
+          
+          console.log('Final subscription info:', JSON.stringify(this.subscriptionInfo, null, 2));
         } catch (subError) {
           console.error('Error fetching subscription info:', subError);
           this.error = 'Failed to load subscription information';

@@ -52,13 +52,22 @@ exports.getSubscriptionDetails = async (req, res) => {
     const hasActiveSubscription = user.hasActiveSubscription();
     const remainingDays = user.getRemainingSubscriptionDays();
     
+    // Calculate remaining days manually if the method returns 0 but there's an active subscription
+    let calculatedRemainingDays = remainingDays;
+    if (hasActiveSubscription && remainingDays === 0 && user.subscription.endDate) {
+      const now = new Date();
+      const endDate = new Date(user.subscription.endDate);
+      const diffTime = Math.abs(endDate - now);
+      calculatedRemainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+    
     res.json({
       subscription: {
         active: hasActiveSubscription,
         plan: user.subscription.plan,
         startDate: user.subscription.startDate,
         endDate: user.subscription.endDate,
-        remainingDays: remainingDays
+        remainingDays: calculatedRemainingDays
       }
     });
   } catch (err) {
