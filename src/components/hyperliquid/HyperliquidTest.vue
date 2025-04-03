@@ -325,11 +325,10 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, computed } from 'vue';
 import exchangeApi from '@/services/ccxtApi';
 import { formatAccountBalances, formatPositions, formatOrders, formatNumber, formatDate, formatSymbol } from './functions/formatters';
 import { placeOrder, cancelOrder, fetchMarketPrice } from './functions/orderFunctions';
-import { fetchAccountData, fetchPositions, fetchOpenOrders, fetchMarkets } from './functions/dataFetchers';
+import { fetchAccountData, fetchPositions, fetchOpenOrders } from './functions/dataFetchers';
 import HyperliquidHistory from './HyperliquidHistory.vue';
 import HyperliquidOrderHistory from './HyperliquidOrderHistory.vue';
 
