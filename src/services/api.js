@@ -403,6 +403,32 @@ export default {
     return api.get('/users/stats').then(response => response.data);
   },
 
+  // Subscription methods
+  getSubscriptionDetails() {
+    return api.get('/subscription').then(response => response.data);
+  },
+
+  cancelSubscription() {
+    return api.post('/subscription/cancel').then(response => response.data);
+  },
+  
+  // Admin subscription methods
+  getUserSubscription(userId) {
+    return api.get(`/users/${userId}/subscription`).then(response => response.data);
+  },
+  
+  adminCancelSubscription(userId) {
+    return api.post(`/users/${userId}/subscription/cancel`).then(response => response.data);
+  },
+  
+  adminAddSubscriptionTime(userId, plan) {
+    return api.post(`/users/${userId}/subscription/add`, { plan }).then(response => response.data);
+  },
+  
+  adminSetSubscriptionEndDate(userId, endDate) {
+    return api.post(`/users/${userId}/subscription/set-date`, { endDate }).then(response => response.data);
+  },
+
   // Trade methods
   async get(endpoint) {
     try {

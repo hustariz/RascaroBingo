@@ -302,7 +302,7 @@ exports.refreshToken = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select('username email isPaidUser isAdmin isEmailVerified');
+    const users = await User.find().select('_id username email isPaidUser isAdmin isEmailVerified');
     res.json(users);
   } catch (err) {
     console.error('Error getting users:', err);
