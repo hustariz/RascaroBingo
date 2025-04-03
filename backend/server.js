@@ -149,6 +149,11 @@ const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const emailVerificationRoutes = require('./routes/emailVerification');
 const ccxtRoutes = require('./routes/ccxtRoutes');
 const riskManagementRoutes = require('./routes/riskManagementRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const adminSubscriptionRoutes = require('./routes/adminSubscriptionRoutes');
+
+// Import cron jobs
+const { scheduleSubscriptionCheck } = require('./cron/subscriptionCron');
 
 // Initialize routes
 app.use('/api/users', userRoutes);
@@ -158,6 +163,11 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/auth', emailVerificationRoutes);
 app.use('/api/ccxt', ccxtRoutes);
 app.use('/api/risk-management', riskManagementRoutes);
+app.use('/api/subscription', subscriptionRoutes);
+app.use('/api', adminSubscriptionRoutes);
+
+// Start cron jobs
+scheduleSubscriptionCheck();
 
 // API Info Route
 app.get('/api', (req, res) => {

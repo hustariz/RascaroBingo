@@ -44,7 +44,9 @@ import {
   faExchangeAlt,
   faRobot,
   faServer,
-  faSync
+  faSync,
+  faSpinner,
+  faPlus
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -84,7 +86,9 @@ library.add(
   faExchangeAlt,
   faRobot,
   faServer,
-  faSync
+  faSync,
+  faSpinner,
+  faPlus
 );
 
 const app = createApp(App);

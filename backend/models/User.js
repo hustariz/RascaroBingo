@@ -20,6 +20,19 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  subscription: {
+    active: { type: Boolean, default: false },
+    plan: { type: String, enum: ['quick', 'monthly', 'quarterly', 'annual'], default: null },
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
+    paymentId: { type: String, default: null },
+    history: [{
+      plan: String,
+      startDate: Date,
+      endDate: Date,
+      paymentId: String
+    }]
+  },
   isAdmin: {
     type: Boolean,
     default: false
@@ -128,6 +141,81 @@ UserSchema.methods.getBingoCard = async function() {
 UserSchema.methods.setBingoCard = async function(bingoCard) {
   this.bingoCard = bingoCard._id;
   await this.save();
+};
+
+// Add method to check if subscription is active
+UserSchema.methods.hasActiveSubscription = function() {
+  if (!this.subscription.active) return false;
+  return this.subscription.endDate > new Date();
+};
+
+// Add method to get remaining subscription time in days
+UserSchema.methods.getRemainingSubscriptionDays = function() {
+  if (!this.hasActiveSubscription()) return 0;
+  
+  const now = new Date();
+  const endDate = new Date(this.subscription.endDate);
+  const diffTime = Math.abs(endDate - now);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays;
+};
+
+// Add method to extend subscription
+UserSchema.methods.extendSubscription = async function(planType, paymentId) {
+  const now = new Date();
+  let daysToAdd = 0;
+  
+  // Set days based on plan type
+  switch(planType) {
+    case 'quick':
+      daysToAdd = 10;
+      break;
+    case 'monthly':
+      daysToAdd = 30;
+      break;
+    case 'quarterly':
+      daysToAdd = 90;
+      break;
+    case 'annual':
+      daysToAdd = 365;
+      break;
+    default:
+      throw new Error('Invalid plan type');
+  }
+  
+  // Calculate new end date
+  let startDate = now;
+  let newEndDate = new Date(now);
+  
+  // If user has an active subscription, extend from current end date
+  if (this.hasActiveSubscription()) {
+    newEndDate = new Date(this.subscription.endDate);
+    startDate = this.subscription.endDate;
+  }
+  
+  newEndDate.setDate(newEndDate.getDate() + daysToAdd);
+  
+  // Save subscription history
+  if (this.subscription.active) {
+    this.subscription.history.push({
+      plan: this.subscription.plan,
+      startDate: this.subscription.startDate,
+      endDate: this.subscription.endDate,
+      paymentId: this.subscription.paymentId
+    });
+  }
+  
+  // Update current subscription
+  this.subscription.active = true;
+  this.subscription.plan = planType;
+  this.subscription.startDate = startDate;
+  this.subscription.endDate = newEndDate;
+  this.subscription.paymentId = paymentId;
+  this.isPaidUser = true;
+  
+  await this.save();
+  return this;
 };
 
 module.exports = mongoose.model('User', UserSchema);

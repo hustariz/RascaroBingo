@@ -73,7 +73,8 @@ module.exports = async (req, res, next) => {
       req.user = {
         id: user._id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        isAdmin: user.isAdmin
       };
       
       console.log(' [AUTH] Authentication successful:', {
