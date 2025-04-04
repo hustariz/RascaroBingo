@@ -1,11 +1,11 @@
 Mars 2025:
 
 Bugfix:
-TradeHistory button does not display the right amount of opened positions the first time you register a trade.
-Leaderboard page not working for non connected users.
+TradeHistory button does not display the right amount of opened positions the first time you register a trade. DONE
+Leaderboard page not working for non connected users. DONE
 
 To Implement this month:
--Kraken Api Test every usefull functionnalities working on the kraken test page.
+-Kraken Api Test every usefull functionnalities working on the kraken test page. DONE (missing taking and seeing a trade)
 -Add a kraken API Fields in the profile page so user can register their api keys to trade.
 -Add a kraken API fields in the admin panel so I can change the public keys.
 -Test the system.
@@ -22,7 +22,7 @@ when wallet is linked, test it and also developp the subscription time  in fulls
 
 If you have some times left:
 -Rework the Check Chart windows to be a mooving widget so you can drag it and resize it.
--Add a widget toolbox where each widget is represented and can be toggle on and off.
+-Add a widget toolbox in the navbar where each widget is represented and can be toggle on and off.
 -Add a widget manager where you can add and remove widgets.
 
 From February:

@@ -1,6 +1,7 @@
 <template>
   <div class="trade-details-widget grid-item trade-details" :class="{ resizing: isResizing }">
-    <div class="tradedetails-content" :class="{ 'long-mode': isLong }">
+    <!-- Added a fixed height container with proper padding -->
+    <div class="tradedetails-content" :class="{ 'long-mode': isLong }" style="padding-bottom: 3.5rem; display: flex; flex-direction: column;">
       <!-- Header with Long/Short Toggle and R:R -->
       <div class="tradedetails-header">
         <div class="header-left"></div>
@@ -83,12 +84,13 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="tradedetails-actions">
+      <div class="tradedetails-actions" style="margin-top: auto; margin-bottom: 1.5rem; padding: 0.75rem 1rem; gap: 1rem;">
         <button 
           class="tradedetails-save-button"
           :class="{ 'long': isLong, 'short': !isLong }"
           @click="saveTrade"
           :disabled="!validateTrade()"
+          style="min-height: 45px; border-radius: 0.5rem;"
         >
           {{ isLong ? 'Long' : 'Short' }}
         </button>
@@ -96,6 +98,7 @@
           class="tradedetails-history-button"
           :class="{ 'long': isLong, 'short': !isLong }"
           @click="$emit('open-trade-history')"
+          style="min-height: 45px; border-radius: 0.5rem;"
         >
           <span class="tradedetails-history-icon">📊</span>
           Trade History

@@ -69,6 +69,7 @@ body {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
+  overflow: hidden; /* Prevent scrollbars */
 }
 
 #app {
@@ -78,6 +79,7 @@ body {
   text-align: center;
   color: #ffffff;
   min-height: 100vh;
+  overflow: hidden; /* Prevent scrollbars */
 }
 
 /* Desktop styles */
