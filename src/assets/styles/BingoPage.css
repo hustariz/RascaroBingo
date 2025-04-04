@@ -24,81 +24,109 @@
 /* Base Layout */
 .page-container {
   display: flex;
-  height: 10vh;
+  min-height: 100vh;
   width: 100%;
   margin: 0 auto;
   padding: 0.5rem;
   position: relative;
   isolation: isolate;
-  overflow: visible;
+  overflow: hidden;
   z-index: var(--z-dashboard);
 }
 
+.main-content {
+  flex: 1;
+  position: relative;
+  height: 100vh;
+  padding: 0.5rem;
+  transition: margin-left 0.3s ease;
+  margin-left: 18rem;
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main-content.expanded {
+  margin-left: 2.5rem;
+}
+
+/* Main content container with bottom margin */
+.grid-container-with-margin {
+  position: relative;
+  height: calc(100vh - 5rem);
+  margin-bottom: 3rem !important;
+  overflow: hidden;
+}
+
+/* Decorative border element */
+.grid-border-decoration {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 4;
+}
 
 /* Dashboard Grid Layout */
 .dashboard-layout {
   background: var(--dark-bg-transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border-radius: 10px;
   position: absolute;
   top: 0.5rem;
   left: 0.75rem;
   right: 0.75rem;
-  bottom: 0.75rem;
+  height: calc(100% - 3.5rem) !important;
   padding: 0.25rem;
-  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: auto;
   box-sizing: border-box;
   z-index: var(--z-dashboard);
   isolation: isolate;
-  border-top: 1px solid var(--golden-border);
-  border-left: 1px solid var(--golden-border);
-  scrollbar-width: none;
+  scrollbar-width: thin;
   -ms-overflow-style: none;
+  border: none !important;
+  border-radius: 10px !important;
 }
+
+/* Remove the pseudo-element that might be causing issues */
+/*
+.dashboard-layout::after {
+  content: '';
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  height: 10px;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-top: none;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  z-index: 2;
+  pointer-events: none;
+}
+*/
 
 .dashboard-layout::-webkit-scrollbar {
-  display: none;
+  width: 5px;
 }
 
-/* Border decorations */
-.dashboard-layout::after,
-.dashboard-layout::before {
-  content: '';
-  position: fixed;
-  background: var(--golden-border);
-  pointer-events: none;
-  z-index: 3;
+.dashboard-layout::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.dashboard-layout::after {
-  top: 0.3rem;
-  right: 0.02rem;
-  bottom: 0.2rem;
-  width: 1px;
+.dashboard-layout::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.3);
+  border-radius: 5px;
 }
 
-.dashboard-layout::before {
-  left: 0.25rem;
-  right: 0.1rem;
-  bottom: 0rem;
-  height: 1px;
-}
-
-/* Main Content Area */
-.main-content {
-  flex: 1;
-  position: relative;
-  height: 100%;
-  padding: 0.5rem;
-  overflow: visible;
-  transition: margin-left 0.3s ease;
-  margin-left: 18rem;
-  margin-top: 2.5rem;
-}
-
-.main-content.expanded {
-  margin-left: 2.5rem;
+.dashboard-layout::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.5);
 }
 
 /* Grid Items */

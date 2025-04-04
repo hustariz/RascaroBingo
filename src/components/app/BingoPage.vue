@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container" @open-trade-history="$emit('open-trade-history')" style="overflow: visible !important;">
+  <div class="page-container" @open-trade-history="$emit('open-trade-history')">
     <PremiumLock 
       :show="showPremiumLock" 
       :message="'Upgrade to Premium to access multiple Bingo pages and custom page names'"
@@ -13,27 +13,33 @@
       @sidebar-toggle="handleSidebarToggle" 
     />
     
-    <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }" style="overflow: visible !important;">
-      <GridLayout
-        v-model:layout="responsiveLayout"
-        :col-num="isMobile ? 4 : 12"
-        :row-height="45"
-        :margin="[10, 10]"
-        :use-css-transforms="true"
-        :vertical-compact="isMobile"
-        :prevent-collision="false"
-        :is-draggable="true"
-        :is-resizable="true"
-        :responsive="true"
-        :compact-type="null"
-        :width="gridWidth"
-        :auto-size="true"
-        class="dashboard-layout"
-        @layout-created="onLayoutCreated"
-        @layout-before-mount="onLayoutBeforeMount"
-        @layout-mounted="onLayoutMounted"
-        @layout-ready="onLayoutReady"
-      >
+    <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
+      <!-- Container with bottom margin and border styling -->
+      <div class="grid-container-with-margin" style="position: relative;">
+        <!-- Decorative border element -->
+        <div class="grid-border-decoration"></div>
+        <GridLayout
+          v-model:layout="responsiveLayout"
+          :col-num="isMobile ? 4 : 12"
+          :row-height="rowHeight"
+          :margin="[10, 10]"
+          :use-css-transforms="true"
+          :vertical-compact="isMobile"
+          :prevent-collision="false"
+          :is-draggable="true"
+          :is-resizable="true"
+          :responsive="true"
+          :compact-type="null"
+          :width="gridWidth"
+          :height="gridHeight"
+          :auto-size="true"
+          class="dashboard-layout"
+          @layout-created="onLayoutCreated"
+          @layout-before-mount="onLayoutBeforeMount"
+          @layout-mounted="onLayoutMounted"
+          @layout-ready="onLayoutReady"
+          @layout-updated="onLayoutUpdated"
+        >
         <GridItem
           v-for="item in responsiveLayout"
           :key="item.i"
@@ -213,6 +219,10 @@
           </div>
         </GridItem>
       </GridLayout>
+      </div>
+      
+      <!-- Bottom spacer to ensure margin -->
+      <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 3rem; z-index: -1;"></div>
     </div>
 
     <!-- Workflow Tooltip -->
@@ -356,13 +366,15 @@ export default defineComponent({
       showPremiumLock: false,
       isSidebarCollapsed: false,
       bingoWidgetRef: null,
-      gridWidth: 0,
-      gridHeight: 0,
+      rowHeightValue: 45, // Base row height
       isDragging: false,
       exportTooltipVisible: false,
       exportTooltipX: 0,
       exportTooltipY: 0,
-      currentLayout: []
+      currentLayout: [],
+      gridWidth: 0,
+      gridHeight: 0,
+      resizeTimeout: null
     };
   },
 
@@ -422,6 +434,21 @@ export default defineComponent({
     isMobile() {
       return window.innerWidth < 768;
     },
+    
+    rowHeight() {
+      // Adjust row height based on viewport height
+      const baseHeight = this.rowHeightValue;
+      const viewportHeight = window.innerHeight;
+      
+      if (viewportHeight > 1200) {
+        return baseHeight * 1.2; // Larger screens
+      } else if (viewportHeight < 800) {
+        return baseHeight * 0.8; // Smaller screens
+      }
+      
+      return baseHeight;
+    },
+    
     responsiveLayout: {
       get() {
         if (!this.isMobile) {
@@ -641,6 +668,41 @@ export default defineComponent({
     onLayoutReady() {
       console.log('Layout ready');
     },
+    onLayoutUpdated(newLayout) {
+      console.log('Layout updated');
+      
+      // Find the maximum y + h position to determine the required height
+      let maxBottom = 0;
+      
+      if (Array.isArray(newLayout)) {
+        newLayout.forEach(item => {
+          const bottom = item.y + item.h;
+          if (bottom > maxBottom) {
+            maxBottom = bottom;
+          }
+        });
+      }
+      
+      // If we have widgets that extend beyond our current grid height,
+      // adjust the grid height to accommodate them
+      if (maxBottom > 0) {
+        const requiredHeight = maxBottom * this.rowHeight + 50; // Add some padding
+        
+        // Only expand, don't shrink
+        if (requiredHeight > this.gridHeight) {
+          this.gridHeight = requiredHeight;
+          
+          // Also update the CSS for dashboard-layout to allow scrolling when needed
+          const dashboardLayout = document.querySelector('.dashboard-layout');
+          if (dashboardLayout) {
+            dashboardLayout.style.overflowY = 'auto';
+          }
+        }
+      }
+      
+      // Store the current layout
+      this.currentLayout = newLayout;
+    },
     handleStartNameEdit() {
       console.log('Board name clicked');
       if (!this.isPremium) {
@@ -725,18 +787,59 @@ export default defineComponent({
       } else {
         console.warn('exportBoard method not found on bingoWidget');
       }
-    }
+    },
+    handleResize() {
+      // Debounce the resize event to avoid performance issues
+      if (this.resizeTimeout) {
+        clearTimeout(this.resizeTimeout);
+      }
+      
+      this.resizeTimeout = setTimeout(() => {
+        this.updateGridDimensions();
+      }, 200);
+    },
+    
+    updateGridDimensions() {
+      // Calculate grid width based on viewport and sidebar
+      const sidebarWidth = this.isSidebarCollapsed ? 60 : 300;
+      const horizontalPadding = 40; // Account for horizontal margins and padding
+      const verticalPadding = 150; // Increased padding to ensure bottom margin
+      
+      // Calculate grid width and height with a reduction to prevent scrollbars
+      this.gridWidth = window.innerWidth - sidebarWidth - horizontalPadding;
+      
+      // Calculate height with a significant bottom margin
+      const viewportHeight = window.innerHeight;
+      this.gridHeight = viewportHeight - verticalPadding;
+      
+      // Ensure dimensions are never negative
+      this.gridWidth = Math.max(this.gridWidth, 300);
+      this.gridHeight = Math.max(this.gridHeight, 300);
+      
+      console.log('Grid dimensions updated:', this.gridWidth, this.gridHeight, 'Viewport height:', viewportHeight);
+    },
   },
 
   mounted() {
     console.log('BingoPage mounted');
     this.$store.dispatch('bingo/loadUserCard');
     
+    // Update grid dimensions based on viewport size
+    this.updateGridDimensions();
+    
+    // Add resize event listener
+    window.addEventListener('resize', this.handleResize);
+    
     this.$nextTick(() => {
       console.log('BingoPage nextTick');
       this.bingoWidgetRef = this.$refs.bingoWidget;
       console.log('BingoWidget ref in mounted:', this.bingoWidgetRef);
     });
+  },
+  
+  beforeUnmount() {
+    // Remove resize event listener when component is destroyed
+    window.removeEventListener('resize', this.handleResize);
   },
 });
 </script>
