@@ -43,32 +43,49 @@ exports.activateSubscription = async (req, res) => {
 exports.getSubscriptionDetails = async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log('Getting subscription details for user:', userId);
     
     const user = await User.findById(userId);
     if (!user) {
+      console.log('User not found:', userId);
       return res.status(404).json({ msg: 'User not found' });
     }
     
-    const hasActiveSubscription = user.hasActiveSubscription();
-    const remainingDays = user.getRemainingSubscriptionDays();
+    console.log('User found:', user.username);
+    console.log('User subscription data:', JSON.stringify(user.subscription, null, 2));
     
-    // Calculate remaining days manually if the method returns 0 but there's an active subscription
-    let calculatedRemainingDays = remainingDays;
-    if (hasActiveSubscription && remainingDays === 0 && user.subscription.endDate) {
-      const now = new Date();
+    const hasActiveSubscription = user.hasActiveSubscription();
+    console.log('Has active subscription:', hasActiveSubscription);
+    
+    // Create subscription object with the same structure as getUserSubscription
+    const subscription = {
+      active: hasActiveSubscription,
+      plan: user.subscription.plan,
+      startDate: user.subscription.startDate,
+      endDate: user.subscription.endDate,
+      remainingDays: 0
+    };
+    
+    console.log('Initial subscription object:', JSON.stringify(subscription, null, 2));
+    
+    // Calculate remaining days if subscription is active - using the same method as getUserSubscription
+    if (hasActiveSubscription && user.subscription.endDate) {
       const endDate = new Date(user.subscription.endDate);
-      const diffTime = Math.abs(endDate - now);
-      calculatedRemainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const today = new Date();
+      const diffTime = endDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      subscription.remainingDays = diffDays > 0 ? diffDays : 0;
+      
+      console.log('End date:', endDate);
+      console.log('Today:', today);
+      console.log('Diff time (ms):', diffTime);
+      console.log('Calculated remaining days:', subscription.remainingDays);
     }
     
+    console.log('Final subscription object:', JSON.stringify(subscription, null, 2));
+    
     res.json({
-      subscription: {
-        active: hasActiveSubscription,
-        plan: user.subscription.plan,
-        startDate: user.subscription.startDate,
-        endDate: user.subscription.endDate,
-        remainingDays: calculatedRemainingDays
-      }
+      subscription
     });
   } catch (err) {
     console.error('Error getting subscription details:', err);
