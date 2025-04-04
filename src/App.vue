@@ -64,7 +64,11 @@ body {
   background-color: #000; /* Fallback color */
   background-attachment: fixed;
   background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 #app {
@@ -79,8 +83,7 @@ body {
 /* Desktop styles */
 @media screen and (min-width: 769px) {
   body {
-    background-size: 100%;
-    background-position: center 80%;
+    background-size: cover;
   }
 }
 
@@ -89,15 +92,14 @@ body {
   body {
     background-size: cover;
     background-position: center center;
-    background-attachment: scroll;
-    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 }
 
-/* Small phones */
-@media screen and (max-width: 380px) {
+/* Small phones and portrait orientation */
+@media screen and (max-width: 380px), (orientation: portrait) {
   body {
-    background-size: auto 100vh;
+    background-size: cover;
   }
 }
 </style>
