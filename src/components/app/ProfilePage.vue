@@ -41,11 +41,6 @@
               </div>
               
               <div class="subscription-info-item">
-                <div class="info-label">Start Date</div>
-                <div class="info-value">{{ formatDate(subscriptionInfo.subscription.startDate) }}</div>
-              </div>
-              
-              <div class="subscription-info-item">
                 <div class="info-label">End Date</div>
                 <div class="info-value">{{ formatDate(subscriptionInfo.subscription.endDate) }}</div>
               </div>
@@ -122,7 +117,10 @@ export default {
       subscriptionInfo: null,
       loading: true,
       error: null,
-      showCancelConfirmation: false
+      showCancelConfirmation: false,
+      cancelInProgress: false,
+      cancelSuccess: false,
+      cancelError: null
     };
   },
 
@@ -130,38 +128,68 @@ export default {
     try {
       // Fetch user info
       this.userInfo = await api.getCurrentUser();
-      console.log('User data retrieved:', this.userInfo);
+      console.log('User data retrieved:', JSON.stringify(this.userInfo, null, 2));
       
-      // Fetch subscription details if user is logged in
+      // Check if user has subscription data
+      if (this.userInfo && this.userInfo.subscription) {
+        console.log('User subscription data:', JSON.stringify(this.userInfo.subscription, null, 2));
+        
+        // Initialize subscription info directly from user data
+        // Match the admin panel behavior by considering isPaidUser as well
+        const isActive = this.userInfo.subscription.active || this.userInfo.isPaidUser;
+        
+        this.subscriptionInfo = {
+          subscription: {
+            active: isActive,
+            plan: this.userInfo.subscription.plan,
+            startDate: this.userInfo.subscription.startDate,
+            endDate: this.userInfo.subscription.endDate,
+            remainingDays: 0
+          }
+        };
+        
+        // Calculate remaining days
+        if (this.userInfo.subscription.endDate) {
+          const endDate = new Date(this.userInfo.subscription.endDate);
+          const today = new Date();
+          const diffTime = endDate - today;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          this.subscriptionInfo.subscription.remainingDays = diffDays > 0 ? diffDays : 0;
+          console.log('Calculated remaining days:', this.subscriptionInfo.subscription.remainingDays);
+        }
+        
+        console.log('Initial subscription info from user data:', JSON.stringify(this.subscriptionInfo, null, 2));
+      }
+      
+      // Try to fetch subscription details from the API as a backup
       if (this.userInfo) {
         try {
+          console.log('Fetching subscription details from API...');
           const response = await api.getSubscriptionDetails();
           console.log('Subscription API response:', JSON.stringify(response, null, 2));
           
-          // Use the subscription data from the user object since it's more complete
-          if (this.userInfo.subscription) {
-            console.log('Using subscription data from user object');
-            this.subscriptionInfo = {
-              subscription: {
-                active: this.userInfo.subscription.active || this.userInfo.isPaidUser,
-                plan: this.userInfo.subscription.plan,
-                startDate: this.userInfo.subscription.startDate,
-                endDate: this.userInfo.subscription.endDate,
-                remainingDays: this.userInfo.subscription.active ? 
-                  Math.ceil((new Date(this.userInfo.subscription.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : 0
-              }
-            };
-          } else {
-            // Fallback to API response if user object doesn't have subscription data
+          // Only use API response if it has valid subscription data and we don't already have data
+          if (response && response.subscription && 
+              (!this.subscriptionInfo || !this.subscriptionInfo.subscription.plan)) {
+            console.log('Using subscription data from API response');
+            
+            // Ensure active status considers isPaidUser (matching admin panel behavior)
+            if (response.subscription) {
+              response.subscription.active = response.subscription.active || this.userInfo.isPaidUser;
+            }
+            
             this.subscriptionInfo = response;
           }
-          
-          console.log('Final subscription info:', JSON.stringify(this.subscriptionInfo, null, 2));
         } catch (subError) {
           console.error('Error fetching subscription info:', subError);
-          this.error = 'Failed to load subscription information';
+          // Don't override the initial subscription info if API call fails
+          if (!this.subscriptionInfo) {
+            this.error = 'Failed to load subscription information';
+          }
         }
       }
+      
+      console.log('Final subscription info:', JSON.stringify(this.subscriptionInfo, null, 2));
     } catch (error) {
       console.error('Error fetching user info:', error);
       this.error = 'Failed to load user information';
@@ -173,12 +201,27 @@ export default {
   methods: {
     formatDate(dateString) {
       if (!dateString) return 'N/A';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
+      console.log('Formatting date:', dateString);
+      
+      try {
+        const date = new Date(dateString);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          console.error('Invalid date:', dateString);
+          return 'N/A';
+        }
+        
+        console.log('Date object:', date);
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'N/A';
+      }
     },
     
     formatPlanName(plan) {
@@ -195,15 +238,51 @@ export default {
     },
     
     async cancelSubscription() {
+      this.cancelInProgress = true;
       try {
+        console.log('Cancelling subscription...');
         const result = await api.cancelSubscription();
-        this.subscriptionInfo = result;
+        console.log('Cancel subscription result:', result);
+        
+        // Update the subscription info with the result from the API
+        if (result && result.subscription) {
+          // Update the user object to reflect the cancelled subscription
+          if (this.userInfo) {
+            if (this.userInfo.subscription) {
+              this.userInfo.subscription.active = false;
+            }
+            // Also update the isPaidUser status
+            if (result.isPaidUser !== undefined) {
+              this.userInfo.isPaidUser = result.isPaidUser;
+            }
+          }
+          
+          this.subscriptionInfo = {
+            subscription: {
+              active: false, // Set to false as subscription is cancelled
+              plan: this.subscriptionInfo?.subscription?.plan || 'monthly',
+              startDate: this.subscriptionInfo?.subscription?.startDate,
+              endDate: result.subscription.endDate,
+              remainingDays: result.subscription.remainingDays
+            }
+          };
+        }
+        
         this.showCancelConfirmation = false;
-        // Show success message
-        this.$toast.success('Subscription cancelled successfully');
+        this.cancelSuccess = true;
+        // Show success message if toast is available
+        if (this.$toast) {
+          this.$toast.success('Subscription cancelled successfully');
+        }
       } catch (error) {
         console.error('Error cancelling subscription:', error);
-        this.$toast.error('Failed to cancel subscription');
+        this.cancelError = 'Failed to cancel subscription';
+        // Show error message if toast is available
+        if (this.$toast) {
+          this.$toast.error('Failed to cancel subscription');
+        }
+      } finally {
+        this.cancelInProgress = false;
       }
     }
   }
