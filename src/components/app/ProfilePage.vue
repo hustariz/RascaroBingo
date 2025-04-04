@@ -135,9 +135,12 @@ export default {
         console.log('User subscription data:', JSON.stringify(this.userInfo.subscription, null, 2));
         
         // Initialize subscription info directly from user data
+        // Match the admin panel behavior by considering isPaidUser as well
+        const isActive = this.userInfo.subscription.active || this.userInfo.isPaidUser;
+        
         this.subscriptionInfo = {
           subscription: {
-            active: this.userInfo.subscription.active,
+            active: isActive,
             plan: this.userInfo.subscription.plan,
             startDate: this.userInfo.subscription.startDate,
             endDate: this.userInfo.subscription.endDate,
@@ -169,6 +172,12 @@ export default {
           if (response && response.subscription && 
               (!this.subscriptionInfo || !this.subscriptionInfo.subscription.plan)) {
             console.log('Using subscription data from API response');
+            
+            // Ensure active status considers isPaidUser (matching admin panel behavior)
+            if (response.subscription) {
+              response.subscription.active = response.subscription.active || this.userInfo.isPaidUser;
+            }
+            
             this.subscriptionInfo = response;
           }
         } catch (subError) {
@@ -229,17 +238,30 @@ export default {
     },
     
     async cancelSubscription() {
+      this.cancelInProgress = true;
       try {
+        console.log('Cancelling subscription...');
         const result = await api.cancelSubscription();
         console.log('Cancel subscription result:', result);
         
         // Update the subscription info with the result from the API
         if (result && result.subscription) {
+          // Update the user object to reflect the cancelled subscription
+          if (this.userInfo) {
+            if (this.userInfo.subscription) {
+              this.userInfo.subscription.active = false;
+            }
+            // Also update the isPaidUser status
+            if (result.isPaidUser !== undefined) {
+              this.userInfo.isPaidUser = result.isPaidUser;
+            }
+          }
+          
           this.subscriptionInfo = {
             subscription: {
-              active: result.subscription.active,
-              plan: this.subscriptionInfo.subscription.plan, // Keep existing plan info
-              startDate: this.subscriptionInfo.subscription.startDate, // Keep existing start date
+              active: false, // Set to false as subscription is cancelled
+              plan: this.subscriptionInfo?.subscription?.plan || 'monthly',
+              startDate: this.subscriptionInfo?.subscription?.startDate,
               endDate: result.subscription.endDate,
               remainingDays: result.subscription.remainingDays
             }
@@ -247,11 +269,20 @@ export default {
         }
         
         this.showCancelConfirmation = false;
-        // Show success message
-        this.$toast.success('Subscription cancelled successfully');
+        this.cancelSuccess = true;
+        // Show success message if toast is available
+        if (this.$toast) {
+          this.$toast.success('Subscription cancelled successfully');
+        }
       } catch (error) {
         console.error('Error cancelling subscription:', error);
-        this.$toast.error('Failed to cancel subscription');
+        this.cancelError = 'Failed to cancel subscription';
+        // Show error message if toast is available
+        if (this.$toast) {
+          this.$toast.error('Failed to cancel subscription');
+        }
+      } finally {
+        this.cancelInProgress = false;
       }
     }
   }

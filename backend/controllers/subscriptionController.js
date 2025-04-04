@@ -118,6 +118,13 @@ exports.cancelSubscription = async (req, res) => {
     // Cancel subscription but keep it active until end date
     // We're not actually deactivating it immediately, just marking it as not to be renewed
     user.subscription.active = false;
+    
+    // Keep track of the original isPaidUser status
+    const wasPaidUser = user.isPaidUser;
+    
+    // Set isPaidUser to false to ensure the subscription shows as inactive
+    user.isPaidUser = false;
+    
     await user.save();
     
     res.json({
@@ -126,7 +133,9 @@ exports.cancelSubscription = async (req, res) => {
         active: false,
         endDate: user.subscription.endDate,
         remainingDays: user.getRemainingSubscriptionDays()
-      }
+      },
+      wasPaidUser: wasPaidUser,
+      isPaidUser: false
     });
   } catch (err) {
     console.error('Error cancelling subscription:', err);
