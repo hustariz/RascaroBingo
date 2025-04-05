@@ -14,7 +14,7 @@
     inset 0 0 15px rgba(255, 215, 0, 0.1),
     0 4px 12px rgba(0, 0, 0, 0.2);
   min-width: 0;
-  min-height: 18.75rem;
+  min-height: 450px;
 }
 
 /* Content */
@@ -30,7 +30,7 @@
   transition: all 0.3s ease;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
-  padding-bottom: 2rem;
+  padding-bottom: 6rem !important;
 }
 
 .tradedetails-content::-webkit-scrollbar {
@@ -300,7 +300,9 @@ input[readonly]:not(.editable) {
   padding: 1rem;
   width: 100%;
   margin-top: auto;
-  margin-bottom: 1.5rem;
+  margin-bottom: 3rem !important;
+  position: relative;
+  z-index: 5;
 }
 
 .tradedetails-save-button,
@@ -314,7 +316,7 @@ input[readonly]:not(.editable) {
   font-size: 1rem;
   letter-spacing: 0.0188rem;
   cursor: pointer;
-  min-height: 45px;
+  min-height: 50px !important;
   display: flex;
   align-items: center;
   justify-content: center;
