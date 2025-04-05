@@ -1,10 +1,9 @@
 <template>
   <div class="trade-details-widget grid-item trade-details" :class="{ resizing: isResizing }">
-    <!-- Added a fixed height container with proper padding -->
-    <div class="tradedetails-content" :class="{ 'long-mode': isLong }" style="padding-bottom: 3.5rem; display: flex; flex-direction: column;">
+    <!-- Simple fixed layout structure -->
+    <div class="tradedetails-content" :class="{ 'long-mode': isLong }">
       <!-- Header with Long/Short Toggle and R:R -->
       <div class="tradedetails-header">
-        <div class="header-left"></div>
         <div class="tradedetails-type-toggle">
           <button 
             class="tradedetails-toggle-button"
@@ -27,10 +26,23 @@
         </div>
       </div>
 
-      <!-- Price Inputs -->
-      <div class="tradedetails-price-inputs">
-        <div class="tradedetails-input-group">
-          <h4>Stoploss:</h4>
+      <!-- Simple 3-field layout -->
+      <div class="tradedetails-fields">
+        <!-- Labels row -->
+        <div class="tradedetails-labels-row">
+          <div class="tradedetails-label">Stoploss:</div>
+          <div class="tradedetails-label">Entry:</div>
+          <div class="tradedetails-label-with-tooltip">
+            <div>Target:</div>
+            <TargetTooltip 
+              @enable="enableTargetEdit"
+              @disable="disableTargetEdit"
+            />
+          </div>
+        </div>
+        
+        <!-- Inputs row -->
+        <div class="tradedetails-inputs-row">
           <div class="tradedetails-input-wrapper">
             <span class="tradedetails-input-prefix">$</span>
             <input
@@ -43,9 +55,6 @@
               @input="calculateTarget"
             >
           </div>
-        </div>
-        <div class="tradedetails-input-group">
-          <h4>Entry:</h4>
           <div class="tradedetails-input-wrapper">
             <span class="tradedetails-input-prefix">$</span>
             <input
@@ -57,15 +66,6 @@
               placeholder="0.00"
               @input="calculateTarget"
             >
-          </div>
-        </div>
-        <div class="tradedetails-input-group">
-          <div class="tradedetails-label-tooltip">
-            <h4>Target:</h4>
-            <TargetTooltip 
-              @enable="enableTargetEdit"
-              @disable="disableTargetEdit"
-            />
           </div>
           <div class="tradedetails-input-wrapper">
             <span class="tradedetails-input-prefix">$</span>
@@ -83,14 +83,13 @@
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="tradedetails-actions" style="margin-top: auto; margin-bottom: 1.5rem; padding: 0.75rem 1rem; gap: 1rem;">
+      <!-- Action Buttons at bottom -->
+      <div class="tradedetails-buttons">
         <button 
           class="tradedetails-save-button"
           :class="{ 'long': isLong, 'short': !isLong }"
           @click="saveTrade"
           :disabled="!validateTrade()"
-          style="min-height: 45px; border-radius: 0.5rem;"
         >
           {{ isLong ? 'Long' : 'Short' }}
         </button>
@@ -98,7 +97,6 @@
           class="tradedetails-history-button"
           :class="{ 'long': isLong, 'short': !isLong }"
           @click="$emit('open-trade-history')"
-          style="min-height: 45px; border-radius: 0.5rem;"
         >
           <span class="tradedetails-history-icon">📊</span>
           Trade History
@@ -122,7 +120,7 @@ export default defineComponent({
     TargetTooltip,
     TradeCountBubble
   },
-  emits: ['open-trade-history'],
+  emits: ['open-trade-history', 'trade-saved'],
   props: {
     score: {
       type: Number,
@@ -242,8 +240,6 @@ export default defineComponent({
   },
   methods: {
     calculateTarget() {
-      if (this.isTargetEditable) return;
-      
       if (!this.stoploss || !this.entry) {
         this.target = '';
         return;
@@ -257,73 +253,70 @@ export default defineComponent({
         return;
       }
 
-      // Calculate target based on R:R from score
-      if (this.isLong) {
-        if (ep <= sl) {
-          this.target = '';
-          return;
+      // Only auto-calculate if target is not being manually edited
+      if (!this.isTargetEditable) {
+        if (this.isLong) {
+          if (ep <= sl) {
+            this.target = '';
+            return;
+          }
+          
+          const risk = ep - sl;
+          const reward = risk * this.targetRR;
+          this.target = (ep + reward).toFixed(4);
+        } else {
+          if (ep >= sl) {
+            this.target = '';
+            return;
+          }
+          
+          const risk = sl - ep;
+          const reward = risk * this.targetRR;
+          this.target = (ep - reward).toFixed(4);
         }
-        const risk = ep - sl;
-        this.target = (ep + (risk * this.targetRR)).toFixed(4);
-      } else {
-        if (ep >= sl) { // For shorts, entry should be BELOW stoploss
-          this.target = '';
-          return;
-        }
-        const risk = sl - ep;
-        const calculatedTarget = ep - (risk * this.targetRR);
-        
-        // If target would be negative, set to 0
-        this.target = calculatedTarget <= 0 ? '0.00' : calculatedTarget.toFixed(4);
       }
     },
-
-    async saveTrade() {
+    
+    saveTrade() {
       if (!this.validateTrade()) {
-        console.error('❌ Trade validation failed');
         return;
       }
 
       const trade = {
-        isLong: this.isLong,
-        entryPrice: parseFloat(this.entry),
-        stopLoss: parseFloat(this.stoploss),
-        takeProfit: parseFloat(this.target),
-        size: this.baseTradeSize,
-        rr: parseFloat(this.currentRR),
+        id: Date.now(),
         timestamp: new Date().toISOString(),
-        pair: this.pair
+        pair: this.pair,
+        type: this.isLong ? 'LONG' : 'SHORT',
+        entry: parseFloat(this.entry),
+        stoploss: parseFloat(this.stoploss),
+        target: parseFloat(this.target),
+        rr: parseFloat(this.currentRR),
+        score: this.score,
+        status: 'OPEN',
+        accountSize: this.accountSize,
+        baseTradeSize: this.baseTradeSize,
+        tradeStreak: this.tradeStreak,
+        slTaken: this.slTaken
       };
 
-      console.log('📝 Saving trade:', trade);
-      console.log('🔑 Auth token:', localStorage.getItem('token'));
+      // Add trade to local storage
+      const existingTrades = JSON.parse(localStorage.getItem('trades') || '[]');
+      const updatedTrades = [...existingTrades, trade];
+      localStorage.setItem('trades', JSON.stringify(updatedTrades));
 
-      try {
-        // Save trade to store
-        await this.$store.dispatch('trades/saveTrade', trade);
-        console.log('✅ Trade saved successfully');
-        
-        // Update risk management stats
-        this.$store.dispatch('riskManagement/updateFromTradeResult', {
-          type: this.isLong ? 'LONG' : 'SHORT',
-          entry: trade.entryPrice,
-          size: trade.size,
-          rr: trade.rr
-        });
+      // Update local trades array
+      this.trades = updatedTrades;
 
-        // Clear form after successful save
-        this.stoploss = '';
-        this.entry = '';
-        this.target = '';
-        this.isTargetEditable = false;
-      } catch (error) {
-        console.error('❌ Failed to save trade:', error);
-        console.error('Error details:', {
-          message: error.message,
-          response: error.response?.data
-        });
-      }
+      // Reset form
+      this.stoploss = '';
+      this.entry = '';
+      this.target = '';
+      this.isTargetEditable = false;
+
+      // Emit event to parent
+      this.$emit('trade-saved', trade);
     },
+    
     validateTrade() {
       if (!this.stoploss || !this.entry || !this.target) {
         return false;
@@ -343,10 +336,12 @@ export default defineComponent({
         return ep < sl && tp < ep;
       }
     },
+    
     enableTargetEdit() {
-      this.isTargetEditable = true;
       this.previousTarget = this.target;
+      this.isTargetEditable = true;
     },
+    
     disableTargetEdit() {
       this.isTargetEditable = false;
       this.calculateTarget();
@@ -356,7 +351,68 @@ export default defineComponent({
 </script>
 
 <style scoped>
-@import '@/assets/styles/widgets/common.css';
 @import '@/assets/styles/widgets/TradeDetailsWidget.css';
 
+/* Simple fixed layout styles */
+.tradedetails-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.tradedetails-header {
+  margin-bottom: 0.5rem;
+}
+
+.tradedetails-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tradedetails-labels-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tradedetails-label, 
+.tradedetails-label-with-tooltip {
+  flex: 1;
+  font-weight: bold;
+  color: rgb(238, 175, 17);
+  font-size: 0.9rem;
+}
+
+.tradedetails-label-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tradedetails-inputs-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tradedetails-input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.tradedetails-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.tradedetails-save-button,
+.tradedetails-history-button {
+  flex: 1;
+  min-height: 45px;
+}
 </style>

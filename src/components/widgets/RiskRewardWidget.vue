@@ -115,6 +115,5 @@ export default defineComponent({
 </script>
 
 <style>
-@import '@/assets/styles/widgets/common.css';
 @import '@/assets/styles/widgets/RiskRewardWidget.css';
 </style>
