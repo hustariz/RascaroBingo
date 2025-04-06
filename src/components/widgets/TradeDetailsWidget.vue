@@ -21,8 +21,7 @@
           </button>
         </div>
         <div class="tradedetails-rr-display">
-          <div>R/R:</div>
-          <div>{{ currentRR }}</div>
+          <span>R/R: {{ currentRR }}</span>
         </div>
       </div>
 
@@ -359,7 +358,7 @@ export default defineComponent({
   flex-direction: column;
   height: 100%;
   padding: 1rem;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .tradedetails-header {
@@ -406,13 +405,14 @@ export default defineComponent({
 .tradedetails-buttons {
   display: flex;
   gap: 1rem;
-  margin-top: auto;
-  padding-top: 1rem;
+  margin-top: 0.75rem; /* Reduced from auto to a fixed value */
+  padding-top: 0.5rem; /* Reduced padding */
 }
 
 .tradedetails-save-button,
 .tradedetails-history-button {
   flex: 1;
-  min-height: 45px;
+  min-height: 35px;
+  padding: 0.25rem 0.5rem;
 }
 </style>
