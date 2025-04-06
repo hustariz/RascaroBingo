@@ -11,6 +11,7 @@ import PaymentPage from '@/components/app/PaymentPage.vue'
 import EmailVerification from '@/components/forms/EmailVerificationForm.vue'
 import ResetPassword from '@/components/forms/ResetPasswordForm.vue'
 import HyperliquidTest from '@/components/hyperliquid/HyperliquidTest.vue'
+import WidgetToolbox from '@/components/toolbox/WidgetToolbox.vue'
 
 // Auth guard
 const authGuard = (to, from, next) => {
@@ -127,6 +128,11 @@ const routes = [
     path: '/reset-password/:token',
     name: 'ResetPassword',
     component: ResetPassword
+  },
+  {
+    path: '/widget-toolbox',
+    name: 'WidgetToolbox',
+    component: WidgetToolbox
   },
   {
     path: '/admin',

@@ -46,7 +46,8 @@ import {
   faServer,
   faSync,
   faSpinner,
-  faPlus
+  faPlus,
+  faToolbox
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -88,7 +89,8 @@ library.add(
   faServer,
   faSync,
   faSpinner,
-  faPlus
+  faPlus,
+  faToolbox
 );
 
 const app = createApp(App);
