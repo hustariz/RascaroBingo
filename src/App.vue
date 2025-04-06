@@ -33,6 +33,23 @@ export default {
       showRegisterForm: false
     }
   },
+  watch: {
+    '$route.path': {
+      immediate: true,
+      handler(newPath) {
+        // Remove any previous route classes
+        document.body.classList.remove('route-bingo');
+        document.body.classList.remove('route-home');
+        
+        // Add current route class
+        if (newPath === '/bingo') {
+          document.body.classList.add('route-bingo');
+        } else if (newPath === '/') {
+          document.body.classList.add('route-home');
+        }
+      }
+    }
+  },
   methods: {
     ...mapActions('user', ['getCurrentUser']),
     ...mapActions('trades', ['fetchTrades'])
@@ -69,7 +86,6 @@ body {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
-  overflow: hidden; /* Prevent scrollbars */
 }
 
 #app {
@@ -79,7 +95,6 @@ body {
   text-align: center;
   color: #ffffff;
   min-height: 100vh;
-  overflow: hidden; /* Prevent scrollbars */
 }
 
 /* Desktop styles */
@@ -103,5 +118,45 @@ body {
   body {
     background-size: cover;
   }
+}
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #d4af37, #f2d272, #d4af37);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #f2d272, #d4af37, #f2d272);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d4af37 rgba(0, 0, 0, 0.5);
+}
+
+/* Route-specific styles */
+body.route-bingo {
+  overflow: hidden !important; /* Prevent scrollbars on bingo page */
+}
+
+body.route-home {
+  overflow-y: auto !important; /* Ensure scrollbars on homepage */
+}
+
+/* Fix for navbar overlap on Bingo page */
+body.route-bingo #app {
+  padding-top: 1.5rem; /* Match the original margin-top value */
 }
 </style>
