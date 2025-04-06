@@ -111,6 +111,58 @@
   margin-right: 8px;
 }
 
+/* Toolbox Dropdown Styles */
+.toolbox-dropdown-menu {
+  width: auto;
+  height: auto;
+  padding: 0.35rem;
+  background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.toolbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.toolbox-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(145deg, rgba(43, 24, 16, 1), rgba(25, 16, 5, 1));
+  border: 1px solid rgba(238, 175, 17, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toolbox-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(238, 175, 17, 0.7);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toolbox-item-active {
+  border-color: rgba(255, 215, 0, 0.8) !important;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4), inset 0 0 5px rgba(255, 215, 0, 0.2) !important;
+}
+
+.toolbox-item-active .toolbox-icon {
+  color: rgba(255, 215, 0, 0.9);
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
+}
+
+.toolbox-icon {
+  font-size: 1.5rem;
+  color: rgb(238, 175, 17);
+}
+
 .rb-icon {
   margin-right: 0.5rem;
 }
@@ -119,7 +171,7 @@
   filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.8));
 }
 
-/* Hamburger menu styles */
+/* Hamburger menu styles */Perfect can you use same background color
 .rb-hamburger-menu {
   display: none;
   cursor: pointer;

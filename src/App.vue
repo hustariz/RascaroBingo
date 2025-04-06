@@ -33,6 +33,7 @@ export default {
       showRegisterForm: false
     }
   },
+
   watch: {
     '$route.path': {
       immediate: true,
@@ -52,7 +53,10 @@ export default {
   },
   methods: {
     ...mapActions('user', ['getCurrentUser']),
-    ...mapActions('trades', ['fetchTrades'])
+    ...mapActions('trades', ['fetchTrades']),
+    updateActiveWidgets(widgets) {
+      this.activeWidgets = widgets;
+    }
   },
   async created() {
     // Check if auth state exists before accessing token

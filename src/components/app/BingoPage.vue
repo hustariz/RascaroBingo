@@ -491,6 +491,35 @@ export default defineComponent({
   },
 
   watch: {
+    // Watch the layout for changes and update localStorage
+    layout: {
+      handler() {
+        this.syncActiveWidgetsWithLayout();
+      },
+      deep: true
+    },
+    '$route.query.addWidget': {
+      immediate: true,
+      handler(widgetType) {
+        if (widgetType) {
+          this.addWidgetFromToolbox(widgetType);
+          
+          // Clear the query parameter after processing
+          this.$router.replace({ query: {} });
+        }
+      }
+    },
+    '$route.query.removeWidget': {
+      immediate: true,
+      handler(widgetType) {
+        if (widgetType) {
+          this.removeWidgetFromToolbox(widgetType);
+          
+          // Clear the query parameter after processing
+          this.$router.replace({ query: {} });
+        }
+      }
+    },
     bingoWidgetRef: {
       handler(newRef) {
         console.log('BingoWidget ref updated:', newRef);
@@ -511,6 +540,42 @@ export default defineComponent({
   },
 
   methods: {
+    removeWidgetFromToolbox(widgetType) {
+      console.log(`Removing widget: ${widgetType}`);
+      
+      // Find widgets of the specified type and remove them from the layout
+      let widgetsRemoved = false;
+      const updatedLayout = this.layout.filter(item => {
+        // Special case for risk-reward widget which can use different prefixes
+        if (widgetType === 'risk-reward' && (item.i.startsWith('risk-reward-') || item.i.startsWith('risk-') || item.i === 'risk')) {
+          console.log(`Found risk-reward widget to remove: ${item.i}`);
+          widgetsRemoved = true;
+          return false;
+        }
+        // For other widgets, check if the ID starts with the widgetType
+        const shouldRemove = item.i.startsWith(widgetType);
+        if (shouldRemove) {
+          console.log(`Found widget to remove: ${item.i}`);
+          widgetsRemoved = true;
+        }
+        return !shouldRemove;
+      });
+      
+      console.log(`Widgets removed: ${widgetsRemoved}`);
+      console.log(`Updated layout length: ${updatedLayout.length}, Original layout length: ${this.layout.length}`);
+      
+      // Update the layout with the filtered widgets
+      this.layout = updatedLayout;
+      
+      // Update localStorage to remove the widget from active widgets
+      this.updateActiveWidgetsInLocalStorage(widgetType, 'remove');
+      
+      // Update the grid dimensions
+      this.$nextTick(() => {
+        this.updateGridDimensions();
+      });
+    },
+    
     closePremiumLock() {
       this.showPremiumLock = false;
     },
@@ -799,6 +864,129 @@ export default defineComponent({
       }, 200);
     },
     
+    addWidgetFromToolbox(widgetType) {
+      console.log(`Adding widget: ${widgetType}`);
+      
+      // Check if widget already exists in the layout
+      let widgetExists = false;
+      if (widgetType === 'risk-reward') {
+        // Special case for risk-reward widget - check for both formats of ID
+        widgetExists = this.layout.some(item => 
+          item.i.startsWith('risk-reward-') || // New format
+          item.i.startsWith('risk-') || // Old format
+          item.i === 'risk' // Mobile format
+        );
+      } else {
+        widgetExists = this.layout.some(item => item.i.startsWith(widgetType));
+      }
+      
+      if (widgetExists) {
+        console.log(`Widget ${widgetType} already exists in layout, not adding again`);
+        return;
+      }
+
+      // Find the maximum y-coordinate in the current layout
+      let maxY = 0;
+      this.layout.forEach(item => {
+        const itemBottom = item.y + item.h;
+        if (itemBottom > maxY) {
+          maxY = itemBottom;
+        }
+      });
+
+      // Create a new widget based on the type
+      let newWidget = null;
+
+      switch (widgetType) {
+        case 'bingo':
+          newWidget = {
+            x: 0,
+            y: maxY,
+            w: 4,
+            h: 9,
+            i: "bingo-" + Date.now(),
+            title: "Bingo Grid",
+            component: markRaw(BingoWidget),
+            minW: 4,
+            minH: 9,
+            maxW: 12,
+            maxH: 12,
+            props: {
+              score: 0
+            }
+          };
+          break;
+          
+        case 'risk-reward':
+          newWidget = {
+            x: 0,
+            y: maxY,
+            w: 2,
+            h: 9,
+            i: "risk-reward-" + Date.now(),
+            title: "Score: Risk/Reward",
+            component: markRaw(RiskRewardWidget),
+            minW: 2,
+            minH: 9,
+            maxW: 12,
+            maxH: 12,
+            props: {
+              score: 0
+            }
+          };
+          break;
+          
+        case 'trade-details':
+          newWidget = {
+            x: 0,
+            y: maxY,
+            w: 6,
+            h: 8,
+            i: "trade-details-" + Date.now(),
+            title: "Trade Details",
+            component: markRaw(TradeDetailsWidget),
+            minW: 3,
+            minH: 8,
+            maxW: 12,
+            maxH: 12
+          };
+          break;
+          
+        case 'trade-idea':
+          newWidget = {
+            x: 0,
+            y: maxY,
+            w: 3,
+            h: 6,
+            i: "trade-idea-" + Date.now(),
+            title: "Trade's Idea",
+            component: markRaw(TradeIdeaWidget),
+            minW: 3,
+            minH: 6,
+            maxW: 12,
+            maxH: 12
+          };
+          break;
+      }
+      
+      if (newWidget) {
+        console.log(`Adding new widget to layout:`, newWidget);
+        this.layout.push(newWidget);
+        
+        // Update localStorage to add the widget to active widgets
+        this.updateActiveWidgetsInLocalStorage(widgetType, 'add');
+        
+        // Update the grid dimensions
+        this.$nextTick(() => {
+          this.updateGridDimensions();
+          
+          // Force a sync of active widgets with layout
+          this.syncActiveWidgetsWithLayout();
+          console.log('Active widgets after adding:', JSON.parse(localStorage.getItem('activeWidgets')));
+        });
+      }
+    },
+
     updateGridDimensions() {
       // Calculate grid width based on viewport and sidebar
       const sidebarWidth = this.isSidebarCollapsed ? 60 : 300;
@@ -818,6 +1006,64 @@ export default defineComponent({
       
       console.log('Grid dimensions updated:', this.gridWidth, this.gridHeight, 'Viewport height:', viewportHeight);
     },
+    
+    updateActiveWidgetsInLocalStorage(widgetType, action) {
+      // Get current active widgets from localStorage
+      const storedWidgets = localStorage.getItem('activeWidgets');
+      let activeWidgets = storedWidgets ? JSON.parse(storedWidgets) : [];
+      
+      if (action === 'add' && !activeWidgets.includes(widgetType)) {
+        // Add the widget to active widgets
+        activeWidgets.push(widgetType);
+        console.log(`Added ${widgetType} to active widgets in localStorage`);
+      } else if (action === 'remove') {
+        // Remove the widget from active widgets
+        activeWidgets = activeWidgets.filter(type => type !== widgetType);
+        console.log(`Removed ${widgetType} from active widgets in localStorage`);
+      }
+      
+      // Save updated active widgets to localStorage
+      localStorage.setItem('activeWidgets', JSON.stringify(activeWidgets));
+      console.log('Active widgets in localStorage:', activeWidgets);
+    },
+    
+    // Sync the active widgets in localStorage with the current layout
+    syncActiveWidgetsWithLayout() {
+      const activeWidgets = [];
+      
+      console.log('Syncing active widgets with layout:', this.layout);
+      
+      // Check for each widget type in the layout
+      if (this.layout.some(item => item.i.startsWith('bingo'))) {
+        activeWidgets.push('bingo');
+      }
+      
+      // Special case for risk-reward widget - check for both formats of ID
+      const hasRiskWidget = this.layout.some(item => 
+        item.i.startsWith('risk-reward-') || // New format
+        item.i.startsWith('risk-') || // Old format
+        item.i === 'risk' // Mobile format
+      );
+      console.log('Has risk widget?', hasRiskWidget);
+      if (hasRiskWidget) {
+        activeWidgets.push('risk-reward');
+      }
+      
+      if (this.layout.some(item => item.i.startsWith('trade-details'))) {
+        activeWidgets.push('trade-details');
+      }
+      
+      if (this.layout.some(item => item.i.startsWith('trade-idea'))) {
+        activeWidgets.push('trade-idea');
+      }
+      
+      console.log('Active widgets after sync:', activeWidgets);
+      
+      // Save to localStorage
+      localStorage.setItem('activeWidgets', JSON.stringify(activeWidgets));
+    },
+    
+
   },
 
   mounted() {
@@ -829,6 +1075,13 @@ export default defineComponent({
     
     // Add resize event listener
     window.addEventListener('resize', this.handleResize);
+    
+    // Initial sync of active widgets with layout
+    this.$nextTick(() => {
+      this.syncActiveWidgetsWithLayout();
+    });
+    
+
     
     this.$nextTick(() => {
       console.log('BingoPage nextTick');

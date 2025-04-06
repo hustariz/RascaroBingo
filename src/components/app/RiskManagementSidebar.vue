@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar" :class="{ 'collapsed': isCollapsed }">
+  <div class="sidebar" :class="{ 'collapsed': isCollapsed }" style="background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98));">
     <button class="toggle-button" @click="toggleSidebar">
       {{ isCollapsed ? '>' : '<' }}
     </button>
