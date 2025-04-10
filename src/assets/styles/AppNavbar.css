@@ -171,9 +171,9 @@
   filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.8));
 }
 
-/* Hamburger menu styles */Perfect can you use same background color
+/* Hamburger menu styles */
 .rb-hamburger-menu {
-  display: none;
+  display: none; /* Hidden by default */
   cursor: pointer;
   padding: 0.5rem;
   z-index: 1001;
@@ -202,7 +202,7 @@
   }
 
   .rb-hamburger-menu {
-    display: block;
+    display: block; /* Only show on mobile */
   }
 
   .rb-navbar-menu {
