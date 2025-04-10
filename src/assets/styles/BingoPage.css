@@ -22,6 +22,11 @@
 }
 
 /* Base Layout */
+html, body {
+  height: 100%;
+  overflow: auto;
+}
+
 .page-container {
   display: flex;
   min-height: 100vh;
@@ -30,7 +35,7 @@
   padding: 0.5rem;
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  overflow: auto; /* Show scrollbars when content overflows */
   z-index: var(--z-dashboard);
 }
 
@@ -43,32 +48,33 @@
   margin-left: 18rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto; /* Changed from hidden to auto to show scrollbars */
 }
 
 .main-content.expanded {
   margin-left: 2.5rem;
 }
 
-/* Main content container with bottom margin */
-.grid-container-with-margin {
+/* Dashboard container */
+.dashboard-container {
   position: relative;
-  height: calc(100vh - 5rem);
-  margin-bottom: 3rem !important;
-  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 3rem;
 }
 
 /* Decorative border element */
 .grid-border-decoration {
   position: absolute;
-  top: 0.5rem;
-  left: 0.75rem;
-  right: 0.75rem;
+  top: 0;
+  left: 0;
+  right: 0;
   bottom: 0;
   border: 1px solid rgba(255, 215, 0, 0.4);
   border-radius: 10px;
   pointer-events: none;
-  z-index: 4;
+  z-index: 1;
 }
 
 /* Dashboard Grid Layout */
@@ -76,22 +82,37 @@
   background: var(--dark-bg-transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  position: absolute;
-  top: 0.5rem;
-  left: 0.75rem;
-  right: 0.75rem;
-  min-height: calc(100% - 3.5rem) !important;
+  position: relative;
+  margin: 0.5rem 0.75rem 3rem 0.75rem;
+  min-height: calc(100vh - 4rem);
   height: auto !important;
   padding: 0.25rem;
-  overflow-x: hidden !important;
-  overflow-y: auto;
+  overflow: visible !important; /* Allow content to expand beyond bounds */
   box-sizing: border-box;
   z-index: var(--z-dashboard);
   isolation: isolate;
   scrollbar-width: thin;
   -ms-overflow-style: none;
-  border: none !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
   border-radius: 10px !important;
+}
+
+.dashboard-layout .vue-grid-layout {
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.dashboard-layout .vue-grid-item {
+  transition: transform 200ms ease;
+  z-index: 1;
+}
+
+.dashboard-layout .vue-grid-item.vue-grid-placeholder {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px dashed rgba(255, 215, 0, 0.4);
+  z-index: 0;
 }
 
 /* Remove the pseudo-element that might be causing issues */

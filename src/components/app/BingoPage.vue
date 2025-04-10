@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container" @open-trade-history="$emit('open-trade-history')">
+  <div class="page-container" @open-trade-history="$emit('open-trade-history')" :style="{ overflow: 'auto' }">
     <PremiumLock 
       :show="showPremiumLock" 
       :message="'Upgrade to Premium to access multiple Bingo pages and custom page names'"
@@ -13,32 +13,34 @@
       @sidebar-toggle="handleSidebarToggle" 
     />
     
-    <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }">
-      <!-- Container with bottom margin and border styling -->
-      <div class="grid-container-with-margin" style="position: relative;">
-        <!-- Decorative border element -->
-        <div class="grid-border-decoration"></div>
-        <GridLayout
-          v-model:layout="responsiveLayout"
-          :col-num="isMobile ? 4 : 12"
-          :row-height="rowHeight"
-          :margin="[10, 10]"
-          :use-css-transforms="true"
-          :vertical-compact="isMobile"
-          :prevent-collision="false"
-          :is-draggable="true"
-          :is-resizable="true"
-          :responsive="true"
-          :compact-type="null"
-          :width="gridWidth"
-          :height="gridHeight"
-          :auto-size="true"
-          class="dashboard-layout"
-          @layout-created="onLayoutCreated"
-          @layout-before-mount="onLayoutBeforeMount"
-          @layout-mounted="onLayoutMounted"
-          @layout-ready="onLayoutReady"
-          @layout-updated="onLayoutUpdated"
+    <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }" :style="{ overflow: 'auto' }">
+        <!-- Dashboard container for proper structure -->
+        <div class="dashboard-container">
+          <!-- Dashboard layout with styling -->
+          <div class="dashboard-layout" :style="{ overflow: 'visible' }">
+            <!-- Decorative border element -->
+            <div class="grid-border-decoration"></div>
+            <GridLayout
+            v-model:layout="responsiveLayout"
+            :col-num="isMobile ? 4 : 12"
+            :row-height="rowHeight"
+            :margin="[10, 10]"
+            :use-css-transforms="true"
+            :vertical-compact="isMobile"
+            :prevent-collision="false"
+            :is-draggable="true"
+            :is-resizable="true"
+            :responsive="true"
+            :compact-type="null"
+            :width="gridWidth"
+            :auto-size="true"
+            @layout-created="onLayoutCreated"
+            @layout-before-mount="onLayoutBeforeMount"
+            @layout-mounted="onLayoutMounted"
+            @layout-ready="onLayoutReady"
+            @layout-updated="onLayoutUpdated"
+            @drag-start="onDragStart"
+            @drag-end="onDragEnd"
         >
         <GridItem
           v-for="item in responsiveLayout"
@@ -218,8 +220,9 @@
             <div class="vue-resizable-handle"></div>
           </div>
         </GridItem>
-      </GridLayout>
-      </div>
+            </GridLayout>
+          </div>
+        </div>
       
       <!-- Bottom spacer to ensure margin -->
       <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 3rem; z-index: -1;"></div>
@@ -733,6 +736,65 @@ export default defineComponent({
     onLayoutReady() {
       console.log('Layout ready');
     },
+    onDragStart() {
+      // Set the dragging state to true
+      this.isDragging = true;
+      
+      // Force scrollbars to appear on the html and body
+      document.documentElement.style.overflow = 'auto';
+      document.body.style.overflow = 'auto';
+      
+      // Force scrollbars to appear on the page container
+      const pageContainer = document.querySelector('.page-container');
+      if (pageContainer) {
+        pageContainer.style.overflowY = 'auto';
+      }
+      
+      // Make the main content have overflow auto
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) {
+        mainContent.style.overflow = 'auto';
+      }
+      
+      // Make the dashboard layout have overflow visible
+      const dashboardLayout = document.querySelector('.dashboard-layout');
+      if (dashboardLayout) {
+        dashboardLayout.style.overflow = 'visible';
+      }
+      
+      // Update grid dimensions to ensure enough space
+      this.updateGridDimensions();
+    },
+    
+    onDragEnd() {
+      // Calculate the maximum height needed based on widgets
+      this.$nextTick(() => {
+        // Update grid dimensions to ensure enough space
+        this.updateGridDimensions();
+        
+        // Keep scrollbars visible for a moment
+        setTimeout(() => {
+          this.isDragging = false;
+          
+          // Keep scrollbars visible on html and body
+          document.documentElement.style.overflow = 'auto';
+          document.body.style.overflow = 'auto';
+          
+          // Keep scrollbars visible on the page container
+          const pageContainer = document.querySelector('.page-container');
+          if (pageContainer) {
+            pageContainer.style.overflowY = 'auto';
+          }
+          
+          // Keep the dashboard layout overflow visible
+          const dashboardLayout = document.querySelector('.dashboard-layout');
+          if (dashboardLayout) {
+            dashboardLayout.style.overflow = 'visible';
+          }
+        }, 500);
+      });
+    },
+    
     onLayoutUpdated(newLayout) {
       console.log('Layout updated');
       
@@ -988,23 +1050,47 @@ export default defineComponent({
     },
 
     updateGridDimensions() {
-      // Calculate grid width based on viewport and sidebar
       const sidebarWidth = this.isSidebarCollapsed ? 60 : 300;
-      const horizontalPadding = 40; // Account for horizontal margins and padding
-      const verticalPadding = 150; // Increased padding to ensure bottom margin
-      
-      // Calculate grid width and height with a reduction to prevent scrollbars
+      const horizontalPadding = 40;
+      const verticalPadding = 150;
+
       this.gridWidth = window.innerWidth - sidebarWidth - horizontalPadding;
       
-      // Calculate height with a significant bottom margin
-      const viewportHeight = window.innerHeight;
-      this.gridHeight = viewportHeight - verticalPadding;
+      // Calculate the required height based on widget positions
+      let maxBottom = 0;
+      if (Array.isArray(this.responsiveLayout)) {
+        this.responsiveLayout.forEach(item => {
+          const bottom = (item.y + item.h) * this.rowHeight;
+          if (bottom > maxBottom) {
+            maxBottom = bottom;
+          }
+        });
+      }
       
-      // Ensure dimensions are never negative
+      // Set a minimum height based on viewport
+      const viewportHeight = window.innerHeight;
+      const minHeight = viewportHeight - verticalPadding;
+      
+      // Use the larger of calculated height or minimum height
+      this.gridHeight = Math.max(maxBottom + 100, minHeight);
+      
+      // Ensure minimum dimensions
       this.gridWidth = Math.max(this.gridWidth, 300);
       this.gridHeight = Math.max(this.gridHeight, 300);
       
-      console.log('Grid dimensions updated:', this.gridWidth, this.gridHeight, 'Viewport height:', viewportHeight);
+      // Update the dashboard layout height
+      this.$nextTick(() => {
+        const dashboardLayout = document.querySelector('.dashboard-layout');
+        if (dashboardLayout) {
+          dashboardLayout.style.minHeight = `${this.gridHeight}px`;
+          
+          // Ensure the main content can scroll if needed
+          const mainContent = document.querySelector('.main-content');
+          if (mainContent) {
+            mainContent.style.overflow = 'auto';
+          }
+        }
+      });
     },
     
     updateActiveWidgetsInLocalStorage(widgetType, action) {
