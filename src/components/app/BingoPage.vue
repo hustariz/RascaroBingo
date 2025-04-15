@@ -1,21 +1,7 @@
 <template>
-  <div class="page-container" @open-trade-history="$emit('open-trade-history')" :style="{ overflow: 'auto' }">
-    <PremiumLock 
-      :show="showPremiumLock" 
-      :message="'Upgrade to Premium to access multiple Bingo pages and custom page names'"
-      @upgradePremium="handleUpgradePremium"
-      @close="closePremiumLock"
-    />
-
-    <RiskManagementSidebar 
-      ref="riskSidebar"
-      @save-settings="handleSaveSettings" 
-      @sidebar-toggle="handleSidebarToggle" 
-    />
-    
-    <div class="main-content" :class="{ 'expanded': isSidebarCollapsed }" :style="{ overflow: 'auto' }">
-        <!-- Dashboard container for proper structure -->
-        <div class="dashboard-container">
+  <div>
+    <!-- Dashboard container for proper structure -->
+    <div class="dashboard-container">
           <!-- Dashboard layout with styling -->
           <div class="dashboard-layout" :style="{ overflow: 'visible' }">
             <!-- Decorative border element -->
@@ -223,10 +209,6 @@
             </GridLayout>
           </div>
         </div>
-      
-      <!-- Bottom spacer to ensure margin -->
-      <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 3rem; z-index: -1;"></div>
-    </div>
 
     <!-- Workflow Tooltip -->
     <div class="workflow-tooltip" v-show="workflowTooltipVisible" :style="workflowTooltipStyle">
@@ -267,17 +249,22 @@ import { markRaw } from 'vue';
 import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
 import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
-import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
-import PremiumLock from '@/components/little_components/PremiumLock.vue';
+
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
-export default defineComponent({
+export default defineComponent({  
+  props: {
+    isSidebarCollapsed: {
+      type: Boolean,
+      default: false
+    }
+  },
+  
+  emits: ['open-premium-lock', 'open-trade-history'],
   name: 'BingoPage',
   
   components: {
     BingoWidget,
-    RiskManagementSidebar,
-    PremiumLock,
     GridLayout,
     GridItem,
     RiskRewardWidget,
@@ -366,8 +353,7 @@ export default defineComponent({
         selected: false
       },
       editingCellIndex: null,
-      showPremiumLock: false,
-      isSidebarCollapsed: false,
+
       bingoWidgetRef: null,
       rowHeightValue: 45, // Base row height
       isDragging: false,
@@ -578,24 +564,6 @@ export default defineComponent({
         this.updateGridDimensions();
       });
     },
-    
-    closePremiumLock() {
-      this.showPremiumLock = false;
-    },
-
-    handleUpgradePremium() {
-      this.$router.push('/premium');
-      this.showPremiumLock = false;
-    },
-
-    handleSidebarToggle() {
-      this.isSidebarCollapsed = !this.isSidebarCollapsed;
-    },
-
-    handleSaveSettings() {
-      // Handle saving risk management settings
-    },
-
     openEditModal(cellIndex) {
       console.log('Opening edit modal for cell:', cellIndex);
       const currentCell = this.getCurrentPage?.bingoCells[cellIndex];
@@ -833,7 +801,7 @@ export default defineComponent({
     handleStartNameEdit() {
       console.log('Board name clicked');
       if (!this.isPremium) {
-        this.showPremiumLock = true;
+        this.$emit('open-premium-lock');
         return;
       }
       const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
@@ -847,7 +815,7 @@ export default defineComponent({
 
     handleNextPage() {
       if (!this.isPremium) {
-        this.showPremiumLock = true;
+        this.$emit('open-premium-lock');
         return;
       }
       const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
@@ -861,7 +829,7 @@ export default defineComponent({
 
     handlePreviousPage() {
       if (!this.isPremium) {
-        this.showPremiumLock = true;
+        this.$emit('open-premium-lock');
         return;
       }
       const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
@@ -895,7 +863,7 @@ export default defineComponent({
 
     handleDeletePage() {
       if (!this.isPremium) {
-        this.showPremiumLock = true;
+        this.$emit('open-premium-lock');
         return;
       }
       const bingoWidget = Array.isArray(this.bingoWidgetRef) ? this.bingoWidgetRef[0] : this.bingoWidgetRef;
