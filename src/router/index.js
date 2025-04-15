@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '@/components/app/HomePage.vue'
-import BingoPageContainer from '@/components/app/BingoPageContainer.vue'
+import BingoPage from '@/components/app/BingoPage.vue'
 import ProfilePage from '@/components/app/ProfilePage.vue'
 import AnalyticsPage from '@/components/app/AnalyticsPage.vue'
 import LoginForm from '@/components/forms/LoginForm.vue'
@@ -66,7 +66,7 @@ const routes = [
   { 
     path: '/bingo', 
     name: 'Bingo',
-    component: BingoPageContainer,
+    component: BingoPage,
     meta: { requiresAuth: false }
   },
   { 
