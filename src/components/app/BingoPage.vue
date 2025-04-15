@@ -62,7 +62,7 @@
                 <div class="widget-title-area" style="display: flex; align-items: center;">
                   <div class="widget-title">{{ item.title }}</div>
                   <template v-if="item.i === 'bingo'">
-                    <div class="widget-navigation" style="margin-left: 0.5rem;">
+                    <div class="widget-navigation">
                       <button 
                         class="page-nav-button"
                         @click="handlePreviousPage"
@@ -110,65 +110,27 @@
                         🗑
                       </button>
 
-                      <button 
-                        class="page-nav-button export-button"
-                        @click="handleExportBoard"
-                        title="Export current board"
-                      >
-                        ↓
-                      </button>
+                      <ExportTooltip @export="handleExportBoard" />
                     </div>
                   </template>
                   <template v-else-if="item.navigation">
-                    <div class="widget-navigation" style="margin-left: 0.5rem;">
-                      <button 
-                        class="page-nav-button"
-                        @click="item.navigation.onPrevious"
-                        :disabled="item.navigation.currentPageIndex === 0"
-                      >
-                        ←
-                      </button>
-
-                      <div class="board-name-container">
-                        <template v-if="item.navigation.isEditingName">
-                          <input
-                            ref="nameInput"
-                            v-model="item.navigation.editedName"
-                            class="board-name-input"
-                            @blur="item.navigation.onSave"
-                            @keyup.enter="item.navigation.onSave"
-                            @keyup.esc="item.navigation.onCancel"
-                            placeholder="Default Board"
-                          />
-                        </template>
-                        <template v-else>
-                          <div 
-                            class="board-name"
-                            @click="item.navigation.onStartEdit"
-                          >
-                            {{ item.navigation.currentPageName || 'Default Board' }}
-                          </div>
-                        </template>
-                      </div>
-
-                      <button 
-                        class="page-nav-button"
-                        @click="item.navigation.onNext"
-                        :disabled="item.navigation.currentPageIndex >= item.navigation.totalPages - 1"
-                      >
-                        →
-                      </button>
-
-                      <button 
-                        class="page-nav-button delete-button"
-                        @click="item.navigation.onDelete"
-                        :disabled="item.navigation.currentPageIndex === 0"
-                      >
-                        🗑
-                      </button>
-
-                      <ExportTooltip @export="item.navigation.onExport" />
-                    </div>
+                    <BoardNavigation
+                      :current-page-index="item.navigation.currentPageIndex"
+                      :current-page-name="item.navigation.currentPageName"
+                      :is-editing-name="item.navigation.isEditingName"
+                      :edited-name="item.navigation.editedName"
+                      :is-premium="isPremium"
+                      :total-pages="item.navigation.totalPages || 1"
+                      @previous="item.navigation.onPrevious"
+                      @next="item.navigation.onNext"
+                      @delete="item.navigation.onDelete"
+                      @export="item.navigation.onExport"
+                      @start-edit="item.navigation.onStartEdit"
+                      @save-name="item.navigation.onSave"
+                      @cancel-edit="item.navigation.onCancel"
+                      @premium-required="showPremiumLock = true"
+                      @update:edited-name="(value) => { item.navigation.editedName = value; }"
+                    />
                   </template>
                   <WorkflowTooltip 
                     v-if="item.workflowNumber" 
@@ -232,6 +194,8 @@ import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/little_components/PremiumLock.vue';
 import WorkflowTooltip from '@/components/little_components/WorkflowTooltip.vue';
 import ExportTooltip from '@/components/little_components/ExportTooltip.vue';
+import BoardNavigation from '@/components/little_components/BoardNavigation.vue';
+import GridDimensionsManager from '@/components/utils/GridDimensionsManager';
 import EditCellModal from '@/components/modals/EditCellModal.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
@@ -239,17 +203,17 @@ export default defineComponent({
   name: 'BingoPage',
   
   components: {
-    BingoWidget,
-    RiskManagementSidebar,
-    PremiumLock,
     GridLayout,
     GridItem,
+    BingoWidget,
     RiskRewardWidget,
-    TradeIdeaWidget,
     TradeDetailsWidget,
+    RiskManagementSidebar,
+    PremiumLock,
     WorkflowTooltip,
     ExportTooltip,
-    EditCellModal
+    EditCellModal,
+    BoardNavigation
   },
 
   data() {
@@ -970,46 +934,20 @@ export default defineComponent({
     },
 
     updateGridDimensions() {
-      const sidebarWidth = this.isSidebarCollapsed ? 60 : 300;
-      const horizontalPadding = 40;
-      const verticalPadding = 150;
-
-      this.gridWidth = window.innerWidth - sidebarWidth - horizontalPadding;
+      // Use the GridDimensionsManager utility to calculate dimensions
+      const dimensions = GridDimensionsManager.calculateDimensions({
+        isSidebarCollapsed: this.isSidebarCollapsed,
+        layout: this.responsiveLayout,
+        rowHeight: this.rowHeight
+      });
       
-      // Calculate the required height based on widget positions
-      let maxBottom = 0;
-      if (Array.isArray(this.responsiveLayout)) {
-        this.responsiveLayout.forEach(item => {
-          const bottom = (item.y + item.h) * this.rowHeight;
-          if (bottom > maxBottom) {
-            maxBottom = bottom;
-          }
-        });
-      }
+      // Update component data with calculated dimensions
+      this.gridWidth = dimensions.gridWidth;
+      this.gridHeight = dimensions.gridHeight;
       
-      // Set a minimum height based on viewport
-      const viewportHeight = window.innerHeight;
-      const minHeight = viewportHeight - verticalPadding;
-      
-      // Use the larger of calculated height or minimum height
-      this.gridHeight = Math.max(maxBottom + 100, minHeight);
-      
-      // Ensure minimum dimensions
-      this.gridWidth = Math.max(this.gridWidth, 300);
-      this.gridHeight = Math.max(this.gridHeight, 300);
-      
-      // Update the dashboard layout height
+      // Apply the dimensions to the DOM
       this.$nextTick(() => {
-        const dashboardLayout = document.querySelector('.dashboard-layout');
-        if (dashboardLayout) {
-          dashboardLayout.style.minHeight = `${this.gridHeight}px`;
-          
-          // Ensure the main content can scroll if needed
-          const mainContent = document.querySelector('.main-content');
-          if (mainContent) {
-            mainContent.style.overflow = 'auto';
-          }
-        }
+        GridDimensionsManager.applyDimensions(dimensions);
       });
     },
     
