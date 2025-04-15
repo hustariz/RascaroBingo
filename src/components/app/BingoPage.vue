@@ -227,25 +227,12 @@
 
 
     <!-- Edit Modal -->
-    <div v-if="editModalVisible" class="modal">
-      <div class="modal-content">
-        <h3>Edit Bingo Cell</h3>
-        <div class="modal-form">
-          <div class="form-group">
-            <label>Title:</label>
-            <input v-model="editedCell.title" type="text" placeholder="Enter title">
-          </div>
-          <div class="form-group">
-            <label>Points:</label>
-            <input v-model.number="editedCell.points" type="number" min="0">
-          </div>
-          <div class="modal-buttons">
-            <button @click="saveEditedCell" class="save-button">Save</button>
-            <button @click="closeEditModal" class="cancel-button">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <EditCellModal
+      v-model:visible="editModalVisible"
+      :cell="editedCell"
+      @save="handleSaveEditedCell"
+      @close="closeEditModal"
+    />
   </div>
 </template>
 
@@ -260,6 +247,7 @@ import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/little_components/PremiumLock.vue';
 import WorkflowTooltip from '@/components/little_components/WorkflowTooltip.vue';
+import EditCellModal from '@/components/modals/EditCellModal.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
 export default defineComponent({
@@ -274,7 +262,8 @@ export default defineComponent({
     RiskRewardWidget,
     TradeIdeaWidget,
     TradeDetailsWidget,
-    WorkflowTooltip
+    WorkflowTooltip,
+    EditCellModal
   },
 
   data() {
@@ -601,14 +590,14 @@ export default defineComponent({
       };
     },
 
-    saveEditedCell() {
+    handleSaveEditedCell(updatedCell) {
       if (this.editingCellIndex !== null) {
         const currentCell = this.getCurrentPage?.bingoCells[this.editingCellIndex];
         if (currentCell) {
           this.editCell(this.editingCellIndex, {
             ...currentCell,
-            title: this.editedCell.title,
-            points: this.editedCell.points
+            title: updatedCell.title,
+            points: updatedCell.points
           });
         }
       }
