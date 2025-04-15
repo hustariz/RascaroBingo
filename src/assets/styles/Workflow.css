@@ -1,0 +1,46 @@
+/* Workflow Number and Tooltip Styles */
+
+.workflow-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background-color: #4a90e2;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  margin-left: 8px;
+  cursor: help;
+}
+
+.workflow-tooltip {
+  position: fixed;
+  background: linear-gradient(145deg, rgba(43, 24, 16, 0.95), rgba(25, 16, 5, 0.98));
+  color: rgb(238, 175, 17);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: 'Montserrat', sans-serif;
+  pointer-events: none;
+  z-index: 3000;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.2),
+    0 0 15px rgba(238, 175, 17, 0.15);
+  max-width: 300px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+  transform: translate(0, 10px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  visibility: hidden;
+  text-align: center;
+}
+
+.workflow-tooltip[style*="visibility: visible"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translate(0, 20px) !important;
+}

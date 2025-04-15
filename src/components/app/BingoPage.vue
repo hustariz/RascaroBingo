@@ -62,7 +62,7 @@
                 <div class="widget-title-area" style="display: flex; align-items: center;">
                   <div class="widget-title">{{ item.title }}</div>
                   <template v-if="item.i === 'bingo'">
-                    <div class="widget-navigation" style="margin-left: 0.5rem;">
+                    <div class="widget-navigation">
                       <button 
                         class="page-nav-button"
                         @click="handlePreviousPage"
@@ -110,91 +110,33 @@
                         🗑
                       </button>
 
-                      <button 
-                        class="page-nav-button export-button"
-                        @click="handleExportBoard"
-                        title="Export current board"
-                      >
-                        ↓
-                      </button>
+                      <ExportTooltip @export="handleExportBoard" />
                     </div>
                   </template>
                   <template v-else-if="item.navigation">
-                    <div class="widget-navigation" style="margin-left: 0.5rem;">
-                      <button 
-                        class="page-nav-button"
-                        @click="item.navigation.onPrevious"
-                        :disabled="item.navigation.currentPageIndex === 0"
-                      >
-                        ←
-                      </button>
-
-                      <div class="board-name-container">
-                        <template v-if="item.navigation.isEditingName">
-                          <input
-                            ref="nameInput"
-                            v-model="item.navigation.editedName"
-                            class="board-name-input"
-                            @blur="item.navigation.onSave"
-                            @keyup.enter="item.navigation.onSave"
-                            @keyup.esc="item.navigation.onCancel"
-                            placeholder="Default Board"
-                          />
-                        </template>
-                        <template v-else>
-                          <div 
-                            class="board-name"
-                            @click="item.navigation.onStartEdit"
-                          >
-                            {{ item.navigation.currentPageName || 'Default Board' }}
-                          </div>
-                        </template>
-                      </div>
-
-                      <button 
-                        class="page-nav-button"
-                        @click="item.navigation.onNext"
-                        :disabled="item.navigation.currentPageIndex >= item.navigation.totalPages - 1"
-                      >
-                        →
-                      </button>
-
-                      <button 
-                        class="page-nav-button delete-button"
-                        @click="item.navigation.onDelete"
-                        :disabled="item.navigation.currentPageIndex === 0"
-                      >
-                        🗑
-                      </button>
-
-                      <button 
-                        class="page-nav-button export-button"
-                        @click="item.navigation.onExport"
-                        @mouseover="showExportTooltip($event)"
-                        @mouseleave="hideExportTooltip"
-                      >
-                        ↓
-                      </button>
-                      <teleport to="body" v-if="exportTooltipVisible">
-                        <div class="workflow-tooltip" :style="{
-                          left: exportTooltipX + 'px',
-                          top: exportTooltipY + 'px',
-                          visibility: 'visible'
-                        }">
-                          Export to Excel
-                        </div>
-                      </teleport>
-                    </div>
+                    <BoardNavigation
+                      :current-page-index="item.navigation.currentPageIndex"
+                      :current-page-name="item.navigation.currentPageName"
+                      :is-editing-name="item.navigation.isEditingName"
+                      :edited-name="item.navigation.editedName"
+                      :is-premium="isPremium"
+                      :total-pages="item.navigation.totalPages || 1"
+                      @previous="item.navigation.onPrevious"
+                      @next="item.navigation.onNext"
+                      @delete="item.navigation.onDelete"
+                      @export="item.navigation.onExport"
+                      @start-edit="item.navigation.onStartEdit"
+                      @save-name="item.navigation.onSave"
+                      @cancel-edit="item.navigation.onCancel"
+                      @premium-required="showPremiumLock = true"
+                      @update:edited-name="(value) => { item.navigation.editedName = value; }"
+                    />
                   </template>
-                  <div 
-                    class="workflow-number" 
-                    v-if="item.workflowNumber"
+                  <WorkflowTooltip 
+                    v-if="item.workflowNumber" 
+                    :number="item.workflowNumber"
                     :key="'workflow-' + item.i"
-                    @mouseenter="showWorkflowTooltip($event, item.workflowNumber)"
-                    @mouseleave="hideWorkflowTooltip"
-                  >
-                    {{ item.workflowNumber }}
-                  </div>
+                  />
                 </div>
                 <div class="drag-icon"></div>
               </div>
@@ -217,7 +159,7 @@
                 @open-edit-modal="openEditModal"
               />
             </div>
-            <div class="vue-resizable-handle"></div>
+            <!-- Removed duplicate resize handle -->
           </div>
         </GridItem>
             </GridLayout>
@@ -228,34 +170,15 @@
       <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 3rem; z-index: -1;"></div>
     </div>
 
-    <!-- Workflow Tooltip -->
-    <div class="workflow-tooltip" v-show="workflowTooltipVisible" :style="workflowTooltipStyle">
-      <div v-if="workflowTooltipNumber === 1">First check your trading pair and write your trade idea 💭</div>
-      <div v-if="workflowTooltipNumber === 2">Attribute points to your trading practices and check the bingo cases to increase your score! 🎯</div>
-      <div v-if="workflowTooltipNumber === 3">The more points you earn, the more risk you can allocate to your trade, which can be a further target / stoploss or more size for the trade! 📈</div>
-      <div v-if="workflowTooltipNumber === 4">Now enter the stoploss of your trade first (where your idea is wrong), then your entry and we will calculate a proposal of target based of the points you earned previously! 🎯💰</div>
-    </div>
+
 
     <!-- Edit Modal -->
-    <div v-if="editModalVisible" class="modal">
-      <div class="modal-content">
-        <h3>Edit Bingo Cell</h3>
-        <div class="modal-form">
-          <div class="form-group">
-            <label>Title:</label>
-            <input v-model="editedCell.title" type="text" placeholder="Enter title">
-          </div>
-          <div class="form-group">
-            <label>Points:</label>
-            <input v-model.number="editedCell.points" type="number" min="0">
-          </div>
-          <div class="modal-buttons">
-            <button @click="saveEditedCell" class="save-button">Save</button>
-            <button @click="closeEditModal" class="cancel-button">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <EditCellModal
+      v-model:visible="editModalVisible"
+      :cell="editedCell"
+      @save="handleSaveEditedCell"
+      @close="closeEditModal"
+    />
   </div>
 </template>
 
@@ -269,20 +192,30 @@ import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/little_components/PremiumLock.vue';
+import WorkflowTooltip from '@/components/little_components/WorkflowTooltip.vue';
+import ExportTooltip from '@/components/little_components/ExportTooltip.vue';
+import BoardNavigation from '@/components/little_components/BoardNavigation.vue';
+import GridDimensionsManager from '@/components/utils/GridDimensionsManager';
+import LayoutStorageManager from '@/components/utils/LayoutStorageManager';
+import WidgetToolboxManager from '@/components/utils/WidgetToolboxManager';
+import EditCellModal from '@/components/modals/EditCellModal.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
 export default defineComponent({
   name: 'BingoPage',
   
   components: {
-    BingoWidget,
-    RiskManagementSidebar,
-    PremiumLock,
     GridLayout,
     GridItem,
+    BingoWidget,
     RiskRewardWidget,
-    TradeIdeaWidget,
-    TradeDetailsWidget
+    TradeDetailsWidget,
+    RiskManagementSidebar,
+    PremiumLock,
+    WorkflowTooltip,
+    ExportTooltip,
+    EditCellModal,
+    BoardNavigation
   },
 
   data() {
@@ -292,13 +225,13 @@ export default defineComponent({
         {
           x: 0,
           y: 0,
-          w: 4,
+          w: 5,
           h: 9,
           i: "bingo",
           title: "Bingo Grid",
           workflowNumber: 2,
           component: markRaw(BingoWidget),
-          minW: 4,
+          minW: 5,
           minH: 9,
           maxW: 12,
           maxH: 12,
@@ -307,7 +240,7 @@ export default defineComponent({
           }
         },
         {
-          x: 4,
+          x: 5,
           y: 0,
           w: 2,
           h: 9,
@@ -355,10 +288,7 @@ export default defineComponent({
           }
         }
       ],
-      workflowTooltipVisible: false,
-      workflowTooltipNumber: null,
-      workflowTooltipX: 0,
-      workflowTooltipY: 0,
+
       editModalVisible: false,
       editedCell: {
         title: '',
@@ -371,9 +301,6 @@ export default defineComponent({
       bingoWidgetRef: null,
       rowHeightValue: 45, // Base row height
       isDragging: false,
-      exportTooltipVisible: false,
-      exportTooltipX: 0,
-      exportTooltipY: 0,
       currentLayout: [],
       gridWidth: 0,
       gridHeight: 0,
@@ -425,15 +352,7 @@ export default defineComponent({
         this.handlePageNameUpdate(newName);
       }
     },
-    workflowTooltipStyle() {
-      return {
-        left: `${this.workflowTooltipX}px`,
-        top: `${this.workflowTooltipY}px`,
-        transform: 'translate(0, 20px)',
-        opacity: this.workflowTooltipVisible ? 1 : 0,
-        visibility: this.workflowTooltipVisible ? 'visible' : 'hidden'
-      }
-    },
+
     isMobile() {
       return window.innerWidth < 768;
     },
@@ -546,23 +465,8 @@ export default defineComponent({
     removeWidgetFromToolbox(widgetType) {
       console.log(`Removing widget: ${widgetType}`);
       
-      // Find widgets of the specified type and remove them from the layout
-      let widgetsRemoved = false;
-      const updatedLayout = this.layout.filter(item => {
-        // Special case for risk-reward widget which can use different prefixes
-        if (widgetType === 'risk-reward' && (item.i.startsWith('risk-reward-') || item.i.startsWith('risk-') || item.i === 'risk')) {
-          console.log(`Found risk-reward widget to remove: ${item.i}`);
-          widgetsRemoved = true;
-          return false;
-        }
-        // For other widgets, check if the ID starts with the widgetType
-        const shouldRemove = item.i.startsWith(widgetType);
-        if (shouldRemove) {
-          console.log(`Found widget to remove: ${item.i}`);
-          widgetsRemoved = true;
-        }
-        return !shouldRemove;
-      });
+      // Use WidgetToolboxManager to remove widgets of the specified type
+      const { updatedLayout, widgetsRemoved } = WidgetToolboxManager.removeWidgetsOfType(this.layout, widgetType);
       
       console.log(`Widgets removed: ${widgetsRemoved}`);
       console.log(`Updated layout length: ${updatedLayout.length}, Original layout length: ${this.layout.length}`);
@@ -620,14 +524,14 @@ export default defineComponent({
       };
     },
 
-    saveEditedCell() {
+    handleSaveEditedCell(updatedCell) {
       if (this.editingCellIndex !== null) {
         const currentCell = this.getCurrentPage?.bingoCells[this.editingCellIndex];
         if (currentCell) {
           this.editCell(this.editingCellIndex, {
             ...currentCell,
-            title: this.editedCell.title,
-            points: this.editedCell.points
+            title: updatedCell.title,
+            points: updatedCell.points
           });
         }
       }
@@ -656,41 +560,8 @@ export default defineComponent({
         this.$store.dispatch('bingo/saveCardState');
       }
     },
-    showWorkflowTooltip(event, number) {
-      event.stopPropagation();  // Prevent event bubbling
-      
-      // Only show if not already visible with same number
-      if (this.workflowTooltipVisible && this.workflowTooltipNumber === number) {
-        return;
-      }
-      
-      const workflowNumber = event.target;
-      const rect = workflowNumber.getBoundingClientRect();
-      
-      this.workflowTooltipX = rect.left;
-      this.workflowTooltipY = rect.bottom;
-      this.workflowTooltipNumber = number;
-      this.workflowTooltipVisible = true;
-    },
 
-    hideWorkflowTooltip(event) {
-      if (event) {
-        event.stopPropagation();  // Prevent event bubbling
-      }
-      this.workflowTooltipVisible = false;
-      this.workflowTooltipNumber = null;
-    },
-    showExportTooltip(event) {
-      const exportButton = event.target;
-      const rect = exportButton.getBoundingClientRect();
-      
-      this.exportTooltipX = rect.left;
-      this.exportTooltipY = rect.bottom;
-      this.exportTooltipVisible = true;
-    },
-    hideExportTooltip() {
-      this.exportTooltipVisible = false;
-    },
+
     handleScoreUpdate(score) {
       console.log('Score update received:', score);
       this.currentScore = score;
@@ -929,107 +800,19 @@ export default defineComponent({
     addWidgetFromToolbox(widgetType) {
       console.log(`Adding widget: ${widgetType}`);
       
-      // Check if widget already exists in the layout
-      let widgetExists = false;
-      if (widgetType === 'risk-reward') {
-        // Special case for risk-reward widget - check for both formats of ID
-        widgetExists = this.layout.some(item => 
-          item.i.startsWith('risk-reward-') || // New format
-          item.i.startsWith('risk-') || // Old format
-          item.i === 'risk' // Mobile format
-        );
-      } else {
-        widgetExists = this.layout.some(item => item.i.startsWith(widgetType));
-      }
+      // Check if widget already exists in the layout using WidgetToolboxManager
+      const widgetExists = WidgetToolboxManager.widgetExists(this.layout, widgetType);
       
       if (widgetExists) {
         console.log(`Widget ${widgetType} already exists in layout, not adding again`);
         return;
       }
 
-      // Find the maximum y-coordinate in the current layout
-      let maxY = 0;
-      this.layout.forEach(item => {
-        const itemBottom = item.y + item.h;
-        if (itemBottom > maxY) {
-          maxY = itemBottom;
-        }
-      });
+      // Find the maximum y-coordinate in the current layout using WidgetToolboxManager
+      const maxY = WidgetToolboxManager.findMaxY(this.layout);
 
-      // Create a new widget based on the type
-      let newWidget = null;
-
-      switch (widgetType) {
-        case 'bingo':
-          newWidget = {
-            x: 0,
-            y: maxY,
-            w: 4,
-            h: 9,
-            i: "bingo-" + Date.now(),
-            title: "Bingo Grid",
-            component: markRaw(BingoWidget),
-            minW: 4,
-            minH: 9,
-            maxW: 12,
-            maxH: 12,
-            props: {
-              score: 0
-            }
-          };
-          break;
-          
-        case 'risk-reward':
-          newWidget = {
-            x: 0,
-            y: maxY,
-            w: 2,
-            h: 9,
-            i: "risk-reward-" + Date.now(),
-            title: "Score: Risk/Reward",
-            component: markRaw(RiskRewardWidget),
-            minW: 2,
-            minH: 9,
-            maxW: 12,
-            maxH: 12,
-            props: {
-              score: 0
-            }
-          };
-          break;
-          
-        case 'trade-details':
-          newWidget = {
-            x: 0,
-            y: maxY,
-            w: 6,
-            h: 8,
-            i: "trade-details-" + Date.now(),
-            title: "Trade Details",
-            component: markRaw(TradeDetailsWidget),
-            minW: 3,
-            minH: 8,
-            maxW: 12,
-            maxH: 12
-          };
-          break;
-          
-        case 'trade-idea':
-          newWidget = {
-            x: 0,
-            y: maxY,
-            w: 3,
-            h: 6,
-            i: "trade-idea-" + Date.now(),
-            title: "Trade's Idea",
-            component: markRaw(TradeIdeaWidget),
-            minW: 3,
-            minH: 6,
-            maxW: 12,
-            maxH: 12
-          };
-          break;
-      }
+      // Create a new widget based on the type using WidgetToolboxManager
+      const newWidget = WidgetToolboxManager.createWidgetConfig(widgetType, maxY);
       
       if (newWidget) {
         console.log(`Adding new widget to layout:`, newWidget);
@@ -1050,103 +833,32 @@ export default defineComponent({
     },
 
     updateGridDimensions() {
-      const sidebarWidth = this.isSidebarCollapsed ? 60 : 300;
-      const horizontalPadding = 40;
-      const verticalPadding = 150;
-
-      this.gridWidth = window.innerWidth - sidebarWidth - horizontalPadding;
+      // Use the GridDimensionsManager utility to calculate dimensions
+      const dimensions = GridDimensionsManager.calculateDimensions({
+        isSidebarCollapsed: this.isSidebarCollapsed,
+        layout: this.responsiveLayout,
+        rowHeight: this.rowHeight
+      });
       
-      // Calculate the required height based on widget positions
-      let maxBottom = 0;
-      if (Array.isArray(this.responsiveLayout)) {
-        this.responsiveLayout.forEach(item => {
-          const bottom = (item.y + item.h) * this.rowHeight;
-          if (bottom > maxBottom) {
-            maxBottom = bottom;
-          }
-        });
-      }
+      // Update component data with calculated dimensions
+      this.gridWidth = dimensions.gridWidth;
+      this.gridHeight = dimensions.gridHeight;
       
-      // Set a minimum height based on viewport
-      const viewportHeight = window.innerHeight;
-      const minHeight = viewportHeight - verticalPadding;
-      
-      // Use the larger of calculated height or minimum height
-      this.gridHeight = Math.max(maxBottom + 100, minHeight);
-      
-      // Ensure minimum dimensions
-      this.gridWidth = Math.max(this.gridWidth, 300);
-      this.gridHeight = Math.max(this.gridHeight, 300);
-      
-      // Update the dashboard layout height
+      // Apply the dimensions to the DOM
       this.$nextTick(() => {
-        const dashboardLayout = document.querySelector('.dashboard-layout');
-        if (dashboardLayout) {
-          dashboardLayout.style.minHeight = `${this.gridHeight}px`;
-          
-          // Ensure the main content can scroll if needed
-          const mainContent = document.querySelector('.main-content');
-          if (mainContent) {
-            mainContent.style.overflow = 'auto';
-          }
-        }
+        GridDimensionsManager.applyDimensions(dimensions);
       });
     },
     
     updateActiveWidgetsInLocalStorage(widgetType, action) {
-      // Get current active widgets from localStorage
-      const storedWidgets = localStorage.getItem('activeWidgets');
-      let activeWidgets = storedWidgets ? JSON.parse(storedWidgets) : [];
-      
-      if (action === 'add' && !activeWidgets.includes(widgetType)) {
-        // Add the widget to active widgets
-        activeWidgets.push(widgetType);
-        console.log(`Added ${widgetType} to active widgets in localStorage`);
-      } else if (action === 'remove') {
-        // Remove the widget from active widgets
-        activeWidgets = activeWidgets.filter(type => type !== widgetType);
-        console.log(`Removed ${widgetType} from active widgets in localStorage`);
-      }
-      
-      // Save updated active widgets to localStorage
-      localStorage.setItem('activeWidgets', JSON.stringify(activeWidgets));
-      console.log('Active widgets in localStorage:', activeWidgets);
+      // Use the LayoutStorageManager utility to update active widgets
+      LayoutStorageManager.updateActiveWidgets(widgetType, action);
     },
     
     // Sync the active widgets in localStorage with the current layout
     syncActiveWidgetsWithLayout() {
-      const activeWidgets = [];
-      
-      console.log('Syncing active widgets with layout:', this.layout);
-      
-      // Check for each widget type in the layout
-      if (this.layout.some(item => item.i.startsWith('bingo'))) {
-        activeWidgets.push('bingo');
-      }
-      
-      // Special case for risk-reward widget - check for both formats of ID
-      const hasRiskWidget = this.layout.some(item => 
-        item.i.startsWith('risk-reward-') || // New format
-        item.i.startsWith('risk-') || // Old format
-        item.i === 'risk' // Mobile format
-      );
-      console.log('Has risk widget?', hasRiskWidget);
-      if (hasRiskWidget) {
-        activeWidgets.push('risk-reward');
-      }
-      
-      if (this.layout.some(item => item.i.startsWith('trade-details'))) {
-        activeWidgets.push('trade-details');
-      }
-      
-      if (this.layout.some(item => item.i.startsWith('trade-idea'))) {
-        activeWidgets.push('trade-idea');
-      }
-      
-      console.log('Active widgets after sync:', activeWidgets);
-      
-      // Save to localStorage
-      localStorage.setItem('activeWidgets', JSON.stringify(activeWidgets));
+      // Use the LayoutStorageManager utility to sync active widgets with layout
+      LayoutStorageManager.syncActiveWidgetsWithLayout(this.layout);
     },
     
 

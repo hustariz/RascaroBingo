@@ -11,7 +11,7 @@ import PaymentPage from '@/components/app/PaymentPage.vue'
 import EmailVerification from '@/components/forms/EmailVerificationForm.vue'
 import ResetPassword from '@/components/forms/ResetPasswordForm.vue'
 import HyperliquidTest from '@/components/hyperliquid/HyperliquidTest.vue'
-import WidgetToolbox from '@/components/toolbox/WidgetToolbox.vue'
+import WidgetToolbox from '@/components/widgets/WidgetToolbox.vue'
 
 // Auth guard
 const authGuard = (to, from, next) => {
