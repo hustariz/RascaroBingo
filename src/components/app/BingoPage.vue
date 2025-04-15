@@ -196,6 +196,7 @@ import WorkflowTooltip from '@/components/little_components/WorkflowTooltip.vue'
 import ExportTooltip from '@/components/little_components/ExportTooltip.vue';
 import BoardNavigation from '@/components/little_components/BoardNavigation.vue';
 import GridDimensionsManager from '@/components/utils/GridDimensionsManager';
+import LayoutStorageManager from '@/components/utils/LayoutStorageManager';
 import EditCellModal from '@/components/modals/EditCellModal.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
@@ -223,13 +224,13 @@ export default defineComponent({
         {
           x: 0,
           y: 0,
-          w: 4,
+          w: 5,
           h: 9,
           i: "bingo",
           title: "Bingo Grid",
           workflowNumber: 2,
           component: markRaw(BingoWidget),
-          minW: 4,
+          minW: 5,
           minH: 9,
           maxW: 12,
           maxH: 12,
@@ -238,7 +239,7 @@ export default defineComponent({
           }
         },
         {
-          x: 4,
+          x: 5,
           y: 0,
           w: 2,
           h: 9,
@@ -848,12 +849,12 @@ export default defineComponent({
           newWidget = {
             x: 0,
             y: maxY,
-            w: 4,
+            w: 5,
             h: 9,
             i: "bingo-" + Date.now(),
             title: "Bingo Grid",
             component: markRaw(BingoWidget),
-            minW: 4,
+            minW: 5,
             minH: 9,
             maxW: 12,
             maxH: 12,
@@ -865,7 +866,7 @@ export default defineComponent({
           
         case 'risk-reward':
           newWidget = {
-            x: 0,
+            x: 1,
             y: maxY,
             w: 2,
             h: 9,
@@ -952,59 +953,14 @@ export default defineComponent({
     },
     
     updateActiveWidgetsInLocalStorage(widgetType, action) {
-      // Get current active widgets from localStorage
-      const storedWidgets = localStorage.getItem('activeWidgets');
-      let activeWidgets = storedWidgets ? JSON.parse(storedWidgets) : [];
-      
-      if (action === 'add' && !activeWidgets.includes(widgetType)) {
-        // Add the widget to active widgets
-        activeWidgets.push(widgetType);
-        console.log(`Added ${widgetType} to active widgets in localStorage`);
-      } else if (action === 'remove') {
-        // Remove the widget from active widgets
-        activeWidgets = activeWidgets.filter(type => type !== widgetType);
-        console.log(`Removed ${widgetType} from active widgets in localStorage`);
-      }
-      
-      // Save updated active widgets to localStorage
-      localStorage.setItem('activeWidgets', JSON.stringify(activeWidgets));
-      console.log('Active widgets in localStorage:', activeWidgets);
+      // Use the LayoutStorageManager utility to update active widgets
+      LayoutStorageManager.updateActiveWidgets(widgetType, action);
     },
     
     // Sync the active widgets in localStorage with the current layout
     syncActiveWidgetsWithLayout() {
-      const activeWidgets = [];
-      
-      console.log('Syncing active widgets with layout:', this.layout);
-      
-      // Check for each widget type in the layout
-      if (this.layout.some(item => item.i.startsWith('bingo'))) {
-        activeWidgets.push('bingo');
-      }
-      
-      // Special case for risk-reward widget - check for both formats of ID
-      const hasRiskWidget = this.layout.some(item => 
-        item.i.startsWith('risk-reward-') || // New format
-        item.i.startsWith('risk-') || // Old format
-        item.i === 'risk' // Mobile format
-      );
-      console.log('Has risk widget?', hasRiskWidget);
-      if (hasRiskWidget) {
-        activeWidgets.push('risk-reward');
-      }
-      
-      if (this.layout.some(item => item.i.startsWith('trade-details'))) {
-        activeWidgets.push('trade-details');
-      }
-      
-      if (this.layout.some(item => item.i.startsWith('trade-idea'))) {
-        activeWidgets.push('trade-idea');
-      }
-      
-      console.log('Active widgets after sync:', activeWidgets);
-      
-      // Save to localStorage
-      localStorage.setItem('activeWidgets', JSON.stringify(activeWidgets));
+      // Use the LayoutStorageManager utility to sync active widgets with layout
+      LayoutStorageManager.syncActiveWidgetsWithLayout(this.layout);
     },
     
 
