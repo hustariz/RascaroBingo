@@ -186,7 +186,7 @@
                       </teleport>
                     </div>
                   </template>
-                  <Workflow 
+                  <WorkflowTooltip 
                     v-if="item.workflowNumber" 
                     :number="item.workflowNumber"
                     :key="'workflow-' + item.i"
@@ -259,7 +259,7 @@ import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/little_components/PremiumLock.vue';
-import Workflow from '@/components/little_components/Worflow.vue';
+import WorkflowTooltip from '@/components/little_components/WorkflowTooltip.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
 export default defineComponent({
@@ -274,7 +274,7 @@ export default defineComponent({
     RiskRewardWidget,
     TradeIdeaWidget,
     TradeDetailsWidget,
-    Workflow
+    WorkflowTooltip
   },
 
   data() {
