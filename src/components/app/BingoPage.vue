@@ -197,6 +197,7 @@ import ExportTooltip from '@/components/little_components/ExportTooltip.vue';
 import BoardNavigation from '@/components/little_components/BoardNavigation.vue';
 import GridDimensionsManager from '@/components/utils/GridDimensionsManager';
 import LayoutStorageManager from '@/components/utils/LayoutStorageManager';
+import WidgetToolboxManager from '@/components/utils/WidgetToolboxManager';
 import EditCellModal from '@/components/modals/EditCellModal.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
@@ -464,23 +465,8 @@ export default defineComponent({
     removeWidgetFromToolbox(widgetType) {
       console.log(`Removing widget: ${widgetType}`);
       
-      // Find widgets of the specified type and remove them from the layout
-      let widgetsRemoved = false;
-      const updatedLayout = this.layout.filter(item => {
-        // Special case for risk-reward widget which can use different prefixes
-        if (widgetType === 'risk-reward' && (item.i.startsWith('risk-reward-') || item.i.startsWith('risk-') || item.i === 'risk')) {
-          console.log(`Found risk-reward widget to remove: ${item.i}`);
-          widgetsRemoved = true;
-          return false;
-        }
-        // For other widgets, check if the ID starts with the widgetType
-        const shouldRemove = item.i.startsWith(widgetType);
-        if (shouldRemove) {
-          console.log(`Found widget to remove: ${item.i}`);
-          widgetsRemoved = true;
-        }
-        return !shouldRemove;
-      });
+      // Use WidgetToolboxManager to remove widgets of the specified type
+      const { updatedLayout, widgetsRemoved } = WidgetToolboxManager.removeWidgetsOfType(this.layout, widgetType);
       
       console.log(`Widgets removed: ${widgetsRemoved}`);
       console.log(`Updated layout length: ${updatedLayout.length}, Original layout length: ${this.layout.length}`);
@@ -814,107 +800,19 @@ export default defineComponent({
     addWidgetFromToolbox(widgetType) {
       console.log(`Adding widget: ${widgetType}`);
       
-      // Check if widget already exists in the layout
-      let widgetExists = false;
-      if (widgetType === 'risk-reward') {
-        // Special case for risk-reward widget - check for both formats of ID
-        widgetExists = this.layout.some(item => 
-          item.i.startsWith('risk-reward-') || // New format
-          item.i.startsWith('risk-') || // Old format
-          item.i === 'risk' // Mobile format
-        );
-      } else {
-        widgetExists = this.layout.some(item => item.i.startsWith(widgetType));
-      }
+      // Check if widget already exists in the layout using WidgetToolboxManager
+      const widgetExists = WidgetToolboxManager.widgetExists(this.layout, widgetType);
       
       if (widgetExists) {
         console.log(`Widget ${widgetType} already exists in layout, not adding again`);
         return;
       }
 
-      // Find the maximum y-coordinate in the current layout
-      let maxY = 0;
-      this.layout.forEach(item => {
-        const itemBottom = item.y + item.h;
-        if (itemBottom > maxY) {
-          maxY = itemBottom;
-        }
-      });
+      // Find the maximum y-coordinate in the current layout using WidgetToolboxManager
+      const maxY = WidgetToolboxManager.findMaxY(this.layout);
 
-      // Create a new widget based on the type
-      let newWidget = null;
-
-      switch (widgetType) {
-        case 'bingo':
-          newWidget = {
-            x: 0,
-            y: maxY,
-            w: 5,
-            h: 9,
-            i: "bingo-" + Date.now(),
-            title: "Bingo Grid",
-            component: markRaw(BingoWidget),
-            minW: 5,
-            minH: 9,
-            maxW: 12,
-            maxH: 12,
-            props: {
-              score: 0
-            }
-          };
-          break;
-          
-        case 'risk-reward':
-          newWidget = {
-            x: 1,
-            y: maxY,
-            w: 2,
-            h: 9,
-            i: "risk-reward-" + Date.now(),
-            title: "Score: Risk/Reward",
-            component: markRaw(RiskRewardWidget),
-            minW: 2,
-            minH: 9,
-            maxW: 12,
-            maxH: 12,
-            props: {
-              score: 0
-            }
-          };
-          break;
-          
-        case 'trade-details':
-          newWidget = {
-            x: 0,
-            y: maxY,
-            w: 6,
-            h: 8,
-            i: "trade-details-" + Date.now(),
-            title: "Trade Details",
-            component: markRaw(TradeDetailsWidget),
-            minW: 3,
-            minH: 8,
-            maxW: 12,
-            maxH: 12
-          };
-          break;
-          
-        case 'trade-idea':
-          newWidget = {
-            x: 0,
-            y: maxY,
-            w: 3,
-            h: 6,
-            i: "trade-idea-" + Date.now(),
-            title: "Trade's Idea",
-            component: markRaw(TradeIdeaWidget),
-            minW: 3,
-            minH: 6,
-            maxW: 12,
-            maxH: 12
-          };
-          break;
-      }
+      // Create a new widget based on the type using WidgetToolboxManager
+      const newWidget = WidgetToolboxManager.createWidgetConfig(widgetType, maxY);
       
       if (newWidget) {
         console.log(`Adding new widget to layout:`, newWidget);
