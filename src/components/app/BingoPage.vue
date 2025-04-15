@@ -186,15 +186,11 @@
                       </teleport>
                     </div>
                   </template>
-                  <div 
-                    class="workflow-number" 
-                    v-if="item.workflowNumber"
+                  <Workflow 
+                    v-if="item.workflowNumber" 
+                    :number="item.workflowNumber"
                     :key="'workflow-' + item.i"
-                    @mouseenter="showWorkflowTooltip($event, item.workflowNumber)"
-                    @mouseleave="hideWorkflowTooltip"
-                  >
-                    {{ item.workflowNumber }}
-                  </div>
+                  />
                 </div>
                 <div class="drag-icon"></div>
               </div>
@@ -228,13 +224,7 @@
       <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 3rem; z-index: -1;"></div>
     </div>
 
-    <!-- Workflow Tooltip -->
-    <div class="workflow-tooltip" v-show="workflowTooltipVisible" :style="workflowTooltipStyle">
-      <div v-if="workflowTooltipNumber === 1">First check your trading pair and write your trade idea 💭</div>
-      <div v-if="workflowTooltipNumber === 2">Attribute points to your trading practices and check the bingo cases to increase your score! 🎯</div>
-      <div v-if="workflowTooltipNumber === 3">The more points you earn, the more risk you can allocate to your trade, which can be a further target / stoploss or more size for the trade! 📈</div>
-      <div v-if="workflowTooltipNumber === 4">Now enter the stoploss of your trade first (where your idea is wrong), then your entry and we will calculate a proposal of target based of the points you earned previously! 🎯💰</div>
-    </div>
+
 
     <!-- Edit Modal -->
     <div v-if="editModalVisible" class="modal">
@@ -269,6 +259,7 @@ import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/little_components/PremiumLock.vue';
+import Workflow from '@/components/little_components/Worflow.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
 export default defineComponent({
@@ -282,7 +273,8 @@ export default defineComponent({
     GridItem,
     RiskRewardWidget,
     TradeIdeaWidget,
-    TradeDetailsWidget
+    TradeDetailsWidget,
+    Workflow
   },
 
   data() {
@@ -355,10 +347,7 @@ export default defineComponent({
           }
         }
       ],
-      workflowTooltipVisible: false,
-      workflowTooltipNumber: null,
-      workflowTooltipX: 0,
-      workflowTooltipY: 0,
+
       editModalVisible: false,
       editedCell: {
         title: '',
@@ -425,15 +414,7 @@ export default defineComponent({
         this.handlePageNameUpdate(newName);
       }
     },
-    workflowTooltipStyle() {
-      return {
-        left: `${this.workflowTooltipX}px`,
-        top: `${this.workflowTooltipY}px`,
-        transform: 'translate(0, 20px)',
-        opacity: this.workflowTooltipVisible ? 1 : 0,
-        visibility: this.workflowTooltipVisible ? 'visible' : 'hidden'
-      }
-    },
+
     isMobile() {
       return window.innerWidth < 768;
     },
@@ -656,30 +637,7 @@ export default defineComponent({
         this.$store.dispatch('bingo/saveCardState');
       }
     },
-    showWorkflowTooltip(event, number) {
-      event.stopPropagation();  // Prevent event bubbling
-      
-      // Only show if not already visible with same number
-      if (this.workflowTooltipVisible && this.workflowTooltipNumber === number) {
-        return;
-      }
-      
-      const workflowNumber = event.target;
-      const rect = workflowNumber.getBoundingClientRect();
-      
-      this.workflowTooltipX = rect.left;
-      this.workflowTooltipY = rect.bottom;
-      this.workflowTooltipNumber = number;
-      this.workflowTooltipVisible = true;
-    },
 
-    hideWorkflowTooltip(event) {
-      if (event) {
-        event.stopPropagation();  // Prevent event bubbling
-      }
-      this.workflowTooltipVisible = false;
-      this.workflowTooltipNumber = null;
-    },
     showExportTooltip(event) {
       const exportButton = event.target;
       const rect = exportButton.getBoundingClientRect();
