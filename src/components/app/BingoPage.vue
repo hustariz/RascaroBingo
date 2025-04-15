@@ -159,7 +159,7 @@
                 @open-edit-modal="openEditModal"
               />
             </div>
-            <div class="vue-resizable-handle"></div>
+            <!-- Removed duplicate resize handle -->
           </div>
         </GridItem>
             </GridLayout>
