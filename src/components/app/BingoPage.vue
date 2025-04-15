@@ -167,23 +167,7 @@
                         🗑
                       </button>
 
-                      <button 
-                        class="page-nav-button export-button"
-                        @click="item.navigation.onExport"
-                        @mouseover="showExportTooltip($event)"
-                        @mouseleave="hideExportTooltip"
-                      >
-                        ↓
-                      </button>
-                      <teleport to="body" v-if="exportTooltipVisible">
-                        <div class="workflow-tooltip" :style="{
-                          left: exportTooltipX + 'px',
-                          top: exportTooltipY + 'px',
-                          visibility: 'visible'
-                        }">
-                          Export to Excel
-                        </div>
-                      </teleport>
+                      <ExportTooltip @export="item.navigation.onExport" />
                     </div>
                   </template>
                   <WorkflowTooltip 
@@ -247,6 +231,7 @@ import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import RiskManagementSidebar from '@/components/app/RiskManagementSidebar.vue';
 import PremiumLock from '@/components/little_components/PremiumLock.vue';
 import WorkflowTooltip from '@/components/little_components/WorkflowTooltip.vue';
+import ExportTooltip from '@/components/little_components/ExportTooltip.vue';
 import EditCellModal from '@/components/modals/EditCellModal.vue';
 import { GridLayout, GridItem } from 'vue3-grid-layout';
 
@@ -263,6 +248,7 @@ export default defineComponent({
     TradeIdeaWidget,
     TradeDetailsWidget,
     WorkflowTooltip,
+    ExportTooltip,
     EditCellModal
   },
 
@@ -349,9 +335,6 @@ export default defineComponent({
       bingoWidgetRef: null,
       rowHeightValue: 45, // Base row height
       isDragging: false,
-      exportTooltipVisible: false,
-      exportTooltipX: 0,
-      exportTooltipY: 0,
       currentLayout: [],
       gridWidth: 0,
       gridHeight: 0,
@@ -627,17 +610,7 @@ export default defineComponent({
       }
     },
 
-    showExportTooltip(event) {
-      const exportButton = event.target;
-      const rect = exportButton.getBoundingClientRect();
-      
-      this.exportTooltipX = rect.left;
-      this.exportTooltipY = rect.bottom;
-      this.exportTooltipVisible = true;
-    },
-    hideExportTooltip() {
-      this.exportTooltipVisible = false;
-    },
+
     handleScoreUpdate(score) {
       console.log('Score update received:', score);
       this.currentScore = score;
