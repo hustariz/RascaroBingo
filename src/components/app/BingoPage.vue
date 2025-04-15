@@ -465,6 +465,21 @@ export default defineComponent({
     removeWidgetFromToolbox(widgetType) {
       console.log(`Removing widget: ${widgetType}`);
       
+      // First find the widget we're about to remove to preserve its state
+      const widgetToRemove = this.layout.find(item => {
+        if (widgetType === 'risk-reward') {
+          return item.i.startsWith('risk-reward-') || item.i.startsWith('risk-') || item.i === 'risk';
+        }
+        return item.i.startsWith(widgetType);
+      });
+      
+      if (widgetToRemove) {
+        console.log(`Found widget to remove with ID ${widgetToRemove.i}:`, widgetToRemove);
+        
+        // Save the complete layout with this widget's current state
+        LayoutStorageManager.saveCompleteLayout(this.layout);
+      }
+      
       // Use WidgetToolboxManager to remove widgets of the specified type
       const { updatedLayout, widgetsRemoved } = WidgetToolboxManager.removeWidgetsOfType(this.layout, widgetType);
       
@@ -473,6 +488,9 @@ export default defineComponent({
       
       // Update the layout with the filtered widgets
       this.layout = updatedLayout;
+      
+      // Also update currentLayout to ensure the grid updates
+      this.currentLayout = this.responsiveLayout;
       
       // Update localStorage to remove the widget from active widgets
       this.updateActiveWidgetsInLocalStorage(widgetType, 'remove');
@@ -669,6 +687,9 @@ export default defineComponent({
     onLayoutUpdated(newLayout) {
       console.log('Layout updated');
       
+      // Save the complete layout whenever the user moves or resizes widgets
+      LayoutStorageManager.saveCompleteLayout(newLayout);
+      
       // Find the maximum y + h position to determine the required height
       let maxBottom = 0;
       
@@ -810,13 +831,38 @@ export default defineComponent({
 
       // Find the maximum y-coordinate in the current layout using WidgetToolboxManager
       const maxY = WidgetToolboxManager.findMaxY(this.layout);
+      console.log(`Current maximum Y coordinate: ${maxY}`);
 
+      // Get the saved layout for this widget type
+      const savedLayout = LayoutStorageManager.getWidgetLayout(widgetType);
+      console.log(`Saved layout for ${widgetType}:`, savedLayout);
+      
       // Create a new widget based on the type using WidgetToolboxManager
       const newWidget = WidgetToolboxManager.createWidgetConfig(widgetType, maxY);
       
       if (newWidget) {
+        // Update the widget props with the current score if it's a score-related widget
+        if (widgetType === 'risk-reward' || widgetType === 'bingo') {
+          if (!newWidget.props) {
+            newWidget.props = {};
+          }
+          newWidget.props.score = this.activeScore;
+          console.log(`Updated ${widgetType} widget with current score:`, this.activeScore);
+        }
+        
         console.log(`Adding new widget to layout:`, newWidget);
-        this.layout.push(newWidget);
+        
+        // Create a copy of the current layout
+        const updatedLayout = [...this.layout];
+        
+        // Add the new widget to the layout
+        updatedLayout.push(newWidget);
+        
+        // Update the layout property
+        this.layout = updatedLayout;
+        
+        // Also update currentLayout to ensure the grid updates
+        this.currentLayout = this.responsiveLayout;
         
         // Update localStorage to add the widget to active widgets
         this.updateActiveWidgetsInLocalStorage(widgetType, 'add');
@@ -827,6 +873,10 @@ export default defineComponent({
           
           // Force a sync of active widgets with layout
           this.syncActiveWidgetsWithLayout();
+          
+          // Save the complete layout to ensure it's up to date
+          LayoutStorageManager.saveCompleteLayout(this.layout);
+          
           console.log('Active widgets after adding:', JSON.parse(localStorage.getItem('activeWidgets')));
         });
       }
@@ -874,12 +924,16 @@ export default defineComponent({
     // Add resize event listener
     window.addEventListener('resize', this.handleResize);
     
-    // Initial sync of active widgets with layout
+    // Save the initial layout to ensure we have the original positions for all widgets
     this.$nextTick(() => {
+      console.log('Saving initial layout configuration');
+      // Save both the widget configurations and the complete layout
+      LayoutStorageManager.saveWidgetConfigurations(this.layout);
+      LayoutStorageManager.saveCompleteLayout(this.layout);
+      
+      // Initial sync of active widgets with layout
       this.syncActiveWidgetsWithLayout();
     });
-    
-
     
     this.$nextTick(() => {
       console.log('BingoPage nextTick');

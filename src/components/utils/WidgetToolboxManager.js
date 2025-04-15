@@ -11,6 +11,7 @@ import RiskRewardWidget from '@/components/widgets/RiskRewardWidget.vue';
 import TradeDetailsWidget from '@/components/widgets/TradeDetailsWidget.vue';
 import TradeIdeaWidget from '@/components/widgets/TradeIdeaWidget.vue';
 import { markRaw } from 'vue';
+import LayoutStorageManager from './LayoutStorageManager';
 
 export default class WidgetToolboxManager {
   /**
@@ -64,6 +65,133 @@ export default class WidgetToolboxManager {
    * @returns {Object|null} Widget configuration object or null if widget type is not supported
    */
   static createWidgetConfig(widgetType, maxY) {
+    // First, check if we have a saved layout for this widget type
+    const savedLayout = LayoutStorageManager.getWidgetLayout(widgetType);
+    
+    // If we have a saved layout, use it as a base but update some properties
+    if (savedLayout) {
+      console.log(`Using saved layout for ${widgetType}:`, savedLayout);
+      
+      // Create a new widget with the saved position and size
+      let component;
+      
+      // Set component based on widget type
+      switch (widgetType) {
+        case 'bingo':
+          component = markRaw(BingoWidget);
+          break;
+          
+        case 'risk-reward':
+          component = markRaw(RiskRewardWidget);
+          break;
+          
+        case 'trade-details':
+          component = markRaw(TradeDetailsWidget);
+          break;
+          
+        case 'trade-idea':
+          component = markRaw(TradeIdeaWidget);
+          break;
+      }
+      
+      // Create a new widget by copying all properties from the saved layout
+      const newWidget = { ...savedLayout };
+      
+      // Update the component reference but KEEP the original ID to maintain connections
+      newWidget.component = component;
+      
+      // Only generate a new ID if the original one doesn't exist
+      if (!newWidget.i) {
+        newWidget.i = `${widgetType}-${Date.now()}`;
+      }
+      
+      // Ensure numeric properties are stored as numbers
+      newWidget.x = parseInt(savedLayout.x);
+      newWidget.y = parseInt(savedLayout.y);
+      newWidget.w = parseInt(savedLayout.w);
+      newWidget.h = parseInt(savedLayout.h);
+      
+      console.log(`Created widget from saved layout:`, newWidget);
+      return newWidget;
+    }
+    
+    // If no saved layout, check if we have a saved configuration
+    const savedConfig = LayoutStorageManager.getWidgetConfiguration(widgetType);
+    
+    // If we have a saved configuration, use it as a base
+    if (savedConfig) {
+      console.log(`Using saved configuration for ${widgetType}:`, savedConfig);
+      
+      // Create a new widget with the saved position and size
+      let component;
+      let title;
+      let minW, minH, maxW, maxH;
+      
+      // Set component and constraints based on widget type
+      switch (widgetType) {
+        case 'bingo':
+          component = markRaw(BingoWidget);
+          title = "Bingo Grid";
+          minW = 5;
+          minH = 9;
+          maxW = 12;
+          maxH = 12;
+          break;
+          
+        case 'risk-reward':
+          component = markRaw(RiskRewardWidget);
+          title = "Score: Risk/Reward";
+          minW = 2;
+          minH = 9;
+          maxW = 12;
+          maxH = 12;
+          break;
+          
+        case 'trade-details':
+          component = markRaw(TradeDetailsWidget);
+          title = "Trade Details";
+          minW = 3;
+          minH = 8;
+          maxW = 12;
+          maxH = 12;
+          break;
+          
+        case 'trade-idea':
+          component = markRaw(TradeIdeaWidget);
+          title = "Trade's Idea";
+          minW = 3;
+          minH = 6;
+          maxW = 12;
+          maxH = 12;
+          break;
+      }
+      
+      // Parse saved values to ensure they're numbers
+      const x = parseInt(savedConfig.x);
+      const y = parseInt(savedConfig.y);
+      const w = parseInt(savedConfig.w);
+      const h = parseInt(savedConfig.h);
+      
+      console.log(`Parsed saved configuration: x=${x}, y=${y}, w=${w}, h=${h}`);
+      
+      // Create a new widget with saved position and size, but new ID and component
+      return {
+        x: x,
+        y: y,
+        w: w,
+        h: h,
+        i: `${widgetType}-${Date.now()}`,
+        title: title,
+        component: component,
+        minW: minW,
+        minH: minH,
+        maxW: maxW,
+        maxH: maxH,
+        props: savedConfig.props || {}
+      };
+    }
+    
+    // If no saved configuration, create a default one
     let newWidget = null;
 
     switch (widgetType) {
@@ -73,8 +201,9 @@ export default class WidgetToolboxManager {
           y: maxY,
           w: 5,
           h: 9,
-          i: "bingo-" + Date.now(),
+          i: "bingo", // Use consistent ID for bingo widget
           title: "Bingo Grid",
+          workflowNumber: 2,  // Add workflow number for bingo grid
           component: markRaw(BingoWidget),
           minW: 5,
           minH: 9,
@@ -92,8 +221,9 @@ export default class WidgetToolboxManager {
           y: maxY,
           w: 2,
           h: 9,
-          i: "risk-reward-" + Date.now(),
+          i: "risk", // Use consistent ID for risk-reward widget
           title: "Score: Risk/Reward",
+          workflowNumber: 3,  // Add workflow number for risk-reward
           component: markRaw(RiskRewardWidget),
           minW: 2,
           minH: 9,
@@ -111,8 +241,9 @@ export default class WidgetToolboxManager {
           y: maxY,
           w: 6,
           h: 8,
-          i: "trade-details-" + Date.now(),
+          i: "trade-details", // Use consistent ID for trade-details widget
           title: "Trade Details",
+          workflowNumber: 4,  // Add workflow number for trade-details
           component: markRaw(TradeDetailsWidget),
           minW: 3,
           minH: 8,
@@ -127,8 +258,9 @@ export default class WidgetToolboxManager {
           y: maxY,
           w: 3,
           h: 6,
-          i: "trade-idea-" + Date.now(),
+          i: "trade-idea", // Use consistent ID for trade-idea widget
           title: "Trade's Idea",
+          workflowNumber: 5,  // Add workflow number for trade-idea
           component: markRaw(TradeIdeaWidget),
           minW: 3,
           minH: 6,
